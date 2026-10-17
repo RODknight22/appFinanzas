@@ -19,18 +19,32 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 ## Coding Principles & Developer Mentorship
 - **Legibilidad ante todo**: Escribe código autodocumentado, modular y con tipado estricto (Type hints en Python, TypeScript o JSDoc claro en React).
 - **Comentarios explicativos**: Agrega comentarios breves que expliquen el *por qué* de las funciones clave para facilitar el aprendizaje del usuario al leer los archivos.
-- **Manejo de errores limpio**: Respuestas HTTP semánticas (`400`, `404`, `422`, `500`) con mensajes legibles.
-- **Separación de responsabilidades**: 
+- **Manejo de errores limpio**: Respuestas HTTP semánticas (`400`, `404`, `409`, `422`, `500`) con mensajes legibles.
+- **Separación de responsabilidades**:
   - Backend: Routers -> Services / CRUD -> Models / Schemas.
   - Frontend: Pages -> Components -> API services (`fetch`/`axios`).
+
+## Convenciones del Backend (`backend/app/`)
+- Código y API en español, sin tildes ni ñ en identificadores (`mes_anio`, `/transacciones`).
+- Por entidad: `XBase` + tabla `X` en models.py; `XCreate`/`XRead`/`XUpdate` en schemas.py.
+- Importes con `Decimal` (12 dígitos, 2 decimales), siempre positivos: el signo lo da `tipo`.
+- Los servicios lanzan `ErrorDeDominio` (services/errores.py): 400 regla, 404 no existe, 409 conflicto;
+  main.py los traduce a `{"detail": "..."}`. Los routers no contienen lógica.
+- PATCH parcial vía `cambios_parciales()`; no se borran registros con dependencias (409).
+- Tablas creadas con `create_all` al arrancar. Sin Alembic aún: cambiar el esquema = borrar `data/finance.db`.
+
+## Estado del Proyecto
+- [x] Paso 1: estructura, modelos, SQLite persistente, CRUD de cuentas, categorías,
+  transacciones y presupuestos; Docker del backend.
+- [ ] Pendiente: CRUD de suscripciones, endpoints del dashboard, frontend, tests.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
 - `docker compose down`: Apaga los contenedores conservando el volumen de SQLite.
+- Sin Docker: `cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload`.
 - Backend API Docs: accesible localmente en `http://localhost:8000/docs`.
 - Frontend Web UI: accesible localmente en `http://localhost:5173`.
 
 ## Reglas
-Necesito que vayas actualizando este documento y que tenga menos de 70 lineas para que tu puedas ir evolucionando con el pryecto. Aqui puedes modificar todo lo que tu creas conveniente para poder crear mi app
-
-Tambien usa git para poder guardar todos los cambios y lo que me importa es tener un buen historial de commits cuando se completa algo
+- Mantener este documento actualizado y con menos de 70 líneas.
+- Usar git: un commit descriptivo (Conventional Commits, en español) por cada pieza completada.

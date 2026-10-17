@@ -1,0 +1,14 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATA_DIR: /data
+    volumes:
+      # La BD vive en ./data del host: sobrevive a `docker compose down`.
+      - ./data:/data
+      # Desarrollo: montamos el código para que --reload aplique los cambios al guardar.
+      - ./backend/app:/app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
