@@ -1,0 +1,19 @@
+# Base de datos local: los datos reales nunca se suben a git
+data/*
+!data/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node (frontend)
+node_modules/
+dist/
+
+# Entorno y editores
+.env
+.vscode/
+.idea/
