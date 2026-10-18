@@ -37,7 +37,7 @@ def client(session: Session) -> Generator[TestClient, None, None]:
 @pytest.fixture
 def cuenta(client: TestClient) -> dict:
     respuesta = client.post(
-        "/cuentas", json={"nombre": "Banco", "tipo": "banco", "balance_inicial": "1000"}
+        "/cuentas", json={"nombre": "Banco", "tipo": "debito", "balance_inicial": "1000"}
     )
     return respuesta.json()
 

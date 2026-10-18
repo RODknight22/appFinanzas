@@ -51,5 +51,5 @@ def test_presupuesto_duplicado_y_mes_invalido(client: TestClient, categoria_gast
 def test_patch_parcial_y_nulo_en_campo_obligatorio(client: TestClient, cuenta: dict) -> None:
     respuesta = client.patch(f"/cuentas/{cuenta['id']}", json={"nombre": "Banco Nuevo"})
     assert respuesta.json()["nombre"] == "Banco Nuevo"
-    assert respuesta.json()["tipo"] == "banco"  # lo no enviado no cambia
+    assert respuesta.json()["tipo"] == "debito"  # lo no enviado no cambia
     assert client.patch(f"/cuentas/{cuenta['id']}", json={"tipo": None}).status_code == 400

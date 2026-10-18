@@ -30,8 +30,9 @@ class TipoMovimiento(str, Enum):
 
 class TipoCuenta(str, Enum):
     EFECTIVO = "efectivo"
-    BANCO = "banco"
-    TARJETA = "tarjeta"
+    DEBITO = "debito"
+    CREDITO = "credito"  # tarjeta de crédito: usa dia_corte, dia_pago y limite_credito
+    RENDIMIENTOS = "rendimientos"  # cuenta con rendimientos diarios: usa tasa_rendimiento_anual
     AHORRO = "ahorro"
     INVERSION = "inversion"
 
@@ -40,6 +41,16 @@ class Periodicidad(str, Enum):
     SEMANAL = "semanal"
     MENSUAL = "mensual"
     ANUAL = "anual"
+
+
+class Moneda(str, Enum):
+    """Códigos ISO 4217: el frontend los usa para formatear con Intl.NumberFormat."""
+
+    MXN = "MXN"  # peso mexicano
+    USD = "USD"  # dólar estadounidense
+    EUR = "EUR"  # euro
+    GTQ = "GTQ"  # quetzal guatemalteco
+    HNL = "HNL"  # lempira hondureño
 
 
 # ---------------------------------------------------------------------------
@@ -71,10 +82,23 @@ class CuentaBase(SQLModel):
     balance_inicial: Decimal = Field(
         default=Decimal("0"), max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
+    # --- Solo tarjetas de crédito (en otros tipos quedan en null) ---
+    dia_corte: int | None = Field(default=None, ge=1, le=31)
+    dia_pago: int | None = Field(default=None, ge=1, le=31)
+    limite_credito: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    # --- Solo cuentas con rendimientos: tasa anual en %, p. ej. 10.5 ---
+    tasa_rendimiento_anual: Decimal | None = Field(
+        default=None, gt=0, le=100, max_digits=5, decimal_places=2
+    )
 
 
 class Cuenta(CuentaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    # Lo gestiona el backend (no se envía en la API): hasta qué día se han
+    # registrado ya los rendimientos, para no pagarlos dos veces.
+    fecha_ultimo_rendimiento: date | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -152,3 +176,11 @@ class SuscripcionBase(SQLModel):
 
 class Suscripcion(SuscripcionBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+
+
+# ---------------------------------------------------------------------------
+# Configuración de la app (una sola fila, id = 1)
+# ---------------------------------------------------------------------------
+class Configuracion(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    moneda: Moneda = Moneda.MXN

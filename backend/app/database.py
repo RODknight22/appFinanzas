@@ -38,11 +38,18 @@ def _activar_claves_foraneas(dbapi_connection, _connection_record) -> None:
 
 
 def init_db() -> None:
-    """Crea las tablas que aún no existan (no modifica las existentes)."""
-    # Importar los modelos los registra en SQLModel.metadata antes de crear tablas.
+    """Prepara la BD al arrancar: tablas nuevas, columnas nuevas y datos iniciales."""
+    # Importaciones locales: models debe cargarse antes de create_all para
+    # registrar las tablas, y así evitamos importaciones circulares.
     from app import models  # noqa: F401
+    from app.datos_iniciales import crear_datos_iniciales
+    from app.migraciones import aplicar_migraciones
 
     SQLModel.metadata.create_all(engine)
+    with engine.begin() as conexion:  # begin(): commit automático al salir
+        aplicar_migraciones(conexion)
+    with Session(engine) as session:
+        crear_datos_iniciales(session)
 
 
 def get_session() -> Generator[Session, None, None]:

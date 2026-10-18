@@ -17,6 +17,7 @@ from app.models import (
     MAX_DIGITOS,
     CategoriaBase,
     CuentaBase,
+    Moneda,
     Periodicidad,
     PresupuestoBase,
     SuscripcionBase,
@@ -35,6 +36,7 @@ class CuentaCreate(CuentaBase):
 
 class CuentaRead(CuentaBase):
     id: int
+    fecha_ultimo_rendimiento: date | None = None
 
 
 class CuentaUpdate(SQLModel):
@@ -42,6 +44,14 @@ class CuentaUpdate(SQLModel):
     tipo: TipoCuenta | None = None
     balance_inicial: Decimal | None = Field(
         default=None, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    dia_corte: int | None = Field(default=None, ge=1, le=31)
+    dia_pago: int | None = Field(default=None, ge=1, le=31)
+    limite_credito: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    tasa_rendimiento_anual: Decimal | None = Field(
+        default=None, gt=0, le=100, max_digits=5, decimal_places=2
     )
 
 
@@ -184,3 +194,12 @@ class ProgresoPresupuesto(SQLModel):
     restante: Decimal
     porcentaje: float
     excedido: bool
+
+
+# --- Configuración ---------------------------------------------------------
+class ConfiguracionRead(SQLModel):
+    moneda: Moneda
+
+
+class ConfiguracionUpdate(SQLModel):
+    moneda: Moneda

@@ -3,7 +3,7 @@
 from fastapi import APIRouter, status
 
 from app.database import SessionDep
-from app.schemas import CuentaCreate, CuentaRead, CuentaUpdate
+from app.schemas import CuentaCreate, CuentaRead, CuentaUpdate, TransaccionRead
 from app.services import cuentas as servicio
 
 router = APIRouter(prefix="/cuentas", tags=["Cuentas"])
@@ -32,3 +32,13 @@ def actualizar_cuenta(cuenta_id: int, cambios: CuentaUpdate, session: SessionDep
 @router.delete("/{cuenta_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_cuenta(cuenta_id: int, session: SessionDep) -> None:
     servicio.eliminar(session, cuenta_id)
+
+
+@router.post(
+    "/{cuenta_id}/registrar-rendimientos",
+    response_model=TransaccionRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def registrar_rendimientos(cuenta_id: int, session: SessionDep):
+    """Crea un ingreso con los rendimientos acumulados desde el último registro."""
+    return servicio.registrar_rendimientos(session, cuenta_id)

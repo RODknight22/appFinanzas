@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from app.database import init_db
 from app.routers import (
     categorias,
+    configuracion,
     cuentas,
     dashboard,
     presupuestos,
@@ -54,6 +55,7 @@ app.include_router(transacciones.router)
 app.include_router(presupuestos.router)
 app.include_router(suscripciones.router)
 app.include_router(dashboard.router)
+app.include_router(configuracion.router)
 
 
 @app.get("/health", tags=["Sistema"])

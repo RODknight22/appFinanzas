@@ -5,9 +5,8 @@ Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en m
 
 from datetime import date
 from decimal import Decimal
-from typing import Any
 
-from sqlalchemy import case, func
+from sqlalchemy import func
 from sqlmodel import Session, col, select
 
 from app.models import Categoria, Cuenta, Presupuesto, TipoMovimiento, Transaccion
@@ -18,8 +17,7 @@ from app.schemas import (
     ResumenMes,
     SaldoCuenta,
 )
-
-_CENTIMOS = Decimal("0.01")
+from app.services.saldos import IMPORTE_CON_SIGNO, a_decimal
 
 
 # ---------------------------------------------------------------------------
@@ -47,20 +45,8 @@ def _meses_anteriores(hasta_mes: str, cantidad: int) -> list[str]:
     return list(reversed(meses))
 
 
-def _a_decimal(valor: Any) -> Decimal:
-    """SQLite suma los importes como números flotantes; los devolvemos a Decimal exacto."""
-    return Decimal(str(valor or 0)).quantize(_CENTIMOS)
-
-
 def _porcentaje(parte: Decimal, total: Decimal) -> float:
     return round(float(parte / total * 100), 1) if total else 0.0
-
-
-# Importe con signo: los ingresos suman y los gastos restan.
-_IMPORTE_CON_SIGNO = case(
-    (col(Transaccion.tipo) == TipoMovimiento.GASTO, -col(Transaccion.monto)),
-    else_=col(Transaccion.monto),
-)
 
 
 # ---------------------------------------------------------------------------
@@ -69,7 +55,7 @@ _IMPORTE_CON_SIGNO = case(
 def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
     # outerjoin: incluye también las cuentas sin transacciones (movimiento = 0).
     consulta = (
-        select(Cuenta, func.sum(_IMPORTE_CON_SIGNO))
+        select(Cuenta, func.sum(IMPORTE_CON_SIGNO))
         .outerjoin(Transaccion, col(Transaccion.cuenta_id) == col(Cuenta.id))
         .group_by(col(Cuenta.id))
         .order_by(col(Cuenta.nombre))
@@ -79,7 +65,7 @@ def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
             cuenta_id=cuenta.id,
             nombre=cuenta.nombre,
             tipo=cuenta.tipo,
-            saldo=_a_decimal(cuenta.balance_inicial + _a_decimal(movimiento)),
+            saldo=a_decimal(cuenta.balance_inicial + a_decimal(movimiento)),
         )
         for cuenta, movimiento in session.exec(consulta).all()
     ]
@@ -93,7 +79,7 @@ def _totales_por_tipo(session: Session, inicio: date, fin: date) -> dict[TipoMov
     )
     totales = {tipo: Decimal("0.00") for tipo in TipoMovimiento}
     for tipo, suma in session.exec(consulta).all():
-        totales[tipo] = _a_decimal(suma)
+        totales[tipo] = a_decimal(suma)
     return totales
 
 
@@ -108,7 +94,7 @@ def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decim
         )
         .group_by(col(Transaccion.categoria_id))
     )
-    return {categoria_id: _a_decimal(suma) for categoria_id, suma in session.exec(consulta).all()}
+    return {categoria_id: a_decimal(suma) for categoria_id, suma in session.exec(consulta).all()}
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +128,7 @@ def flujo_mensual(session: Session, hasta_mes: str, meses: int) -> list[FlujoMen
         .where(Transaccion.fecha >= inicio, Transaccion.fecha < fin)
         .group_by(mes_de_fecha, col(Transaccion.tipo))
     )
-    sumas = {(mes, tipo): _a_decimal(suma) for mes, tipo, suma in session.exec(consulta).all()}
+    sumas = {(mes, tipo): a_decimal(suma) for mes, tipo, suma in session.exec(consulta).all()}
 
     # Rellenamos con 0 los meses sin movimientos para que el gráfico no tenga huecos.
     resultado: list[FlujoMensual] = []
@@ -190,7 +176,7 @@ def progreso_presupuestos(session: Session, mes_anio: str) -> list[ProgresoPresu
     resultado: list[ProgresoPresupuesto] = []
     for presupuesto, categoria in session.exec(consulta).all():
         gastado = gastado_por_categoria.get(categoria.id, Decimal("0.00"))
-        limite = _a_decimal(presupuesto.monto_limite)
+        limite = a_decimal(presupuesto.monto_limite)
         resultado.append(
             ProgresoPresupuesto(
                 presupuesto_id=presupuesto.id,
