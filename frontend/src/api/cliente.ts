@@ -1,0 +1,77 @@
+/**
+ * Cliente HTTP base. Es el único archivo que llama a `fetch`: si algún día
+ * cambia la URL o hay que añadir autenticación, solo se toca aquí.
+ */
+
+// Vite reenvía /api al backend (ver vite.config.ts).
+const URL_BASE = "/api";
+
+/** Error con el código HTTP y el mensaje legible que devolvió el backend. */
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+type ParametrosConsulta = Record<string, string | number | undefined | null>;
+
+/** Convierte { mes_anio: "2026-10", tipo: undefined } en "?mes_anio=2026-10". */
+function construirConsulta(parametros?: ParametrosConsulta): string {
+  if (!parametros) return "";
+  const busqueda = new URLSearchParams();
+  for (const [clave, valor] of Object.entries(parametros)) {
+    if (valor !== undefined && valor !== null && valor !== "") busqueda.set(clave, String(valor));
+  }
+  const texto = busqueda.toString();
+  return texto ? `?${texto}` : "";
+}
+
+/**
+ * Extrae el mensaje de error de la respuesta de FastAPI:
+ * - errores propios (400/404/409): { detail: "mensaje" }
+ * - errores de validación (422): { detail: [{ loc: [...], msg: "..." }, ...] }
+ */
+async function leerMensajeDeError(respuesta: Response): Promise<string> {
+  try {
+    const cuerpo = await respuesta.json();
+    if (typeof cuerpo.detail === "string") return cuerpo.detail;
+    if (Array.isArray(cuerpo.detail)) {
+      return cuerpo.detail
+        .map((error: { loc: (string | number)[]; msg: string }) => {
+          const campo = error.loc.filter((parte) => parte !== "body").join(".");
+          return campo ? `${campo}: ${error.msg}` : error.msg;
+        })
+        .join(" · ");
+    }
+  } catch {
+    // La respuesta no era JSON (p. ej. el backend está caído).
+  }
+  return `Error ${respuesta.status}: ${respuesta.statusText || "no se pudo contactar con el servidor"}`;
+}
+
+async function peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
+  const respuesta = await fetch(`${URL_BASE}${ruta}`, {
+    method: metodo,
+    headers: cuerpo !== undefined ? { "Content-Type": "application/json" } : undefined,
+    body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
+  });
+
+  if (!respuesta.ok) {
+    throw new ApiError(respuesta.status, await leerMensajeDeError(respuesta));
+  }
+  // 204 No Content (p. ej. DELETE) no trae cuerpo que leer.
+  if (respuesta.status === 204) return undefined as T;
+  return (await respuesta.json()) as T;
+}
+
+export const http = {
+  get: <T>(ruta: string, parametros?: ParametrosConsulta) =>
+    peticion<T>("GET", `${ruta}${construirConsulta(parametros)}`),
+  post: <T>(ruta: string, cuerpo: unknown) => peticion<T>("POST", ruta, cuerpo),
+  patch: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PATCH", ruta, cuerpo),
+  delete: (ruta: string) => peticion<void>("DELETE", ruta),
+};
