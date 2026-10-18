@@ -105,7 +105,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
     return (
       <p className="text-sm text-slate-600 dark:text-slate-300">
         Primero necesitas una cuenta.{" "}
-        <Link to="/cuentas" className="font-medium text-emerald-600 hover:underline">Crear cuenta</Link>
+        <Link to="/cuentas" className="font-medium text-acento-600 hover:underline">Crear cuenta</Link>
       </p>
     );
   }

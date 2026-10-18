@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes } from "react";
 type Variante = "primario" | "secundario" | "peligro" | "fantasma";
 
 const ESTILOS: Record<Variante, string> = {
-  primario: "bg-emerald-600 text-white hover:bg-emerald-700",
+  primario: "bg-acento-600 text-white hover:bg-acento-700",
   secundario:
     "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700",
   peligro: "bg-rose-600 text-white hover:bg-rose-700",
@@ -20,7 +20,7 @@ export function Boton({ variante = "primario", className = "", type = "button", 
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 ${ESTILOS[variante]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-500 disabled:cursor-not-allowed disabled:opacity-50 ${ESTILOS[variante]} ${className}`}
       {...props}
     />
   );

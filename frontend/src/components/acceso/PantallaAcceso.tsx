@@ -36,7 +36,7 @@ export function PantallaAcceso({ primeraVez, onEntrar }: PantallaAccesoProps) {
     <main className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-acento-600 text-white">
             <Wallet size={24} />
           </span>
           <div>

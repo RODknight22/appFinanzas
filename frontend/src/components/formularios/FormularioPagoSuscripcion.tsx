@@ -36,8 +36,8 @@ export function FormularioPagoSuscripcion({ suscripcion, cuentas, categoriasGast
   if (cuentas.length === 0 || categoriasGasto.length === 0) {
     return (
       <p className="text-sm text-slate-600 dark:text-slate-300">
-        Necesitas al menos una <Link to="/cuentas" className="font-medium text-emerald-600 hover:underline">cuenta</Link> y una{" "}
-        <Link to="/categorias" className="font-medium text-emerald-600 hover:underline">categoría de gasto</Link>.
+        Necesitas al menos una <Link to="/cuentas" className="font-medium text-acento-600 hover:underline">cuenta</Link> y una{" "}
+        <Link to="/categorias" className="font-medium text-acento-600 hover:underline">categoría de gasto</Link>.
       </p>
     );
   }

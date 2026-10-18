@@ -77,7 +77,7 @@ export function DashboardPage() {
               <div className="grid gap-6 lg:grid-cols-3">
                 <Tarjeta
                   titulo="Presupuestos del mes"
-                  accion={<Link to="/presupuestos" className="text-xs font-medium text-emerald-600 hover:underline">Gestionar</Link>}
+                  accion={<Link to="/presupuestos" className="text-xs font-medium text-acento-600 hover:underline">Gestionar</Link>}
                 >
                   {presupuestos.length === 0 ? (
                     <Vacio mensaje="No hay presupuestos para este mes" />
@@ -118,7 +118,7 @@ export function DashboardPage() {
 
                 <Tarjeta
                   titulo={`Próximos pagos (${DIAS_PROXIMOS} días)`}
-                  accion={<Link to="/suscripciones" className="text-xs font-medium text-emerald-600 hover:underline">Ver todas</Link>}
+                  accion={<Link to="/suscripciones" className="text-xs font-medium text-acento-600 hover:underline">Ver todas</Link>}
                 >
                   {pagos.length === 0 ? (
                     <Vacio mensaje="Nada que pagar en los próximos días" />

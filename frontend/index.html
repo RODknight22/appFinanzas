@@ -6,11 +6,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Finanzas Personales</title>
     <script>
-      // Aplica el tema antes de pintar la página para evitar un destello blanco.
+      // Aplica tema y color de acento antes de pintar, para evitar un destello.
       try {
         const guardado = localStorage.getItem("tema");
         const oscuro = guardado ? guardado === "oscuro" : matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.classList.toggle("dark", oscuro);
+        const acento = localStorage.getItem("acento");
+        if (acento) document.documentElement.dataset.acento = acento;
       } catch {}
     </script>
   </head>

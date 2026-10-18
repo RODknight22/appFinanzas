@@ -2,11 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 import { configuracionApi, tasasApi } from "../api/configuracion";
 import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
-import type { Configuracion, Moneda, Tasa } from "../types";
+import type { ColorAcento, Configuracion, Moneda, Tasa } from "../types";
 import { convertir } from "../utils/divisas";
-import { configurarMoneda } from "../utils/formato";
+import { configurarDiaInicioMes, configurarMoneda } from "../utils/formato";
 
 interface ContextoConfiguracion {
+  /** Todas las preferencias tal y como las devuelve el backend. */
+  configuracion: Configuracion;
   /** Moneda principal: la de totales, gráficos y presupuestos. */
   moneda: Moneda;
   /** Monedas que se ofrecen en los formularios. */
@@ -28,7 +30,24 @@ const Contexto = createContext<ContextoConfiguracion | null>(null);
 const CONFIGURACION_INICIAL: Configuracion = {
   moneda: MONEDA_POR_DEFECTO,
   monedas_activas: Object.keys(MONEDAS) as Moneda[],
+  nombre: null,
+  avatar: null,
+  color_acento: "esmeralda",
+  pagina_inicio: "dashboard",
+  dia_inicio_mes: 1,
+  widgets: null,
 };
+
+/** Pone el color de acento en <html> (lo leen las variables CSS de index.css). */
+function aplicarAcento(acento: ColorAcento) {
+  document.documentElement.dataset.acento = acento;
+  try {
+    // Copia local para que index.html lo aplique antes de pintar en la próxima visita.
+    localStorage.setItem("acento", acento);
+  } catch {
+    // Navegación privada: no pasa nada, solo se verá el acento un instante después.
+  }
+}
 
 export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   const [configuracion, setConfiguracion] = useState<Configuracion>(CONFIGURACION_INICIAL);
@@ -37,6 +56,8 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
 
   function aplicar(nueva: Configuracion) {
     configurarMoneda(nueva.moneda);
+    configurarDiaInicioMes(nueva.dia_inicio_mes);
+    aplicarAcento(nueva.color_acento);
     // Cambiar el estado vuelve a renderizar la app con el nuevo formato.
     setConfiguracion(nueva);
   }
@@ -73,6 +94,7 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   if (!lista) return null;
 
   const valor: ContextoConfiguracion = {
+    configuracion,
     moneda: configuracion.moneda,
     monedasActivas: configuracion.monedas_activas,
     tasas,

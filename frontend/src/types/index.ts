@@ -135,10 +135,29 @@ export interface ProgresoPresupuesto {
 }
 
 // --- Configuración ---------------------------------------------------------
+export type ColorAcento = "esmeralda" | "azul" | "indigo" | "violeta" | "rosa" | "naranja";
+export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "cuentas";
+export type TamanoWidget = "pequeno" | "mediano" | "grande";
+
+export interface WidgetDisposicion {
+  id: string;
+  tamano: TamanoWidget;
+  visible: boolean;
+}
+
 export interface Configuracion {
   /** Moneda principal: la de los totales, gráficos y presupuestos. */
   moneda: Moneda;
   monedas_activas: Moneda[];
+  nombre: string | null;
+  /** Un emoji; null = la inicial del nombre. */
+  avatar: string | null;
+  color_acento: ColorAcento;
+  pagina_inicio: PaginaInicio;
+  /** Día (1-28) en que empieza el mes financiero. */
+  dia_inicio_mes: number;
+  /** null = disposición por defecto del panel. */
+  widgets: WidgetDisposicion[] | null;
 }
 
 export interface Tasa {

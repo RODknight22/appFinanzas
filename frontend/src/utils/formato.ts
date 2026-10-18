@@ -64,21 +64,45 @@ export function formatearMes(mes: MesAnio, formato: "corto" | "largo" = "largo")
 
 /** Fecha de hoy en formato ISO local, para valores por defecto de formularios. */
 export function hoyISO(): FechaISO {
-  const hoy = new Date();
-  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoy.getDate()).padStart(2, "0");
-  return `${hoy.getFullYear()}-${mes}-${dia}`;
+  return aISO(new Date());
 }
 
+// Día en que empieza el "mes financiero" (lo fija la configuración; 1 = mes natural).
+let diaInicioMes = 1;
+
+export function configurarDiaInicioMes(dia: number): void {
+  diaInicioMes = dia;
+}
+
+function aISO(fecha: Date): FechaISO {
+  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dia = String(fecha.getDate()).padStart(2, "0");
+  return `${fecha.getFullYear()}-${mes}-${dia}`;
+}
+
+/** El mes financiero en curso: si hoy es 10 y el mes empieza el 15, aún es el anterior. */
 export function mesActual(): MesAnio {
-  return hoyISO().slice(0, 7);
+  const hoy = new Date();
+  const inicio = new Date(hoy.getFullYear(), hoy.getMonth() - (hoy.getDate() < diaInicioMes ? 1 : 0), 1);
+  return aISO(inicio).slice(0, 7);
 }
 
-/** Primer y último día de un mes, para filtrar transacciones con desde/hasta. */
+/** Primer y último día de un mes financiero, para filtrar transacciones con desde/hasta. */
 export function rangoDelMes(mes: MesAnio): { desde: FechaISO; hasta: FechaISO } {
   const [anio, numeroMes] = mes.split("-").map(Number);
-  const ultimoDia = new Date(anio, numeroMes, 0).getDate();
-  return { desde: `${mes}-01`, hasta: `${mes}-${String(ultimoDia).padStart(2, "0")}` };
+  const desde = new Date(anio, numeroMes - 1, diaInicioMes);
+  // Un día antes del inicio del mes siguiente (Date ajusta solo los desbordes de mes y año).
+  const hasta = new Date(anio, numeroMes, diaInicioMes - 1);
+  return { desde: aISO(desde), hasta: aISO(hasta) };
+}
+
+/** "15 oct – 14 nov" si el mes no empieza el día 1; si no, null. */
+export function textoRangoMes(mes: MesAnio): string | null {
+  if (diaInicioMes === 1) return null;
+  const { desde, hasta } = rangoDelMes(mes);
+  const corto = (fecha: FechaISO) =>
+    fechaLocal(fecha).toLocaleDateString(localeActual, { day: "numeric", month: "short" });
+  return `${corto(desde)} – ${corto(hasta)}`;
 }
 
 /** Días que faltan hasta una fecha (negativo si ya pasó). */

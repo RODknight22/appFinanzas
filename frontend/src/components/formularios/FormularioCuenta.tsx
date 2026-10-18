@@ -97,7 +97,7 @@ export function FormularioCuenta({ inicial, onGuardado, onCancelar }: Formulario
               aria-pressed={tipo === valor}
               className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition ${
                 tipo === valor
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
+                  ? "border-acento-500 bg-acento-50 text-acento-700 dark:bg-acento-950/50 dark:text-acento-300"
                   : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
               }`}
             >
