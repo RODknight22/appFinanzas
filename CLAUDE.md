@@ -33,11 +33,18 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - PATCH parcial vía `cambios_parciales()`; no se borran registros con dependencias (409).
 - Tablas creadas con `create_all` al arrancar. Sin Alembic aún: cambiar el esquema = borrar `data/finance.db`.
 
+## Convenciones del Frontend (`frontend/src/`, TypeScript estricto)
+- `api/cliente.ts` es el único que usa `fetch` (ruta `/api`, proxy de Vite al backend).
+- `types/` refleja schemas.py: si cambia un schema, actualizar su tipo. Importes = `string`.
+- Páginas cargan con `useDatos` + `<Contenido>`; formularios usan `useEnvio` + `PieFormulario`.
+- Modales con estado único (`null | "nueva" | entidad`); `key` reinicia el formulario.
+- Inputs con `CLASE_ENTRADA` (o `CLASE_ENTRADA_BASE` + ancho). Moneda/locale en `config.ts`.
+
 ## Estado del Proyecto
-- [x] Paso 1: estructura, modelos, SQLite persistente, CRUD de cuentas, categorías,
-  transacciones y presupuestos; Docker del backend.
+- [x] Paso 1: modelos, SQLite persistente, CRUD base, Docker del backend.
 - [x] Paso 2: suscripciones (+ registrar-pago), endpoints `/dashboard/*`, tests con pytest.
-- [ ] Paso 3: frontend (React + Vite + Tailwind) y servicio `frontend` en docker-compose.
+- [x] Paso 3: frontend completo (dashboard, transacciones, presupuestos, suscripciones,
+  cuentas, categorías), modo oscuro y móvil; verificado con Playwright.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
@@ -45,6 +52,8 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - Sin Docker: `cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload`.
 - Tests (BD en memoria, no tocan datos reales), desde la raíz del repo en Git Bash:
   `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
+- Comprobar tipos del frontend (no hay Node local):
+  `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit`
 - Backend API Docs: accesible localmente en `http://localhost:8000/docs`.
 - Frontend Web UI: accesible localmente en `http://localhost:5173`.
 
