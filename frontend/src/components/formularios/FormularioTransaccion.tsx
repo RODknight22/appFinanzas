@@ -101,19 +101,22 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
       </div>
 
       <div className="space-y-1.5">
-        <Campo etiqueta="Categoría">
-          <div className="flex gap-2">
-            <select className={CLASE_ENTRADA} value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} required>
-              <option value="" disabled>Elige una categoría…</option>
-              {categoriasDelTipo.map((categoria) => (
-                <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
-              ))}
-            </select>
-            <Boton variante="secundario" onClick={() => setCreandoCategoria(true)} aria-label="Crear categoría" title="Crear categoría">
-              <Plus size={16} />
-            </Boton>
+        {/* El botón va fuera del <label> para que no forme parte del nombre del campo */}
+        <div className="flex items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <Campo etiqueta="Categoría">
+              <select className={CLASE_ENTRADA} value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} required>
+                <option value="" disabled>Elige una categoría…</option>
+                {categoriasDelTipo.map((categoria) => (
+                  <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
+                ))}
+              </select>
+            </Campo>
           </div>
-        </Campo>
+          <Boton variante="secundario" className="py-2.5" onClick={() => setCreandoCategoria(true)} aria-label="Crear categoría" title="Crear categoría">
+            <Plus size={16} />
+          </Boton>
+        </div>
         {creandoCategoria && (
           <CategoriaRapida tipo={tipo} onCreada={alCrearCategoria} onCancelar={() => setCreandoCategoria(false)} />
         )}

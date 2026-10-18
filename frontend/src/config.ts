@@ -5,8 +5,8 @@ import type { Moneda } from "./types";
  * (símbolo, separador de miles y decimales): p. ej. es-GT → "Q1,234.50".
  */
 export const MONEDAS: Record<Moneda, { nombre: string; locale: string }> = {
-  MXN: { nombre: "Peso mexicano", locale: "es-MX" },
-  USD: { nombre: "Dólar estadounidense", locale: "es-US" },
+  MXN: { nombre: "Peso", locale: "es-MX" },
+  USD: { nombre: "Dólar", locale: "es-US" },
   EUR: { nombre: "Euro", locale: "es-ES" },
   GTQ: { nombre: "Quetzal", locale: "es-GT" },
   HNL: { nombre: "Lempira", locale: "es-HN" },

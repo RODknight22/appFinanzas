@@ -83,25 +83,31 @@ export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRen
   const esCredito = cuenta.tipo === "credito";
 
   return (
-    <li className="flex items-start gap-4 py-4">
-      <span className="rounded-xl bg-slate-100 p-2.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-        <Icono size={20} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="font-medium">{cuenta.nombre}</p>
-        <p className="text-xs text-slate-500">{etiqueta}</p>
+    <li className="py-4">
+      <div className="flex items-start gap-4">
+        <span className="rounded-xl bg-slate-100 p-2.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          <Icono size={20} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{cuenta.nombre}</p>
+          <p className="text-xs text-slate-500">{etiqueta}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-slate-500">{esCredito ? "Deuda" : "Saldo actual"}</p>
+          <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
+            {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo)}
+          </p>
+        </div>
+        <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
+      </div>
+      {/* Detalles debajo y alineados con el nombre (pl-14 = ancho del icono + hueco):
+          así en móvil usan todo el ancho en vez de una columna estrecha. */}
+      <div className="sm:pl-14">
         {esCredito && <DetalleCredito cuenta={cuenta} saldo={saldo} />}
         {cuenta.tipo === "rendimientos" && (
           <DetalleRendimientos cuenta={cuenta} saldo={saldo} onRegistrar={onRegistrarRendimientos} />
         )}
       </div>
-      <div className="text-right">
-        <p className="text-xs text-slate-500">{esCredito ? "Deuda" : "Saldo actual"}</p>
-        <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
-          {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo)}
-        </p>
-      </div>
-      <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
     </li>
   );
 }
