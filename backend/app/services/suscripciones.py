@@ -7,8 +7,9 @@ from sqlmodel import Session, col, select
 
 from app.models import Periodicidad, Suscripcion, TipoMovimiento, Transaccion
 from app.schemas import PagoSuscripcionCreate, SuscripcionCreate, SuscripcionUpdate
+from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404
-from app.services.transacciones import validar_relaciones
+from app.services.transacciones import completar_montos, validar_relaciones
 
 
 def _sumar_meses(fecha: date, meses: int) -> date:
@@ -46,12 +47,18 @@ def obtener(session: Session, suscripcion_id: int) -> Suscripcion:
 
 
 def crear(session: Session, datos: SuscripcionCreate) -> Suscripcion:
-    return guardar(session, Suscripcion.model_validate(datos))
+    suscripcion = Suscripcion.model_validate(datos)
+    suscripcion.moneda = suscripcion.moneda or configuracion.moneda_principal(session)
+    configuracion.comprobar_moneda_activa(session, suscripcion.moneda)
+    return guardar(session, suscripcion)
 
 
 def actualizar(session: Session, suscripcion_id: int, cambios: SuscripcionUpdate) -> Suscripcion:
     suscripcion = obtener(session, suscripcion_id)
-    suscripcion.sqlmodel_update(cambios_parciales(cambios))
+    datos = cambios_parciales(cambios)
+    if "moneda" in datos:
+        configuracion.comprobar_moneda_activa(session, datos["moneda"])
+    suscripcion.sqlmodel_update(datos)
     return guardar(session, suscripcion)
 
 
@@ -66,16 +73,19 @@ def registrar_pago(
 ) -> tuple[Transaccion, Suscripcion]:
     """Anota el cobro como gasto y mueve la suscripción a su siguiente fecha."""
     suscripcion = obtener(session, suscripcion_id)
-    validar_relaciones(session, datos.cuenta_id, datos.categoria_id, TipoMovimiento.GASTO)
+    cuenta = validar_relaciones(session, datos.cuenta_id, datos.categoria_id, TipoMovimiento.GASTO)
 
     transaccion = Transaccion(
         monto=suscripcion.monto,
+        moneda=suscripcion.moneda,
         tipo=TipoMovimiento.GASTO,
         fecha=suscripcion.fecha_proximo_pago,
         notas=f"Pago de suscripción: {suscripcion.nombre}",
         cuenta_id=datos.cuenta_id,
         categoria_id=datos.categoria_id,
     )
+    # Con la tasa del día del cobro: p. ej. Netflix en USD pagado con una cuenta en MXN.
+    completar_montos(session, transaccion, cuenta)
     suscripcion.fecha_proximo_pago = siguiente_fecha(
         suscripcion.fecha_proximo_pago, suscripcion.periodicidad
     )

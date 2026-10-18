@@ -10,10 +10,10 @@ from app.models import Cuenta, TipoMovimiento, Transaccion
 
 CENTIMOS = Decimal("0.01")
 
-# Importe con signo: los ingresos suman y los gastos restan.
+# Importe con signo en la moneda de la cuenta: los ingresos suman y los gastos restan.
 IMPORTE_CON_SIGNO = case(
-    (col(Transaccion.tipo) == TipoMovimiento.GASTO, -col(Transaccion.monto)),
-    else_=col(Transaccion.monto),
+    (col(Transaccion.tipo) == TipoMovimiento.GASTO, -col(Transaccion.monto_cuenta)),
+    else_=col(Transaccion.monto_cuenta),
 )
 
 

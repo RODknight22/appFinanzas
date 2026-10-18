@@ -10,13 +10,16 @@ from app.models import Categoria
 
 
 def test_moneda_por_defecto_y_cambio(client: TestClient) -> None:
-    assert client.get("/configuracion").json() == {"moneda": "MXN"}
-    assert client.put("/configuracion", json={"moneda": "GTQ"}).json() == {"moneda": "GTQ"}
-    assert client.get("/configuracion").json() == {"moneda": "GTQ"}
+    configuracion = client.get("/configuracion").json()
+    assert configuracion["moneda"] == "MXN"
+    assert configuracion["monedas_activas"] == ["MXN", "USD", "EUR", "GTQ", "HNL"]  # todas
+    # Sin transacciones no hace falta ninguna tasa para cambiar la principal
+    assert client.patch("/configuracion", json={"moneda": "GTQ"}).json()["moneda"] == "GTQ"
+    assert client.get("/configuracion").json()["moneda"] == "GTQ"
 
 
 def test_moneda_no_soportada_devuelve_422(client: TestClient) -> None:
-    assert client.put("/configuracion", json={"moneda": "BTC"}).status_code == 422
+    assert client.patch("/configuracion", json={"moneda": "BTC"}).status_code == 422
 
 
 def test_categorias_por_defecto_solo_en_bd_vacia(session: Session) -> None:

@@ -53,6 +53,11 @@ class Moneda(str, Enum):
     HNL = "HNL"  # lempira hondureño
 
 
+class OrigenTasa(str, Enum):
+    API = "api"  # descargada de internet
+    MANUAL = "manual"  # escrita por el usuario (tiene prioridad sobre la de internet)
+
+
 # ---------------------------------------------------------------------------
 # Validadores reutilizables (también los usan los schemas de actualización).
 # ---------------------------------------------------------------------------
@@ -78,6 +83,8 @@ def validar_mes_anio(valor: str | None) -> str | None:
 class CuentaBase(SQLModel):
     nombre: str = Field(min_length=1, max_length=100)
     tipo: TipoCuenta
+    # Divisa de la cuenta. Si no se indica al crearla, se usa la moneda principal.
+    moneda: Moneda | None = None
     # Puede ser negativo (p. ej. una tarjeta de crédito con deuda inicial).
     balance_inicial: Decimal = Field(
         default=Decimal("0"), max_digits=MAX_DIGITOS, decimal_places=DECIMALES
@@ -130,6 +137,8 @@ class Categoria(CategoriaBase, table=True):
 class TransaccionBase(SQLModel):
     # Siempre positivo: el signo lo da `tipo` (ingreso suma, gasto resta).
     monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    # Moneda en la que se pagó o cobró. Si no se indica, la de la cuenta.
+    moneda: Moneda | None = None
     tipo: TipoMovimiento
     # index=True acelera los filtros por fecha, cuenta y categoría del dashboard.
     fecha: date = Field(index=True)
@@ -140,6 +149,15 @@ class TransaccionBase(SQLModel):
 
 class Transaccion(TransaccionBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    # Calculados por el backend con la tasa del día de la transacción:
+    # - monto_cuenta: en la divisa de la cuenta (es lo que mueve su saldo).
+    # - monto_principal: en la moneda principal (dashboard y presupuestos).
+    monto_cuenta: Decimal | None = Field(
+        default=None, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    monto_principal: Decimal | None = Field(
+        default=None, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -165,13 +183,15 @@ class Presupuesto(PresupuestoBase, table=True):
 
 
 # ---------------------------------------------------------------------------
-# Suscripciones (sin endpoints todavía)
+# Suscripciones
 # ---------------------------------------------------------------------------
 class SuscripcionBase(SQLModel):
     nombre: str = Field(min_length=1, max_length=100)
     monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
     periodicidad: Periodicidad
     fecha_proximo_pago: date
+    # Si no se indica al crearla, se usa la moneda principal.
+    moneda: Moneda | None = None
 
 
 class Suscripcion(SuscripcionBase, table=True):
@@ -183,4 +203,27 @@ class Suscripcion(SuscripcionBase, table=True):
 # ---------------------------------------------------------------------------
 class Configuracion(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    # Moneda principal: en ella se suman los totales del dashboard y los presupuestos.
     moneda: Moneda = Moneda.MXN
+    # Monedas que se ofrecen en los formularios, separadas por comas ("MXN,EUR").
+    # null = todas. Texto simple porque SQLite no tiene un tipo lista.
+    monedas_activas: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Tasas de cambio (historial diario)
+# ---------------------------------------------------------------------------
+class TasaCambio(SQLModel, table=True):
+    """Cuántas unidades de `moneda` equivalen a 1 USD en una fecha.
+
+    Guardar todo respecto al dólar permite convertir entre cualquier par:
+    EUR → MXN = monto / tasa(EUR) * tasa(MXN). El USD no se guarda: vale 1.
+    """
+
+    __table_args__ = (UniqueConstraint("fecha", "moneda"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    fecha: date = Field(index=True)
+    moneda: Moneda
+    por_usd: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
+    origen: OrigenTasa

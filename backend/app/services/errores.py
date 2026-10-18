@@ -31,3 +31,9 @@ class ConflictoError(ErrorDeDominio):
     """La operación choca con el estado actual de los datos (409)."""
 
     status_code = 409
+
+
+class ServicioExternoError(ErrorDeDominio):
+    """Un servicio de internet del que dependemos no respondió (503)."""
+
+    status_code = 503

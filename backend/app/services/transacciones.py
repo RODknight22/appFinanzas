@@ -6,6 +6,7 @@ from sqlmodel import Session, col, select
 
 from app.models import Categoria, Cuenta, TipoMovimiento, Transaccion
 from app.schemas import TransaccionCreate, TransaccionUpdate
+from app.services import configuracion, divisas
 from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ReglaDeNegocioError
 
@@ -48,20 +49,46 @@ def obtener(session: Session, transaccion_id: int) -> Transaccion:
 
 def validar_relaciones(
     session: Session, cuenta_id: int, categoria_id: int, tipo: TipoMovimiento
-) -> None:
-    """Comprueba que la cuenta y la categoría existen y que el tipo es coherente."""
-    obtener_referencia(session, Cuenta, cuenta_id, "la cuenta")
+) -> Cuenta:
+    """Comprueba que la cuenta y la categoría existen y que el tipo es coherente.
+
+    Devuelve la cuenta porque se necesita su moneda para convertir el importe.
+    """
+    cuenta = obtener_referencia(session, Cuenta, cuenta_id, "la cuenta")
     categoria = obtener_referencia(session, Categoria, categoria_id, "la categoría")
     if categoria.tipo != tipo:
         raise ReglaDeNegocioError(
             f"La categoría '{categoria.nombre}' es de {categoria.tipo.value}, "
             f"no se puede usar en una transacción de {tipo.value}"
         )
+    return cuenta
+
+
+def completar_montos(session: Session, transaccion: Transaccion, cuenta: Cuenta) -> None:
+    """Rellena la moneda y los importes convertidos con la tasa de su fecha.
+
+    Lo usan también las suscripciones y los rendimientos, que crean
+    transacciones por su cuenta.
+    """
+    transaccion.moneda = transaccion.moneda or cuenta.moneda
+    principal = configuracion.moneda_principal(session)
+    if transaccion.moneda != cuenta.moneda or transaccion.moneda != principal:
+        divisas.asegurar_tasas_del_dia(session)
+    transaccion.monto_cuenta = divisas.convertir(
+        session, transaccion.monto, transaccion.moneda, cuenta.moneda, transaccion.fecha
+    )
+    transaccion.monto_principal = divisas.convertir(
+        session, transaccion.monto, transaccion.moneda, principal, transaccion.fecha
+    )
 
 
 def crear(session: Session, datos: TransaccionCreate) -> Transaccion:
-    validar_relaciones(session, datos.cuenta_id, datos.categoria_id, datos.tipo)
-    return guardar(session, Transaccion.model_validate(datos))
+    cuenta = validar_relaciones(session, datos.cuenta_id, datos.categoria_id, datos.tipo)
+    if datos.moneda is not None:
+        configuracion.comprobar_moneda_activa(session, datos.moneda)
+    transaccion = Transaccion.model_validate(datos)
+    completar_montos(session, transaccion, cuenta)
+    return guardar(session, transaccion)
 
 
 def actualizar(session: Session, transaccion_id: int, cambios: TransaccionUpdate) -> Transaccion:
@@ -70,13 +97,17 @@ def actualizar(session: Session, transaccion_id: int, cambios: TransaccionUpdate
 
     # Validamos la combinación final (valores nuevos + los que no cambian),
     # porque un PATCH puede cambiar solo el tipo o solo la categoría.
-    validar_relaciones(
+    cuenta = validar_relaciones(
         session,
         datos.get("cuenta_id", transaccion.cuenta_id),
         datos.get("categoria_id", transaccion.categoria_id),
         datos.get("tipo", transaccion.tipo),
     )
+    if "moneda" in datos:
+        configuracion.comprobar_moneda_activa(session, datos["moneda"])
     transaccion.sqlmodel_update(datos)
+    # El importe, la moneda, la fecha o la cuenta pueden haber cambiado.
+    completar_montos(session, transaccion, cuenta)
     return guardar(session, transaccion)
 
 

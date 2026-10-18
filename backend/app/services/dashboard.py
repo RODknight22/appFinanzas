@@ -1,6 +1,7 @@
 """Cálculos del dashboard: balances, flujo mensual, gastos por categoría y presupuestos.
 
-Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en memoria.
+Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en memoria,
+siempre sobre `monto_principal`: así se suman importes de distintas monedas.
 """
 
 from datetime import date
@@ -17,6 +18,7 @@ from app.schemas import (
     ResumenMes,
     SaldoCuenta,
 )
+from app.services import configuracion, divisas
 from app.services.saldos import IMPORTE_CON_SIGNO, a_decimal
 
 
@@ -53,6 +55,12 @@ def _porcentaje(parte: Decimal, total: Decimal) -> float:
 # Consultas
 # ---------------------------------------------------------------------------
 def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
+    """Saldo de cada cuenta en su moneda y convertido a la principal.
+
+    Para un saldo (dinero que tienes hoy) se usa la tasa de hoy, no la histórica.
+    """
+    principal = configuracion.moneda_principal(session)
+    hoy = date.today()
     # outerjoin: incluye también las cuentas sin transacciones (movimiento = 0).
     consulta = (
         select(Cuenta, func.sum(IMPORTE_CON_SIGNO))
@@ -60,20 +68,30 @@ def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
         .group_by(col(Cuenta.id))
         .order_by(col(Cuenta.nombre))
     )
-    return [
-        SaldoCuenta(
-            cuenta_id=cuenta.id,
-            nombre=cuenta.nombre,
-            tipo=cuenta.tipo,
-            saldo=a_decimal(cuenta.balance_inicial + a_decimal(movimiento)),
+    filas = session.exec(consulta).all()
+    if any(cuenta.moneda != principal for cuenta, _ in filas):
+        divisas.asegurar_tasas_del_dia(session)
+
+    saldos = []
+    for cuenta, movimiento in filas:
+        moneda = cuenta.moneda or principal
+        saldo = a_decimal(cuenta.balance_inicial + a_decimal(movimiento))
+        saldos.append(
+            SaldoCuenta(
+                cuenta_id=cuenta.id,
+                nombre=cuenta.nombre,
+                tipo=cuenta.tipo,
+                moneda=moneda,
+                saldo=saldo,
+                saldo_principal=divisas.convertir(session, saldo, moneda, principal, hoy),
+            )
         )
-        for cuenta, movimiento in session.exec(consulta).all()
-    ]
+    return saldos
 
 
 def _totales_por_tipo(session: Session, inicio: date, fin: date) -> dict[TipoMovimiento, Decimal]:
     consulta = (
-        select(Transaccion.tipo, func.sum(Transaccion.monto))
+        select(Transaccion.tipo, func.sum(Transaccion.monto_principal))
         .where(Transaccion.fecha >= inicio, Transaccion.fecha < fin)
         .group_by(col(Transaccion.tipo))
     )
@@ -86,7 +104,7 @@ def _totales_por_tipo(session: Session, inicio: date, fin: date) -> dict[TipoMov
 def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decimal]:
     inicio, fin = _rango_mes(mes_anio)
     consulta = (
-        select(Transaccion.categoria_id, func.sum(Transaccion.monto))
+        select(Transaccion.categoria_id, func.sum(Transaccion.monto_principal))
         .where(
             Transaccion.tipo == TipoMovimiento.GASTO,
             Transaccion.fecha >= inicio,
@@ -107,7 +125,7 @@ def resumen(session: Session, mes_anio: str) -> ResumenMes:
     ingresos, gastos = totales[TipoMovimiento.INGRESO], totales[TipoMovimiento.GASTO]
     return ResumenMes(
         mes_anio=mes_anio,
-        balance_global=sum((c.saldo for c in cuentas), Decimal("0.00")),
+        balance_global=sum((c.saldo_principal for c in cuentas), Decimal("0.00")),
         ingresos=ingresos,
         gastos=gastos,
         flujo_neto=ingresos - gastos,
@@ -124,7 +142,7 @@ def flujo_mensual(session: Session, hasta_mes: str, meses: int) -> list[FlujoMen
     # strftime agrupa por "YYYY-MM" (función propia de SQLite).
     mes_de_fecha = func.strftime("%Y-%m", Transaccion.fecha)
     consulta = (
-        select(mes_de_fecha, Transaccion.tipo, func.sum(Transaccion.monto))
+        select(mes_de_fecha, Transaccion.tipo, func.sum(Transaccion.monto_principal))
         .where(Transaccion.fecha >= inicio, Transaccion.fecha < fin)
         .group_by(mes_de_fecha, col(Transaccion.tipo))
     )

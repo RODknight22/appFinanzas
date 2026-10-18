@@ -44,12 +44,15 @@ def init_db() -> None:
     from app import models  # noqa: F401
     from app.datos_iniciales import crear_datos_iniciales
     from app.migraciones import aplicar_migraciones
+    from app.services import divisas
 
     SQLModel.metadata.create_all(engine)
     with engine.begin() as conexion:  # begin(): commit automático al salir
         aplicar_migraciones(conexion)
     with Session(engine) as session:
         crear_datos_iniciales(session)
+        # Tasas de cambio del día (si no hay internet, se usarán las últimas guardadas).
+        divisas.asegurar_tasas_del_dia(session)
 
 
 def get_session() -> Generator[Session, None, None]:

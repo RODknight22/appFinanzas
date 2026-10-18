@@ -43,7 +43,24 @@ def _renombrar_tipos_de_cuenta(conexion: Connection) -> None:
         )
 
 
+def _rellenar_monedas(conexion: Connection) -> None:
+    """Antes de las divisas todo estaba en la moneda principal: así lo marcamos.
+
+    Solo toca filas con la columna vacía, así que repetirlo no cambia nada.
+    """
+    principal = "COALESCE((SELECT moneda FROM configuracion WHERE id = 1), 'MXN')"
+    conexion.execute(text(f"UPDATE cuenta SET moneda = {principal} WHERE moneda IS NULL"))
+    conexion.execute(text(f"UPDATE suscripcion SET moneda = {principal} WHERE moneda IS NULL"))
+    conexion.execute(text(
+        "UPDATE transaccion SET moneda = (SELECT moneda FROM cuenta WHERE cuenta.id = transaccion.cuenta_id) "
+        "WHERE moneda IS NULL"
+    ))
+    conexion.execute(text("UPDATE transaccion SET monto_cuenta = monto WHERE monto_cuenta IS NULL"))
+    conexion.execute(text("UPDATE transaccion SET monto_principal = monto WHERE monto_principal IS NULL"))
+
+
 def aplicar_migraciones(conexion: Connection) -> None:
     """Se ejecuta dentro de una transacción: si algo falla, no se aplica nada."""
     _anadir_columnas_nuevas(conexion)
     _renombrar_tipos_de_cuenta(conexion)
+    _rellenar_monedas(conexion)

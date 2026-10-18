@@ -9,9 +9,11 @@ from sqlmodel import Session, col, select
 from app.datos_iniciales import CATEGORIA_RENDIMIENTOS
 from app.models import Categoria, Cuenta, CuentaBase, TipoCuenta, TipoMovimiento, Transaccion
 from app.schemas import CuentaCreate, CuentaUpdate
+from app.services import configuracion
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404
 from app.services.errores import ConflictoError, ReglaDeNegocioError
 from app.services.saldos import CENTIMOS, saldo_actual
+from app.services.transacciones import completar_montos
 
 # Campos que solo tienen sentido en ciertos tipos de cuenta.
 _CAMPOS_CREDITO = ("dia_corte", "dia_pago", "limite_credito")
@@ -57,6 +59,8 @@ def _normalizar_por_tipo(datos: dict[str, Any]) -> dict[str, Any]:
 def crear(session: Session, datos: CuentaCreate) -> Cuenta:
     _comprobar_nombre_libre(session, datos.nombre)
     cuenta = Cuenta(**_normalizar_por_tipo(datos.model_dump()))
+    cuenta.moneda = cuenta.moneda or configuracion.moneda_principal(session)
+    configuracion.comprobar_moneda_activa(session, cuenta.moneda)
     if cuenta.tipo == TipoCuenta.RENDIMIENTOS:
         # Los rendimientos empiezan a contar desde el día en que se crea la cuenta.
         cuenta.fecha_ultimo_rendimiento = date.today()
@@ -68,6 +72,12 @@ def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuent
     enviados = cambios_parciales(cambios, anulables=frozenset(_CAMPOS_CREDITO + _CAMPOS_RENDIMIENTOS))
     if "nombre" in enviados:
         _comprobar_nombre_libre(session, enviados["nombre"], excluir_id=cuenta_id)
+    if enviados.get("moneda", cuenta.moneda) != cuenta.moneda:
+        # Sus transacciones ya se convirtieron a la moneda antigua: cambiarla
+        # dejaría el saldo mezclando dos divisas.
+        if existe(session, Transaccion.cuenta_id, cuenta_id):
+            raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene transacciones")
+        configuracion.comprobar_moneda_activa(session, enviados["moneda"])
 
     # Validamos el estado final completo (lo actual + lo que cambia).
     actuales = cuenta.model_dump(include=set(CuentaBase.model_fields))
@@ -139,12 +149,14 @@ def registrar_rendimientos(session: Session, cuenta_id: int, hoy: date | None = 
 
     transaccion = Transaccion(
         monto=monto,
+        moneda=cuenta.moneda,
         tipo=TipoMovimiento.INGRESO,
         fecha=hoy,
         notas=f"Rendimientos de {dias} día(s) al {cuenta.tasa_rendimiento_anual}% anual",
         cuenta_id=cuenta.id,
         categoria_id=_categoria_rendimientos(session).id,
     )
+    completar_montos(session, transaccion, cuenta)
     cuenta.fecha_ultimo_rendimiento = hoy
 
     # Un único commit: o se guardan el ingreso y la nueva fecha, o ninguno.

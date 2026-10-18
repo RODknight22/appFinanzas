@@ -18,6 +18,7 @@ from app.models import (
     CategoriaBase,
     CuentaBase,
     Moneda,
+    OrigenTasa,
     Periodicidad,
     PresupuestoBase,
     SuscripcionBase,
@@ -42,6 +43,7 @@ class CuentaRead(CuentaBase):
 class CuentaUpdate(SQLModel):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
     tipo: TipoCuenta | None = None
+    moneda: Moneda | None = None
     balance_inicial: Decimal | None = Field(
         default=None, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
@@ -83,12 +85,15 @@ class TransaccionCreate(TransaccionBase):
 
 class TransaccionRead(TransaccionBase):
     id: int
+    monto_cuenta: Decimal
+    monto_principal: Decimal
 
 
 class TransaccionUpdate(SQLModel):
     monto: Decimal | None = Field(
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
+    moneda: Moneda | None = None
     tipo: TipoMovimiento | None = None
     fecha: date | None = None
     notas: str | None = Field(default=None, max_length=500)
@@ -134,6 +139,7 @@ class SuscripcionUpdate(SQLModel):
     )
     periodicidad: Periodicidad | None = None
     fecha_proximo_pago: date | None = None
+    moneda: Moneda | None = None
 
 
 class PagoSuscripcionCreate(SQLModel):
@@ -155,7 +161,9 @@ class SaldoCuenta(SQLModel):
     cuenta_id: int
     nombre: str
     tipo: TipoCuenta
-    saldo: Decimal
+    moneda: Moneda
+    saldo: Decimal  # en la moneda de la cuenta
+    saldo_principal: Decimal  # convertido a la moneda principal con la tasa de hoy
 
 
 class ResumenMes(SQLModel):
@@ -196,10 +204,25 @@ class ProgresoPresupuesto(SQLModel):
     excedido: bool
 
 
-# --- Configuración ---------------------------------------------------------
+# --- Configuración y divisas -----------------------------------------------
 class ConfiguracionRead(SQLModel):
     moneda: Moneda
+    monedas_activas: list[Moneda]
 
 
 class ConfiguracionUpdate(SQLModel):
+    """PATCH: solo se cambia lo que se envía."""
+
+    moneda: Moneda | None = None
+    monedas_activas: list[Moneda] | None = None
+
+
+class TasaRead(SQLModel):
     moneda: Moneda
+    por_usd: Decimal
+    fecha: date
+    origen: OrigenTasa
+
+
+class TasaManual(SQLModel):
+    por_usd: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
