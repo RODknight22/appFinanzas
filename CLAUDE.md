@@ -38,6 +38,9 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - Divisas (services/divisas.py): tasas diarias por USD en `tasacambio` (manual > api). Toda
   transacción nueva pasa por `completar_montos()`: `monto_cuenta` (saldo) y `monto_principal`
   (dashboard) con la tasa de su fecha. Sumar siempre esos campos, nunca `monto`.
+- Acceso: un usuario (scrypt) + sesión en cookie HttpOnly `sesion`. Routers de datos se registran
+  en main.py con `requiere_sesion`; solo `/auth/*` y `/health` son públicos. Tests: fixture
+  `client` simula sesión, `cliente_sin_sesion` no. Olvido: `python -m app.restablecer_contrasena`.
 
 ## Convenciones del Frontend (`frontend/src/`, TypeScript estricto)
 - `api/cliente.ts` es el único que usa `fetch` (ruta `/api`, proxy de Vite al backend).
@@ -49,15 +52,12 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
   (todas las monedas en la región de la principal: "$" solo para ella, código para el resto).
 
 ## Estado del Proyecto
-- [x] Pasos 1-3: backend (CRUD, dashboard, tests), frontend completo, Docker. Playwright E2E.
-- [x] Paso 4: categorías por defecto, crédito/débito/rendimientos. Fase 1: multidivisa + Ajustes.
-- [ ] Fase 2: login (un usuario). Fase 3: widgets reordenables, color de acento, nombre/avatar,
-  página de inicio, día de inicio de mes. Ideas: transferencias entre cuentas, Alembic.
+- [x] Pasos 1-4: CRUD, dashboard, frontend, Docker, tipos de cuenta. Fases 1-2: multidivisa, login.
+- [ ] Fase 3: widgets reordenables, acento, nombre/avatar, inicio, día de mes. Ideas: transferencias.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
 - `docker compose down`: Apaga los contenedores conservando el volumen de SQLite.
-- Sin Docker: `cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload`.
 - Tests (BD en memoria, no tocan datos reales), desde la raíz del repo en Git Bash:
   `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
 - Comprobar tipos del frontend (no hay Node local):
