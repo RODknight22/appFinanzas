@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { CategoriasPage } from "./pages/CategoriasPage";
 import { CuentasPage } from "./pages/CuentasPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { TransaccionesPage } from "./pages/TransaccionesPage";
 
 function EnConstruccion() {
   return <p className="text-slate-500">Esta sección está en construcción.</p>;
@@ -15,7 +16,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<DashboardPage />} />
-        <Route path="transacciones" element={<EnConstruccion />} />
+        <Route path="transacciones" element={<TransaccionesPage />} />
         <Route path="presupuestos" element={<EnConstruccion />} />
         <Route path="suscripciones" element={<EnConstruccion />} />
         <Route path="cuentas" element={<CuentasPage />} />
