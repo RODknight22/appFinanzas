@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
+import { CategoriasPage } from "./pages/CategoriasPage";
+import { CuentasPage } from "./pages/CuentasPage";
 import { DashboardPage } from "./pages/DashboardPage";
 
 function EnConstruccion() {
@@ -16,8 +18,8 @@ export default function App() {
         <Route path="transacciones" element={<EnConstruccion />} />
         <Route path="presupuestos" element={<EnConstruccion />} />
         <Route path="suscripciones" element={<EnConstruccion />} />
-        <Route path="cuentas" element={<EnConstruccion />} />
-        <Route path="categorias" element={<EnConstruccion />} />
+        <Route path="cuentas" element={<CuentasPage />} />
+        <Route path="categorias" element={<CategoriasPage />} />
         {/* Cualquier otra URL vuelve al dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
