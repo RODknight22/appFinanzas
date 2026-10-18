@@ -4,11 +4,9 @@ import { Layout } from "./components/Layout";
 import { CategoriasPage } from "./pages/CategoriasPage";
 import { CuentasPage } from "./pages/CuentasPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { PresupuestosPage } from "./pages/PresupuestosPage";
+import { SuscripcionesPage } from "./pages/SuscripcionesPage";
 import { TransaccionesPage } from "./pages/TransaccionesPage";
-
-function EnConstruccion() {
-  return <p className="text-slate-500">Esta sección está en construcción.</p>;
-}
 
 /** Mapa de rutas: cada URL muestra una página dentro del Layout común. */
 export default function App() {
@@ -17,8 +15,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<DashboardPage />} />
         <Route path="transacciones" element={<TransaccionesPage />} />
-        <Route path="presupuestos" element={<EnConstruccion />} />
-        <Route path="suscripciones" element={<EnConstruccion />} />
+        <Route path="presupuestos" element={<PresupuestosPage />} />
+        <Route path="suscripciones" element={<SuscripcionesPage />} />
         <Route path="cuentas" element={<CuentasPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
         {/* Cualquier otra URL vuelve al dashboard */}

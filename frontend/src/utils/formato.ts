@@ -57,3 +57,12 @@ export function diasHasta(fecha: FechaISO): number {
   const milisegundosPorDia = 24 * 60 * 60 * 1000;
   return Math.round((fechaLocal(fecha).getTime() - fechaLocal(hoyISO()).getTime()) / milisegundosPorDia);
 }
+
+/** Texto amigable para la fecha de un cobro: "Hoy", "En 3 días", "Atrasado 2 días". */
+export function textoVencimiento(fecha: FechaISO): string {
+  const dias = diasHasta(fecha);
+  if (dias === 0) return "Hoy";
+  if (dias === 1) return "Mañana";
+  if (dias < 0) return `Atrasado ${-dias} día${dias === -1 ? "" : "s"}`;
+  return `En ${dias} días`;
+}

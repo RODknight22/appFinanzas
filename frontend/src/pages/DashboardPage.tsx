@@ -13,16 +13,7 @@ import { Contenido, Vacio } from "../components/ui/Estados";
 import { SelectorMes } from "../components/ui/SelectorMes";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { useDatos } from "../hooks/useDatos";
-import { diasHasta, formatearDinero, formatearFecha, mesActual } from "../utils/formato";
-
-/** Texto amigable para la fecha de un cobro: "Hoy", "En 3 días", "Atrasado 2 días". */
-function textoVencimiento(fecha: string): string {
-  const dias = diasHasta(fecha);
-  if (dias === 0) return "Hoy";
-  if (dias === 1) return "Mañana";
-  if (dias < 0) return `Atrasado ${-dias} día${dias === -1 ? "" : "s"}`;
-  return `En ${dias} días`;
-}
+import { diasHasta, formatearDinero, formatearFecha, mesActual, textoVencimiento } from "../utils/formato";
 
 export function DashboardPage() {
   const [mes, setMes] = useState(mesActual());
