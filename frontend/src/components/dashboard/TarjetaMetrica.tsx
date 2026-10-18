@@ -19,7 +19,7 @@ interface TarjetaMetricaProps {
 /** Un número destacado del dashboard (balance, ingresos, gastos…). */
 export function TarjetaMetrica({ titulo, valor, icono: Icono, tono = "neutral", detalle }: TarjetaMetricaProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-slate-500">{titulo}</p>
         <span className={`rounded-lg p-2 ${TONOS[tono]}`}>
