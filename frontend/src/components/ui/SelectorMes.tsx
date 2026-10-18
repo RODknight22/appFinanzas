@@ -24,7 +24,7 @@ export function SelectorMes({ mes, onCambiar }: SelectorMesProps) {
       <button type="button" className={claseFlecha} onClick={() => onCambiar(desplazarMes(mes, -1))} aria-label="Mes anterior">
         <ChevronLeft size={18} />
       </button>
-      <span className="min-w-36 text-center text-sm font-medium capitalize">{formatearMes(mes)}</span>
+      <span className="min-w-36 text-center text-sm font-medium">{formatearMes(mes)}</span>
       <button type="button" className={claseFlecha} onClick={() => onCambiar(desplazarMes(mes, 1))} aria-label="Mes siguiente">
         <ChevronRight size={18} />
       </button>

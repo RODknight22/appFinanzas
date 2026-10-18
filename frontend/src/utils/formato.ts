@@ -27,10 +27,12 @@ export function formatearFecha(fecha: FechaISO): string {
 
 export function formatearMes(mes: MesAnio, formato: "corto" | "largo" = "largo"): string {
   const [anio, numeroMes] = mes.split("-").map(Number);
-  return new Date(anio, numeroMes - 1, 1).toLocaleDateString(LOCALE, {
+  const texto = new Date(anio, numeroMes - 1, 1).toLocaleDateString(LOCALE, {
     month: formato === "corto" ? "short" : "long",
     year: formato === "corto" ? "2-digit" : "numeric",
   });
+  // "octubre de 2026" -> "Octubre de 2026" (CSS `capitalize` pondría también "De").
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 /** Fecha de hoy en formato ISO local, para valores por defecto de formularios. */

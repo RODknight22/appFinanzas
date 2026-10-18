@@ -11,6 +11,7 @@ import {
 
 import type { FlujoMensual } from "../../types";
 import { formatearDinero, formatearMes } from "../../utils/formato";
+import { Vacio } from "../ui/Estados";
 
 const COLOR_INGRESOS = "#10b981";
 const COLOR_GASTOS = "#f43f5e";
@@ -20,7 +21,7 @@ function TooltipFlujo({ active, payload, label }: TooltipProps<number, string>) 
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-800">
-      <p className="mb-1 font-semibold capitalize">{formatearMes(String(label))}</p>
+      <p className="mb-1 font-semibold">{formatearMes(String(label))}</p>
       {payload.map((serie) => (
         <p key={serie.dataKey} className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: serie.color }} />
@@ -33,6 +34,9 @@ function TooltipFlujo({ active, payload, label }: TooltipProps<number, string>) 
 
 /** Barras de ingresos vs. gastos por mes. */
 export function GraficoFlujo({ datos }: { datos: FlujoMensual[] }) {
+  const hayMovimientos = datos.some((mes) => Number(mes.ingresos) > 0 || Number(mes.gastos) > 0);
+  if (!hayMovimientos) return <Vacio mensaje="Sin movimientos en los últimos meses" />;
+
   // Recharts necesita números; el backend envía los importes como texto.
   const filas = datos.map((mes) => ({
     mes_anio: mes.mes_anio,

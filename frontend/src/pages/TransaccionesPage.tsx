@@ -5,7 +5,7 @@ import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
 import { AccionesFila } from "../components/ui/AccionesFila";
 import { Boton } from "../components/ui/Boton";
-import { CLASE_ENTRADA } from "../components/ui/Campo";
+import { CLASE_ENTRADA_BASE } from "../components/ui/Campo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { IconoCategoria } from "../components/ui/IconoCategoria";
@@ -49,7 +49,7 @@ export function TransaccionesPage() {
         acciones={
           <>
             <SelectorMes mes={mes} onCambiar={setMes} />
-            <select className={`${CLASE_ENTRADA} w-auto`} value={tipo} onChange={(e) => setTipo(e.target.value as TipoMovimiento | "")} aria-label="Filtrar por tipo">
+            <select className={`${CLASE_ENTRADA_BASE} w-auto`} value={tipo} onChange={(e) => setTipo(e.target.value as TipoMovimiento | "")} aria-label="Filtrar por tipo">
               <option value="">Todos</option>
               <option value="gasto">Gastos</option>
               <option value="ingreso">Ingresos</option>

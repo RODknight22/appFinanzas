@@ -16,16 +16,18 @@ import { useTema } from "../hooks/useTema";
 interface ItemMenu {
   ruta: string;
   etiqueta: string;
+  /** Versión corta para la barra inferior del móvil, donde hay poco espacio. */
+  corta: string;
   icono: LucideIcon;
 }
 
 const MENU: ItemMenu[] = [
-  { ruta: "/", etiqueta: "Dashboard", icono: LayoutDashboard },
-  { ruta: "/transacciones", etiqueta: "Transacciones", icono: ArrowLeftRight },
-  { ruta: "/presupuestos", etiqueta: "Presupuestos", icono: PiggyBank },
-  { ruta: "/suscripciones", etiqueta: "Suscripciones", icono: Repeat },
-  { ruta: "/cuentas", etiqueta: "Cuentas", icono: Wallet },
-  { ruta: "/categorias", etiqueta: "Categorías", icono: Tags },
+  { ruta: "/", etiqueta: "Dashboard", corta: "Inicio", icono: LayoutDashboard },
+  { ruta: "/transacciones", etiqueta: "Transacciones", corta: "Movimientos", icono: ArrowLeftRight },
+  { ruta: "/presupuestos", etiqueta: "Presupuestos", corta: "Límites", icono: PiggyBank },
+  { ruta: "/suscripciones", etiqueta: "Suscripciones", corta: "Recurrentes", icono: Repeat },
+  { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
+  { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags },
 ];
 
 /**
@@ -91,7 +93,7 @@ export function Layout() {
 
       {/* Barra inferior en móvil */}
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden dark:border-slate-800 dark:bg-slate-900">
-        {MENU.map(({ ruta, etiqueta, icono: Icono }) => (
+        {MENU.map(({ ruta, etiqueta, corta, icono: Icono }) => (
           <NavLink
             key={ruta}
             to={ruta}
@@ -104,7 +106,7 @@ export function Layout() {
             }
           >
             <Icono size={20} />
-            <span className="max-w-full truncate px-0.5">{etiqueta}</span>
+            <span className="max-w-full truncate px-0.5">{corta}</span>
           </NavLink>
         ))}
       </nav>
