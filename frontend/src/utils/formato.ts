@@ -1,8 +1,21 @@
 /** Funciones para mostrar dinero, fechas y meses de forma legible. */
-import { LOCALE, MONEDA } from "../config";
-import type { Dinero, FechaISO, MesAnio } from "../types";
+import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
+import type { Dinero, FechaISO, MesAnio, Moneda } from "../types";
 
-const formateadorDinero = new Intl.NumberFormat(LOCALE, { style: "currency", currency: MONEDA });
+// Estado del módulo: lo cambia configurarMoneda() al cargar o cambiar la moneda.
+// Crear un Intl.NumberFormat es costoso, así que lo reutilizamos en cada llamada.
+let localeActual = MONEDAS[MONEDA_POR_DEFECTO].locale;
+let formateadorDinero = crearFormateador(MONEDA_POR_DEFECTO);
+
+function crearFormateador(moneda: Moneda): Intl.NumberFormat {
+  return new Intl.NumberFormat(MONEDAS[moneda].locale, { style: "currency", currency: moneda });
+}
+
+/** Cambia la moneda (y el formato regional) que usan todas las funciones de este archivo. */
+export function configurarMoneda(moneda: Moneda): void {
+  localeActual = MONEDAS[moneda].locale;
+  formateadorDinero = crearFormateador(moneda);
+}
 
 export function formatearDinero(valor: Dinero | number): string {
   return formateadorDinero.format(Number(valor));
@@ -18,7 +31,7 @@ function fechaLocal(fecha: FechaISO): Date {
 }
 
 export function formatearFecha(fecha: FechaISO): string {
-  return fechaLocal(fecha).toLocaleDateString(LOCALE, {
+  return fechaLocal(fecha).toLocaleDateString(localeActual, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -27,7 +40,7 @@ export function formatearFecha(fecha: FechaISO): string {
 
 export function formatearMes(mes: MesAnio, formato: "corto" | "largo" = "largo"): string {
   const [anio, numeroMes] = mes.split("-").map(Number);
-  const texto = new Date(anio, numeroMes - 1, 1).toLocaleDateString(LOCALE, {
+  const texto = new Date(anio, numeroMes - 1, 1).toLocaleDateString(localeActual, {
     month: formato === "corto" ? "short" : "long",
     year: formato === "corto" ? "2-digit" : "numeric",
   });

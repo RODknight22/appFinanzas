@@ -13,7 +13,8 @@ export type MesAnio = string;
 export type FechaISO = string;
 
 export type TipoMovimiento = "ingreso" | "gasto";
-export type TipoCuenta = "efectivo" | "banco" | "tarjeta" | "ahorro" | "inversion";
+export type TipoCuenta = "efectivo" | "debito" | "credito" | "rendimientos" | "ahorro" | "inversion";
+export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL";
 export type Periodicidad = "semanal" | "mensual" | "anual";
 
 // --- Entidades -------------------------------------------------------------
@@ -22,6 +23,14 @@ export interface Cuenta {
   nombre: string;
   tipo: TipoCuenta;
   balance_inicial: Dinero;
+  // Solo tarjetas de crédito (null en el resto)
+  dia_corte: number | null;
+  dia_pago: number | null;
+  limite_credito: Dinero | null;
+  // Solo cuentas con rendimientos: tasa anual en % (null en el resto)
+  tasa_rendimiento_anual: string | null;
+  /** La gestiona el backend: hasta qué día se registraron los rendimientos. */
+  readonly fecha_ultimo_rendimiento: FechaISO | null;
 }
 
 export interface Categoria {
@@ -57,8 +66,8 @@ export interface Suscripcion {
   fecha_proximo_pago: FechaISO;
 }
 
-/** Datos para crear una entidad: todo menos el `id`, que lo genera la BD. */
-export type DatosNuevos<T extends { id: number }> = Omit<T, "id">;
+/** Datos para crear una entidad: sin `id` (lo genera la BD) ni campos que gestiona el backend. */
+export type DatosNuevos<T extends { id: number }> = Omit<T, "id" | "fecha_ultimo_rendimiento">;
 
 export interface PagoSuscripcion {
   transaccion: Transaccion;
@@ -109,4 +118,9 @@ export interface ProgresoPresupuesto {
   restante: Dinero;
   porcentaje: number;
   excedido: boolean;
+}
+
+// --- Configuración ---------------------------------------------------------
+export interface Configuracion {
+  moneda: Moneda;
 }

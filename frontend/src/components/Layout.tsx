@@ -12,6 +12,7 @@ import {
 import { NavLink, Outlet } from "react-router-dom";
 
 import { useTema } from "../hooks/useTema";
+import { SelectorMoneda } from "./SelectorMoneda";
 
 interface ItemMenu {
   ruta: string;
@@ -69,6 +70,7 @@ export function Layout() {
           ))}
         </nav>
 
+        <SelectorMoneda />
         <button
           type="button"
           onClick={alternar}
@@ -79,12 +81,15 @@ export function Layout() {
         </button>
       </aside>
 
-      {/* Cabecera móvil con el botón de tema */}
+      {/* Cabecera móvil con moneda y botón de tema */}
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-900">
         <span className="font-bold">Mis Finanzas</span>
-        <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-slate-500">
-          <IconoTema size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          <SelectorMoneda compacto />
+          <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-slate-500">
+            <IconoTema size={18} />
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-24 md:px-8 md:py-8">
