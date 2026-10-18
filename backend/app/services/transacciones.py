@@ -46,7 +46,7 @@ def obtener(session: Session, transaccion_id: int) -> Transaccion:
     return obtener_o_404(session, Transaccion, transaccion_id, "la transacción")
 
 
-def _validar_relaciones(
+def validar_relaciones(
     session: Session, cuenta_id: int, categoria_id: int, tipo: TipoMovimiento
 ) -> None:
     """Comprueba que la cuenta y la categoría existen y que el tipo es coherente."""
@@ -60,7 +60,7 @@ def _validar_relaciones(
 
 
 def crear(session: Session, datos: TransaccionCreate) -> Transaccion:
-    _validar_relaciones(session, datos.cuenta_id, datos.categoria_id, datos.tipo)
+    validar_relaciones(session, datos.cuenta_id, datos.categoria_id, datos.tipo)
     return guardar(session, Transaccion.model_validate(datos))
 
 
@@ -70,7 +70,7 @@ def actualizar(session: Session, transaccion_id: int, cambios: TransaccionUpdate
 
     # Validamos la combinación final (valores nuevos + los que no cambian),
     # porque un PATCH puede cambiar solo el tipo o solo la categoría.
-    _validar_relaciones(
+    validar_relaciones(
         session,
         datos.get("cuenta_id", transaccion.cuenta_id),
         datos.get("categoria_id", transaccion.categoria_id),

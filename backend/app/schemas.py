@@ -17,7 +17,9 @@ from app.models import (
     MAX_DIGITOS,
     CategoriaBase,
     CuentaBase,
+    Periodicidad,
     PresupuestoBase,
+    SuscripcionBase,
     TipoCuenta,
     TipoMovimiento,
     TransaccionBase,
@@ -104,3 +106,35 @@ class PresupuestoUpdate(SQLModel):
     @classmethod
     def comprobar_mes_anio(cls, valor: str | None) -> str | None:
         return validar_mes_anio(valor)
+
+
+# --- Suscripciones ---------------------------------------------------------
+class SuscripcionCreate(SuscripcionBase):
+    pass
+
+
+class SuscripcionRead(SuscripcionBase):
+    id: int
+
+
+class SuscripcionUpdate(SQLModel):
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    monto: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    periodicidad: Periodicidad | None = None
+    fecha_proximo_pago: date | None = None
+
+
+class PagoSuscripcionCreate(SQLModel):
+    """Datos para registrar un cobro: de qué cuenta sale y en qué categoría se anota."""
+
+    cuenta_id: int
+    categoria_id: int
+
+
+class PagoSuscripcionRead(SQLModel):
+    """Resultado del cobro: la transacción creada y la suscripción con su nueva fecha."""
+
+    transaccion: TransaccionRead
+    suscripcion: SuscripcionRead
