@@ -35,6 +35,9 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
   valores) + datos_iniciales.py (config y categorías si la BD está vacía). Nunca borrar `finance.db`.
 - Cuentas: campos por tipo (crédito: dia_corte/dia_pago/limite; rendimientos: tasa anual) que
   `_normalizar_por_tipo` exige o anula. Saldo de tarjeta negativo = deuda.
+- Divisas (services/divisas.py): tasas diarias por USD en `tasacambio` (manual > api). Toda
+  transacción nueva pasa por `completar_montos()`: `monto_cuenta` (saldo) y `monto_principal`
+  (dashboard) con la tasa de su fecha. Sumar siempre esos campos, nunca `monto`.
 
 ## Convenciones del Frontend (`frontend/src/`, TypeScript estricto)
 - `api/cliente.ts` es el único que usa `fetch` (ruta `/api`, proxy de Vite al backend).
@@ -42,17 +45,14 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - Páginas cargan con `useDatos` + `<Contenido>`; formularios usan `useEnvio` + `PieFormulario`.
 - Modales con estado único (`null | "nueva" | entidad`); `key` reinicia el formulario.
 - Inputs con `CLASE_ENTRADA` (o `CLASE_ENTRADA_BASE` + ancho).
-- Moneda global (backend `/configuracion`) vía `ConfiguracionProvider`; formatear siempre con
-  `formatearDinero`/`formatearFecha` de utils/formato.ts (usan la moneda y locale activos).
+- Configuración y tasas vía `useConfiguracion()`; formatear con `formatearDinero(valor, moneda)`
+  (todas las monedas en la región de la principal: "$" solo para ella, código para el resto).
 
 ## Estado del Proyecto
-- [x] Paso 1: modelos, SQLite persistente, CRUD base, Docker del backend.
-- [x] Paso 2: suscripciones (+ registrar-pago), endpoints `/dashboard/*`, tests con pytest.
-- [x] Paso 3: frontend completo (dashboard, transacciones, presupuestos, suscripciones,
-  cuentas, categorías), modo oscuro y móvil; verificado con Playwright.
-- [x] Paso 4: monedas (MXN/USD/EUR/GTQ/HNL), categorías por defecto y creación rápida,
-  tarjetas de crédito (corte/pago), débito y cuentas con rendimientos diarios.
-- [ ] Ideas: transferencias entre cuentas (p. ej. pagar la tarjeta desde débito), Alembic.
+- [x] Pasos 1-3: backend (CRUD, dashboard, tests), frontend completo, Docker. Playwright E2E.
+- [x] Paso 4: categorías por defecto, crédito/débito/rendimientos. Fase 1: multidivisa + Ajustes.
+- [ ] Fase 2: login (un usuario). Fase 3: widgets reordenables, color de acento, nombre/avatar,
+  página de inicio, día de inicio de mes. Ideas: transferencias entre cuentas, Alembic.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
