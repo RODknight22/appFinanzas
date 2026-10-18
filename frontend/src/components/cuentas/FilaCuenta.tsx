@@ -47,7 +47,7 @@ function DetalleCredito({ cuenta, saldo }: { cuenta: Cuenta; saldo: number }) {
             />
           </div>
           <p className="mt-1">
-            Disponible {formatearDinero(Math.max(limite - deuda, 0))} de {formatearDinero(limite)} ({Math.round(usado)}% usado)
+            Disponible {formatearDinero(Math.max(limite - deuda, 0), cuenta.moneda)} de {formatearDinero(limite, cuenta.moneda)} ({Math.round(usado)}% usado)
           </p>
         </div>
       )}
@@ -63,12 +63,12 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
       <span>
-        {tasa}% anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1))} al día · ≈{" "}
-        {formatearDinero(rendimientoEstimado(saldo, tasa, 30))} al mes
+        {tasa}% anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1), cuenta.moneda)} al día · ≈{" "}
+        {formatearDinero(rendimientoEstimado(saldo, tasa, 30), cuenta.moneda)} al mes
       </span>
       {diasPendientes > 0 ? (
         <Boton variante="secundario" className="px-2.5 py-1 text-xs" onClick={onRegistrar}>
-          <Sparkles size={14} /> Registrar {diasPendientes} día{diasPendientes === 1 ? "" : "s"} (≈ {formatearDinero(pendiente)})
+          <Sparkles size={14} /> Registrar {diasPendientes} día{diasPendientes === 1 ? "" : "s"} (≈ {formatearDinero(pendiente, cuenta.moneda)})
         </Boton>
       ) : (
         <span className="text-emerald-600 dark:text-emerald-400">Rendimientos registrados hasta hoy</span>
@@ -95,7 +95,7 @@ export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRen
         <div className="text-right">
           <p className="text-xs text-slate-500">{esCredito ? "Deuda" : "Saldo actual"}</p>
           <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
-            {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo)}
+            {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo, cuenta.moneda)}
           </p>
         </div>
         <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />

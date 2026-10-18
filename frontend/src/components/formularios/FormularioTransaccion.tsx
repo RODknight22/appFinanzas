@@ -3,13 +3,35 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { transaccionesApi } from "../../api/recursos";
+import { useConfiguracion } from "../../hooks/useConfiguracion";
 import { useEnvio } from "../../hooks/useEnvio";
-import type { Categoria, Cuenta, TipoMovimiento, Transaccion } from "../../types";
-import { hoyISO } from "../../utils/formato";
+import type { Categoria, Cuenta, Moneda, TipoMovimiento, Transaccion } from "../../types";
+import { formatearDinero, hoyISO } from "../../utils/formato";
+import { SelectMoneda } from "../ui/SelectMoneda";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { CategoriaRapida } from "./CategoriaRapida";
 import { PieFormulario } from "./PieFormulario";
+
+interface VistaPreviaProps {
+  monto: number;
+  de: Moneda;
+  a: Moneda | undefined;
+}
+
+/** "≈ 2,000.00 en MXN" cuando se paga en una moneda distinta a la de la cuenta. */
+function VistaPreviaConversion({ monto, de, a }: VistaPreviaProps) {
+  const { convertir } = useConfiguracion();
+  if (!a || a === de || !monto) return null;
+  const convertido = convertir(monto, de, a);
+  return (
+    <p className="text-xs text-slate-500">
+      {convertido === undefined
+        ? `Falta la tasa de ${de} o ${a}: añádela en Ajustes.`
+        : `≈ ${formatearDinero(convertido, a)} en la cuenta (se guardará con la tasa de su fecha)`}
+    </p>
+  );
+}
 
 interface FormularioTransaccionProps {
   inicial?: Transaccion;
@@ -20,12 +42,18 @@ interface FormularioTransaccionProps {
 }
 
 export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado, onCancelar }: FormularioTransaccionProps) {
+  const { moneda: monedaPrincipal } = useConfiguracion();
   const [tipo, setTipo] = useState<TipoMovimiento>(inicial?.tipo ?? "gasto");
   const [monto, setMonto] = useState(inicial?.monto ?? "");
   const [fecha, setFecha] = useState(inicial?.fecha ?? hoyISO());
   // Texto (no número) para que "" signifique "sin elegir" y funcione `required`.
   const [categoriaId, setCategoriaId] = useState(inicial ? String(inicial.categoria_id) : "");
   const [cuentaId, setCuentaId] = useState(inicial?.cuenta_id ?? cuentas[0]?.id ?? 0);
+  const cuentaDe = (id: number) => cuentas.find((cuenta) => cuenta.id === id);
+  // Por defecto, la moneda de la cuenta. Si el usuario elige otra a mano, se
+  // respeta aunque después cambie de cuenta.
+  const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? cuentaDe(cuentaId)?.moneda ?? monedaPrincipal);
+  const [monedaElegida, setMonedaElegida] = useState(Boolean(inicial));
   const [notas, setNotas] = useState(inicial?.notas ?? "");
   const { enviando, error, ejecutar } = useEnvio();
   // Copia local: así una categoría creada aquí aparece al instante en el desplegable.
@@ -40,6 +68,16 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
     setCategoriaId(""); // la categoría elegida ya no sería válida
   }
 
+  function cambiarCuenta(id: number) {
+    setCuentaId(id);
+    if (!monedaElegida) setMoneda(cuentaDe(id)?.moneda ?? moneda);
+  }
+
+  function elegirMoneda(nueva: Moneda) {
+    setMoneda(nueva);
+    setMonedaElegida(true);
+  }
+
   function alCrearCategoria(categoria: Categoria) {
     setCategoriasLocales((actuales) => [...actuales, categoria]);
     setCategoriaId(String(categoria.id));
@@ -51,6 +89,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
     const datos = {
       tipo,
       monto,
+      moneda,
       fecha,
       categoria_id: Number(categoriaId),
       cuenta_id: cuentaId,
@@ -92,9 +131,17 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Campo etiqueta="Monto">
-          <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} required autoFocus />
-        </Campo>
+        <div className="space-y-1.5">
+          <div className="flex items-end gap-1.5">
+            <div className="min-w-0 flex-1">
+              <Campo etiqueta="Monto">
+                <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} required autoFocus />
+              </Campo>
+            </div>
+            <SelectMoneda valor={moneda} onCambiar={elegirMoneda} compacta className="w-[5.5rem]" etiqueta="Moneda" />
+          </div>
+          <VistaPreviaConversion monto={Number(monto)} de={moneda} a={cuentaDe(cuentaId)?.moneda} />
+        </div>
         <Campo etiqueta="Fecha">
           <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
         </Campo>
@@ -123,7 +170,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
       </div>
 
       <Campo etiqueta="Cuenta">
-        <select className={CLASE_ENTRADA} value={cuentaId} onChange={(e) => setCuentaId(Number(e.target.value))}>
+        <select className={CLASE_ENTRADA} value={cuentaId} onChange={(e) => cambiarCuenta(Number(e.target.value))}>
           {cuentas.map((cuenta) => (
             <option key={cuenta.id} value={cuenta.id}>{cuenta.nombre}</option>
           ))}

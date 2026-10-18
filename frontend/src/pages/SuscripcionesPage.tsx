@@ -10,6 +10,7 @@ import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Periodicidad, Suscripcion } from "../types";
@@ -32,6 +33,7 @@ type EstadoModal =
 const TITULOS = { nueva: "Nueva suscripción", editar: "Editar suscripción", pagar: "Registrar pago" };
 
 export function SuscripcionesPage() {
+  const { convertir } = useConfiguracion();
   const [modal, setModal] = useState<EstadoModal>(null);
   const estado = useDatos(
     () => Promise.all([suscripcionesApi.listar(), cuentasApi.listar(), categoriasApi.listar({ tipo: "gasto" })]),
@@ -53,8 +55,9 @@ export function SuscripcionesPage() {
 
       <Contenido {...estado} onReintentar={estado.recargar}>
         {([suscripciones, cuentas, categoriasGasto]) => {
+          // Cada suscripción se convierte a la moneda principal (tasa de hoy) antes de sumar.
           const costeMensual = suscripciones.reduce(
-            (total, s) => total + Number(s.monto) * COBROS_POR_MES[s.periodicidad],
+            (total, s) => total + (convertir(Number(s.monto), s.moneda) ?? 0) * COBROS_POR_MES[s.periodicidad],
             0,
           );
 
@@ -94,7 +97,7 @@ export function SuscripcionesPage() {
                               </span>
                             </p>
                           </div>
-                          <span className="font-semibold tabular-nums">{formatearDinero(suscripcion.monto)}</span>
+                          <span className="font-semibold tabular-nums">{formatearDinero(suscripcion.monto, suscripcion.moneda)}</span>
                           <Boton variante="secundario" className="px-2.5 py-1.5 text-xs" onClick={() => setModal({ modo: "pagar", suscripcion })}>
                             <CalendarCheck size={14} /> Pagado
                           </Boton>

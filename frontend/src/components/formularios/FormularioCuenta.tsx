@@ -10,9 +10,11 @@ import {
 import { useState, type FormEvent } from "react";
 
 import { cuentasApi } from "../../api/recursos";
+import { useConfiguracion } from "../../hooks/useConfiguracion";
 import { useEnvio } from "../../hooks/useEnvio";
-import type { Cuenta, DatosNuevos, TipoCuenta } from "../../types";
+import type { Cuenta, DatosNuevos, Moneda, TipoCuenta } from "../../types";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { SelectMoneda } from "../ui/SelectMoneda";
 import { PieFormulario } from "./PieFormulario";
 
 export const TIPOS_CUENTA: Record<TipoCuenta, { etiqueta: string; icono: LucideIcon }> = {
@@ -35,8 +37,10 @@ interface FormularioCuentaProps {
 const textoONulo = (valor: string) => (valor.trim() === "" ? null : valor);
 
 export function FormularioCuenta({ inicial, onGuardado, onCancelar }: FormularioCuentaProps) {
+  const { moneda: monedaPrincipal } = useConfiguracion();
   const [nombre, setNombre] = useState(inicial?.nombre ?? "");
   const [tipo, setTipo] = useState<TipoCuenta>(inicial?.tipo ?? "debito");
+  const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? monedaPrincipal);
   // En tarjetas pedimos la deuda en positivo (más natural) y la guardamos en negativo.
   const [importeInicial, setImporteInicial] = useState(() => {
     if (!inicial) return "0";
@@ -57,6 +61,7 @@ export function FormularioCuenta({ inicial, onGuardado, onCancelar }: Formulario
     const datos: DatosNuevos<Cuenta> = {
       nombre: nombre.trim(),
       tipo,
+      moneda,
       balance_inicial: String(esCredito ? -Number(importeInicial) : Number(importeInicial)),
       // El backend borra los campos que no corresponden al tipo; aun así los
       // enviamos a null para que el formulario sea explícito.
@@ -75,6 +80,10 @@ export function FormularioCuenta({ inicial, onGuardado, onCancelar }: Formulario
     <form onSubmit={enviar} className="space-y-4">
       <Campo etiqueta="Nombre">
         <input className={CLASE_ENTRADA} value={nombre} onChange={(e) => setNombre(e.target.value)} required maxLength={100} placeholder="Ej.: BBVA, Nu, Efectivo" autoFocus />
+      </Campo>
+
+      <Campo etiqueta="Moneda de la cuenta" ayuda="No se puede cambiar cuando la cuenta ya tiene transacciones.">
+        <SelectMoneda valor={moneda} onCambiar={setMoneda} />
       </Campo>
 
       <fieldset>

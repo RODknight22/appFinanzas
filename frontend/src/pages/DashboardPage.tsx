@@ -101,8 +101,14 @@ export function DashboardPage() {
                             <span className="font-medium">{cuenta.nombre}</span>
                             <span className="ml-2 text-xs text-slate-500">{TIPOS_CUENTA[cuenta.tipo].etiqueta}</span>
                           </span>
-                          <span className={`font-semibold tabular-nums ${Number(cuenta.saldo) < 0 ? "text-rose-600" : ""}`}>
-                            {formatearDinero(cuenta.saldo)}
+                          <span className="text-right">
+                            <span className={`block font-semibold tabular-nums ${Number(cuenta.saldo) < 0 ? "text-rose-600" : ""}`}>
+                              {formatearDinero(cuenta.saldo, cuenta.moneda)}
+                            </span>
+                            {/* Si la cuenta está en otra divisa, su equivalente en la principal */}
+                            {cuenta.saldo_principal !== cuenta.saldo && (
+                              <span className="block text-xs text-slate-500 tabular-nums">≈ {formatearDinero(cuenta.saldo_principal)}</span>
+                            )}
                           </span>
                         </li>
                       ))}
@@ -129,7 +135,7 @@ export function DashboardPage() {
                               {textoVencimiento(pago.fecha)} · {formatearFecha(pago.fecha)}
                             </span>
                           </span>
-                          <span className="font-medium tabular-nums">{formatearDinero(pago.monto)}</span>
+                          <span className="font-medium tabular-nums">{formatearDinero(pago.monto, pago.moneda)}</span>
                         </li>
                       ))}
                     </ul>

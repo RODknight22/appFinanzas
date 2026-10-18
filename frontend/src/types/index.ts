@@ -22,6 +22,7 @@ export interface Cuenta {
   id: number;
   nombre: string;
   tipo: TipoCuenta;
+  moneda: Moneda;
   balance_inicial: Dinero;
   // Solo tarjetas de crédito (null en el resto)
   dia_corte: number | null;
@@ -44,6 +45,11 @@ export interface Categoria {
 export interface Transaccion {
   id: number;
   monto: Dinero;
+  /** Moneda en la que se pagó; `monto` está en esta moneda. */
+  moneda: Moneda;
+  /** Calculados por el backend con la tasa del día de la transacción. */
+  readonly monto_cuenta: Dinero;
+  readonly monto_principal: Dinero;
   tipo: TipoMovimiento;
   fecha: FechaISO;
   notas: string | null;
@@ -62,12 +68,16 @@ export interface Suscripcion {
   id: number;
   nombre: string;
   monto: Dinero;
+  moneda: Moneda;
   periodicidad: Periodicidad;
   fecha_proximo_pago: FechaISO;
 }
 
 /** Datos para crear una entidad: sin `id` (lo genera la BD) ni campos que gestiona el backend. */
-export type DatosNuevos<T extends { id: number }> = Omit<T, "id" | "fecha_ultimo_rendimiento">;
+export type DatosNuevos<T extends { id: number }> = Omit<
+  T,
+  "id" | "fecha_ultimo_rendimiento" | "monto_cuenta" | "monto_principal"
+>;
 
 export interface PagoSuscripcion {
   transaccion: Transaccion;
@@ -79,7 +89,11 @@ export interface SaldoCuenta {
   cuenta_id: number;
   nombre: string;
   tipo: TipoCuenta;
+  moneda: Moneda;
+  /** En la moneda de la cuenta. */
   saldo: Dinero;
+  /** Convertido a la moneda principal con la tasa de hoy. */
+  saldo_principal: Dinero;
 }
 
 export interface ResumenMes {
@@ -122,5 +136,15 @@ export interface ProgresoPresupuesto {
 
 // --- Configuración ---------------------------------------------------------
 export interface Configuracion {
+  /** Moneda principal: la de los totales, gráficos y presupuestos. */
   moneda: Moneda;
+  monedas_activas: Moneda[];
+}
+
+export interface Tasa {
+  moneda: Moneda;
+  /** Unidades de `moneda` por 1 USD. */
+  por_usd: string;
+  fecha: FechaISO;
+  origen: "api" | "manual";
 }

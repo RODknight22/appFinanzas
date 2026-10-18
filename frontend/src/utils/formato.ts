@@ -2,23 +2,37 @@
 import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
 import type { Dinero, FechaISO, MesAnio, Moneda } from "../types";
 
-// Estado del módulo: lo cambia configurarMoneda() al cargar o cambiar la moneda.
-// Crear un Intl.NumberFormat es costoso, así que lo reutilizamos en cada llamada.
+// Estado del módulo: lo cambia configurarMoneda() al cargar o cambiar la moneda principal.
+let monedaPrincipal: Moneda = MONEDA_POR_DEFECTO;
 let localeActual = MONEDAS[MONEDA_POR_DEFECTO].locale;
-let formateadorDinero = crearFormateador(MONEDA_POR_DEFECTO);
 
-function crearFormateador(moneda: Moneda): Intl.NumberFormat {
-  return new Intl.NumberFormat(MONEDAS[moneda].locale, { style: "currency", currency: moneda });
+// Crear un Intl.NumberFormat es costoso: guardamos uno por moneda y lo reutilizamos.
+const formateadores = new Map<Moneda, Intl.NumberFormat>();
+
+/**
+ * Todas las monedas se formatean con la región de la moneda principal: así la
+ * principal usa su símbolo ("$") y las demás su código ("USD 15.00"). Si cada
+ * una usara su propia región, MXN y USD saldrían ambas como "$".
+ */
+function formateador(moneda: Moneda): Intl.NumberFormat {
+  let existente = formateadores.get(moneda);
+  if (!existente) {
+    existente = new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda });
+    formateadores.set(moneda, existente);
+  }
+  return existente;
 }
 
-/** Cambia la moneda (y el formato regional) que usan todas las funciones de este archivo. */
+/** Cambia la moneda principal (y el formato regional de fechas) de toda la app. */
 export function configurarMoneda(moneda: Moneda): void {
+  monedaPrincipal = moneda;
   localeActual = MONEDAS[moneda].locale;
-  formateadorDinero = crearFormateador(moneda);
+  formateadores.clear(); // los formatos dependen de la región: hay que rehacerlos
 }
 
-export function formatearDinero(valor: Dinero | number): string {
-  return formateadorDinero.format(Number(valor));
+/** Formatea un importe en `moneda` (por defecto, la principal): "$1,234.50", "1.234,50 €"… */
+export function formatearDinero(valor: Dinero | number, moneda: Moneda = monedaPrincipal): string {
+  return formateador(moneda).format(Number(valor));
 }
 
 /**

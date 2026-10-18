@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
+import { AjustesPage } from "./pages/AjustesPage";
 import { CategoriasPage } from "./pages/CategoriasPage";
 import { CuentasPage } from "./pages/CuentasPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="suscripciones" element={<SuscripcionesPage />} />
         <Route path="cuentas" element={<CuentasPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
+        <Route path="ajustes" element={<AjustesPage />} />
         {/* Cualquier otra URL vuelve al dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

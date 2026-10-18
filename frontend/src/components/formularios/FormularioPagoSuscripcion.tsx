@@ -45,7 +45,7 @@ export function FormularioPagoSuscripcion({ suscripcion, cuentas, categoriasGast
   return (
     <form onSubmit={enviar} className="space-y-4">
       <p className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800">
-        Se registrará un gasto de <strong>{formatearDinero(suscripcion.monto)}</strong> con fecha{" "}
+        Se registrará un gasto de <strong>{formatearDinero(suscripcion.monto, suscripcion.moneda)}</strong> con fecha{" "}
         <strong>{formatearFecha(suscripcion.fecha_proximo_pago)}</strong> y el próximo cobro se moverá al siguiente periodo.
       </p>
       <Campo etiqueta="Cuenta de cargo">

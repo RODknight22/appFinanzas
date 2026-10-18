@@ -34,7 +34,7 @@ export function CuentasPage() {
   async function registrarRendimientos(cuenta: Cuenta) {
     try {
       const ingreso = await cuentasApi.registrarRendimientos(cuenta.id);
-      window.alert(`Se registraron ${formatearDinero(ingreso.monto)} de rendimientos en "${cuenta.nombre}".`);
+      window.alert(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en "${cuenta.nombre}".`);
       estado.recargar();
     } catch (e) {
       window.alert(e instanceof Error ? e.message : String(e));

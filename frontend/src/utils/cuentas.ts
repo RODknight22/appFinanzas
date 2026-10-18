@@ -1,5 +1,5 @@
 /** Cálculos de las cuentas especiales: tarjetas de crédito y rendimientos. */
-import type { Cuenta, FechaISO, Suscripcion } from "../types";
+import type { Cuenta, FechaISO, Moneda, Suscripcion } from "../types";
 import { diasHasta, hoyISO } from "./formato";
 
 /**
@@ -32,6 +32,7 @@ export interface PagoProximo {
   nombre: string;
   fecha: FechaISO;
   monto: number;
+  moneda: Moneda;
   origen: "suscripcion" | "tarjeta";
 }
 
@@ -50,6 +51,7 @@ export function proximosPagos(
     nombre: s.nombre,
     fecha: s.fecha_proximo_pago,
     monto: Number(s.monto),
+    moneda: s.moneda,
     origen: "suscripcion",
   }));
 
@@ -58,7 +60,14 @@ export function proximosPagos(
     if (cuenta.tipo !== "credito" || !cuenta.dia_pago || deuda <= 0) continue;
     const fecha = proximaFechaDelDia(cuenta.dia_pago);
     if (diasHasta(fecha) <= dias) {
-      pagos.push({ clave: `tarjeta-${cuenta.id}`, nombre: `Pago ${cuenta.nombre}`, fecha, monto: deuda, origen: "tarjeta" });
+      pagos.push({
+        clave: `tarjeta-${cuenta.id}`,
+        nombre: `Pago ${cuenta.nombre}`,
+        fecha,
+        monto: deuda,
+        moneda: cuenta.moneda,
+        origen: "tarjeta",
+      });
     }
   }
   // Las fechas ISO se ordenan bien como texto ("2026-10-05" < "2026-10-18").

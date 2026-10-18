@@ -64,8 +64,9 @@ export function TransaccionesPage() {
           // Map: búsqueda por id en O(1) en lugar de recorrer la lista en cada fila.
           const categoriaPorId = new Map(categorias.map((c) => [c.id, c]));
           const cuentaPorId = new Map(cuentas.map((c) => [c.id, c]));
+          // Se suma monto_principal: los importes originales pueden estar en distintas monedas.
           const sumar = (t: TipoMovimiento) =>
-            transacciones.filter((x) => x.tipo === t).reduce((total, x) => total + Number(x.monto), 0);
+            transacciones.filter((x) => x.tipo === t).reduce((total, x) => total + Number(x.monto_principal), 0);
 
           return (
             <>
@@ -86,18 +87,27 @@ export function TransaccionesPage() {
                     {transacciones.map((transaccion) => {
                       const categoria = categoriaPorId.get(transaccion.categoria_id);
                       const esGasto = transaccion.tipo === "gasto";
+                      const cuenta = cuentaPorId.get(transaccion.cuenta_id);
                       return (
                         <li key={transaccion.id} className="flex items-center gap-3 py-3">
                           <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? "#64748b"} />
                           <div className="min-w-0 flex-1">
                             <p className="truncate font-medium">{categoria?.nombre ?? "Sin categoría"}</p>
                             <p className="truncate text-xs text-slate-500">
-                              {formatearFecha(transaccion.fecha)} · {cuentaPorId.get(transaccion.cuenta_id)?.nombre}
+                              {formatearFecha(transaccion.fecha)} · {cuenta?.nombre}
                               {transaccion.notas && ` · ${transaccion.notas}`}
                             </p>
                           </div>
-                          <span className={`font-semibold tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-                            {esGasto ? "−" : "+"}{formatearDinero(transaccion.monto)}
+                          <span className="text-right">
+                            <span className={`block font-semibold tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                              {esGasto ? "−" : "+"}{formatearDinero(transaccion.monto, transaccion.moneda)}
+                            </span>
+                            {/* Pagado en otra divisa: lo que movió en la cuenta */}
+                            {cuenta && transaccion.moneda !== cuenta.moneda && (
+                              <span className="block text-xs text-slate-500 tabular-nums">
+                                ≈ {formatearDinero(transaccion.monto_cuenta, cuenta.moneda)}
+                              </span>
+                            )}
                           </span>
                           <AccionesFila
                             onEditar={() => setModal(transaccion)}

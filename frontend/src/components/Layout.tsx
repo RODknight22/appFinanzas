@@ -4,15 +4,15 @@ import {
   Moon,
   PiggyBank,
   Repeat,
+  Settings,
   Sun,
   Tags,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 import { useTema } from "../hooks/useTema";
-import { SelectorMoneda } from "./SelectorMoneda";
 
 interface ItemMenu {
   ruta: string;
@@ -30,6 +30,15 @@ const MENU: ItemMenu[] = [
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
   { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags },
 ];
+
+/** Clases de un enlace del menú lateral según esté activo o no. */
+function claseEnlace({ isActive }: { isActive: boolean }): string {
+  return `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+    isActive
+      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+      : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+  }`;
+}
 
 /**
  * Estructura común a todas las páginas: menú lateral (escritorio) o barra
@@ -56,13 +65,7 @@ export function Layout() {
               key={ruta}
               to={ruta}
               end={ruta === "/"} // sin `end`, "/" quedaría activo en todas las rutas
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                }`
-              }
+              className={claseEnlace}
             >
               <Icono size={18} />
               {etiqueta}
@@ -70,7 +73,10 @@ export function Layout() {
           ))}
         </nav>
 
-        <SelectorMoneda />
+        <NavLink to="/ajustes" className={claseEnlace}>
+          <Settings size={18} />
+          Ajustes
+        </NavLink>
         <button
           type="button"
           onClick={alternar}
@@ -81,11 +87,13 @@ export function Layout() {
         </button>
       </aside>
 
-      {/* Cabecera móvil con moneda y botón de tema */}
+      {/* Cabecera móvil con ajustes y botón de tema */}
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-900">
         <span className="font-bold">Mis Finanzas</span>
         <div className="flex items-center gap-1">
-          <SelectorMoneda compacto />
+          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-slate-500">
+            <Settings size={18} />
+          </Link>
           <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-slate-500">
             <IconoTema size={18} />
           </button>
