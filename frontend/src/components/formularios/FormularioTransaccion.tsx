@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
@@ -5,7 +6,9 @@ import { transaccionesApi } from "../../api/recursos";
 import { useEnvio } from "../../hooks/useEnvio";
 import type { Categoria, Cuenta, TipoMovimiento, Transaccion } from "../../types";
 import { hoyISO } from "../../utils/formato";
+import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { CategoriaRapida } from "./CategoriaRapida";
 import { PieFormulario } from "./PieFormulario";
 
 interface FormularioTransaccionProps {
@@ -25,13 +28,22 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
   const [cuentaId, setCuentaId] = useState(inicial?.cuenta_id ?? cuentas[0]?.id ?? 0);
   const [notas, setNotas] = useState(inicial?.notas ?? "");
   const { enviando, error, ejecutar } = useEnvio();
+  // Copia local: así una categoría creada aquí aparece al instante en el desplegable.
+  const [categoriasLocales, setCategoriasLocales] = useState(categorias);
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
 
   // Solo se ofrecen categorías del mismo tipo (el backend lo exige también).
-  const categoriasDelTipo = categorias.filter((categoria) => categoria.tipo === tipo);
+  const categoriasDelTipo = categoriasLocales.filter((categoria) => categoria.tipo === tipo);
 
   function cambiarTipo(nuevoTipo: TipoMovimiento) {
     setTipo(nuevoTipo);
     setCategoriaId(""); // la categoría elegida ya no sería válida
+  }
+
+  function alCrearCategoria(categoria: Categoria) {
+    setCategoriasLocales((actuales) => [...actuales, categoria]);
+    setCategoriaId(String(categoria.id));
+    setCreandoCategoria(false);
   }
 
   async function enviar(evento: FormEvent) {
@@ -88,20 +100,24 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
         </Campo>
       </div>
 
-      <Campo etiqueta="Categoría">
-        <select className={CLASE_ENTRADA} value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} required>
-          <option value="" disabled>Elige una categoría…</option>
-          {categoriasDelTipo.map((categoria) => (
-            <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
-          ))}
-        </select>
-        {categoriasDelTipo.length === 0 && (
-          <span className="block text-xs text-amber-600">
-            No hay categorías de {tipo}.{" "}
-            <Link to="/categorias" className="font-medium underline">Crear una</Link>
-          </span>
+      <div className="space-y-1.5">
+        <Campo etiqueta="Categoría">
+          <div className="flex gap-2">
+            <select className={CLASE_ENTRADA} value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} required>
+              <option value="" disabled>Elige una categoría…</option>
+              {categoriasDelTipo.map((categoria) => (
+                <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
+              ))}
+            </select>
+            <Boton variante="secundario" onClick={() => setCreandoCategoria(true)} aria-label="Crear categoría" title="Crear categoría">
+              <Plus size={16} />
+            </Boton>
+          </div>
+        </Campo>
+        {creandoCategoria && (
+          <CategoriaRapida tipo={tipo} onCreada={alCrearCategoria} onCancelar={() => setCreandoCategoria(false)} />
         )}
-      </Campo>
+      </div>
 
       <Campo etiqueta="Cuenta">
         <select className={CLASE_ENTRADA} value={cuentaId} onChange={(e) => setCuentaId(Number(e.target.value))}>
