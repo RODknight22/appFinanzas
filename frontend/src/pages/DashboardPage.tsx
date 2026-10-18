@@ -1,19 +1,24 @@
-import { ArrowDownRight, ArrowUpRight, CalendarClock, Scale, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, CalendarClock, CreditCard, Scale, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { dashboardApi } from "../api/dashboard";
-import { suscripcionesApi } from "../api/recursos";
+import { cuentasApi, suscripcionesApi } from "../api/recursos";
 import { BarraPresupuesto } from "../components/dashboard/BarraPresupuesto";
 import { GraficoCategorias } from "../components/dashboard/GraficoCategorias";
 import { GraficoFlujo } from "../components/dashboard/GraficoFlujo";
 import { TarjetaMetrica } from "../components/dashboard/TarjetaMetrica";
+import { TIPOS_CUENTA } from "../components/formularios/FormularioCuenta";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { SelectorMes } from "../components/ui/SelectorMes";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { useDatos } from "../hooks/useDatos";
+import { proximosPagos } from "../utils/cuentas";
 import { diasHasta, formatearDinero, formatearFecha, mesActual, textoVencimiento } from "../utils/formato";
+
+/** Días hacia delante que se muestran en "Próximos pagos". */
+const DIAS_PROXIMOS = 14;
 
 export function DashboardPage() {
   const [mes, setMes] = useState(mesActual());
@@ -26,7 +31,8 @@ export function DashboardPage() {
         dashboardApi.flujoMensual(mes, 6),
         dashboardApi.gastosPorCategoria(mes),
         dashboardApi.presupuestos(mes),
-        suscripcionesApi.listar({ proximos_dias: 14 }),
+        suscripcionesApi.listar({ proximos_dias: DIAS_PROXIMOS }),
+        cuentasApi.listar(),
       ]),
     [mes],
   );
@@ -40,8 +46,10 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
-        {([resumen, flujo, gastos, presupuestos, proximosPagos]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas]) => {
           const flujoNeto = Number(resumen.flujo_neto);
+          const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
+          const pagos = proximosPagos(suscripciones, cuentas, saldos, DIAS_PROXIMOS);
           return (
             <div className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -91,7 +99,7 @@ export function DashboardPage() {
                         <li key={cuenta.cuenta_id} className="flex items-center justify-between py-2.5 text-sm">
                           <span>
                             <span className="font-medium">{cuenta.nombre}</span>
-                            <span className="ml-2 text-xs capitalize text-slate-500">{cuenta.tipo}</span>
+                            <span className="ml-2 text-xs text-slate-500">{TIPOS_CUENTA[cuenta.tipo].etiqueta}</span>
                           </span>
                           <span className={`font-semibold tabular-nums ${Number(cuenta.saldo) < 0 ? "text-rose-600" : ""}`}>
                             {formatearDinero(cuenta.saldo)}
@@ -103,25 +111,25 @@ export function DashboardPage() {
                 </Tarjeta>
 
                 <Tarjeta
-                  titulo="Próximos cobros (14 días)"
+                  titulo={`Próximos pagos (${DIAS_PROXIMOS} días)`}
                   accion={<Link to="/suscripciones" className="text-xs font-medium text-emerald-600 hover:underline">Ver todas</Link>}
                 >
-                  {proximosPagos.length === 0 ? (
+                  {pagos.length === 0 ? (
                     <Vacio mensaje="Nada que pagar en los próximos días" />
                   ) : (
                     <ul className="space-y-3">
-                      {proximosPagos.map((suscripcion) => (
-                        <li key={suscripcion.id} className="flex items-center gap-3 text-sm">
+                      {pagos.map((pago) => (
+                        <li key={pago.clave} className="flex items-center gap-3 text-sm">
                           <span className="rounded-lg bg-slate-100 p-2 text-slate-500 dark:bg-slate-800">
-                            <CalendarClock size={16} />
+                            {pago.origen === "tarjeta" ? <CreditCard size={16} /> : <CalendarClock size={16} />}
                           </span>
                           <span className="flex-1">
-                            <span className="block font-medium">{suscripcion.nombre}</span>
-                            <span className={`text-xs ${diasHasta(suscripcion.fecha_proximo_pago) < 0 ? "text-rose-600" : "text-slate-500"}`}>
-                              {textoVencimiento(suscripcion.fecha_proximo_pago)} · {formatearFecha(suscripcion.fecha_proximo_pago)}
+                            <span className="block font-medium">{pago.nombre}</span>
+                            <span className={`text-xs ${diasHasta(pago.fecha) < 0 ? "text-rose-600" : "text-slate-500"}`}>
+                              {textoVencimiento(pago.fecha)} · {formatearFecha(pago.fecha)}
                             </span>
                           </span>
-                          <span className="font-medium tabular-nums">{formatearDinero(suscripcion.monto)}</span>
+                          <span className="font-medium tabular-nums">{formatearDinero(pago.monto)}</span>
                         </li>
                       ))}
                     </ul>

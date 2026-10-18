@@ -39,7 +39,12 @@ export interface FiltrosTransacciones {
   limit?: number;
 }
 
-export const cuentasApi = crearRecurso<Cuenta>("/cuentas");
+export const cuentasApi = {
+  ...crearRecurso<Cuenta>("/cuentas"),
+  registrarRendimientos: (id: number) =>
+    http.post<Transaccion>(`/cuentas/${id}/registrar-rendimientos`, {}),
+};
+
 export const categoriasApi = crearRecurso<Categoria, { tipo?: TipoMovimiento }>("/categorias");
 export const transaccionesApi = crearRecurso<Transaccion, FiltrosTransacciones>("/transacciones");
 export const presupuestosApi = crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos");

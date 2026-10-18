@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
 import { cuentasApi } from "../api/recursos";
-import { FormularioCuenta, TIPOS_CUENTA } from "../components/formularios/FormularioCuenta";
-import { AccionesFila } from "../components/ui/AccionesFila";
+import { FilaCuenta } from "../components/cuentas/FilaCuenta";
+import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { Boton } from "../components/ui/Boton";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
@@ -31,11 +31,21 @@ export function CuentasPage() {
     estado.recargar();
   }
 
+  async function registrarRendimientos(cuenta: Cuenta) {
+    try {
+      const ingreso = await cuentasApi.registrarRendimientos(cuenta.id);
+      window.alert(`Se registraron ${formatearDinero(ingreso.monto)} de rendimientos en "${cuenta.nombre}".`);
+      estado.recargar();
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   return (
     <>
       <EncabezadoPagina
         titulo="Cuentas"
-        descripcion="Dónde está tu dinero: bancos, efectivo, tarjetas…"
+        descripcion="Efectivo, débito, tarjetas de crédito y cuentas con rendimientos"
         acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva cuenta</Boton>}
       />
 
@@ -45,28 +55,20 @@ export function CuentasPage() {
             if (cuentas.length === 0) {
               return <Vacio mensaje="Crea tu primera cuenta para empezar a registrar movimientos" />;
             }
-            const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, c.saldo]));
+            const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
             return (
               <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                 {cuentas.map((cuenta) => (
-                  <li key={cuenta.id} className="flex items-center gap-4 py-3">
-                    <div className="flex-1">
-                      <p className="font-medium">{cuenta.nombre}</p>
-                      <p className="text-xs text-slate-500">
-                        {TIPOS_CUENTA[cuenta.tipo]} · Balance inicial {formatearDinero(cuenta.balance_inicial)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-slate-500">Saldo actual</p>
-                      <p className="font-semibold tabular-nums">{formatearDinero(saldos.get(cuenta.id) ?? cuenta.balance_inicial)}</p>
-                    </div>
-                    <AccionesFila
-                      onEditar={() => setModal(cuenta)}
-                      onEliminar={() =>
-                        confirmarYEliminar(`¿Eliminar la cuenta "${cuenta.nombre}"?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
-                      }
-                    />
-                  </li>
+                  <FilaCuenta
+                    key={cuenta.id}
+                    cuenta={cuenta}
+                    saldo={saldos.get(cuenta.id) ?? Number(cuenta.balance_inicial)}
+                    onEditar={() => setModal(cuenta)}
+                    onEliminar={() =>
+                      confirmarYEliminar(`¿Eliminar la cuenta "${cuenta.nombre}"?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
+                    }
+                    onRegistrarRendimientos={() => registrarRendimientos(cuenta)}
+                  />
                 ))}
               </ul>
             );
