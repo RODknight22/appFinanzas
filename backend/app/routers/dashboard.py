@@ -17,7 +17,7 @@ MesParam = Annotated[str | None, Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")]
 @router.get("/resumen", response_model=ResumenMes)
 def resumen(session: SessionDep, mes_anio: MesParam = None):
     """Balance global, saldo por cuenta e ingresos/gastos/flujo neto del mes."""
-    return servicio.resumen(session, mes_anio or servicio.mes_actual())
+    return servicio.resumen(session, mes_anio or servicio.mes_actual(session))
 
 
 @router.get("/flujo-mensual", response_model=list[FlujoMensual])
@@ -27,16 +27,16 @@ def flujo_mensual(
     meses: Annotated[int, Query(ge=1, le=24)] = 6,
 ):
     """Ingresos vs. gastos de los últimos `meses` meses, terminando en `hasta_mes`."""
-    return servicio.flujo_mensual(session, hasta_mes or servicio.mes_actual(), meses)
+    return servicio.flujo_mensual(session, hasta_mes or servicio.mes_actual(session), meses)
 
 
 @router.get("/gastos-por-categoria", response_model=list[GastoPorCategoria])
 def gastos_por_categoria(session: SessionDep, mes_anio: MesParam = None):
     """Gastos del mes agrupados por categoría, de mayor a menor."""
-    return servicio.gastos_por_categoria(session, mes_anio or servicio.mes_actual())
+    return servicio.gastos_por_categoria(session, mes_anio or servicio.mes_actual(session))
 
 
 @router.get("/presupuestos", response_model=list[ProgresoPresupuesto])
 def progreso_presupuestos(session: SessionDep, mes_anio: MesParam = None):
     """Consumo de cada presupuesto del mes: gastado, restante y porcentaje."""
-    return servicio.progreso_presupuestos(session, mes_anio or servicio.mes_actual())
+    return servicio.progreso_presupuestos(session, mes_anio or servicio.mes_actual(session))

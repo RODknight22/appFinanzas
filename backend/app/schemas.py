@@ -16,12 +16,15 @@ from app.models import (
     DECIMALES,
     MAX_DIGITOS,
     CategoriaBase,
+    ColorAcento,
     CuentaBase,
     Moneda,
     OrigenTasa,
+    PaginaInicio,
     Periodicidad,
     PresupuestoBase,
     SuscripcionBase,
+    TamanoWidget,
     TipoCuenta,
     TipoMovimiento,
     TransaccionBase,
@@ -205,16 +208,37 @@ class ProgresoPresupuesto(SQLModel):
 
 
 # --- Configuración y divisas -----------------------------------------------
+class WidgetDisposicion(SQLModel):
+    """Un widget del panel: cuál es, de qué tamaño y si se muestra."""
+
+    id: str = Field(min_length=1, max_length=40)
+    tamano: TamanoWidget
+    visible: bool = True
+
+
 class ConfiguracionRead(SQLModel):
     moneda: Moneda
     monedas_activas: list[Moneda]
+    nombre: str | None
+    avatar: str | None
+    color_acento: ColorAcento
+    pagina_inicio: PaginaInicio
+    dia_inicio_mes: int
+    # null = el frontend usa su disposición por defecto
+    widgets: list[WidgetDisposicion] | None
 
 
 class ConfiguracionUpdate(SQLModel):
-    """PATCH: solo se cambia lo que se envía."""
+    """PATCH: solo se cambia lo que se envía (un null explícito borra nombre o avatar)."""
 
     moneda: Moneda | None = None
     monedas_activas: list[Moneda] | None = None
+    nombre: str | None = Field(default=None, max_length=50)
+    avatar: str | None = Field(default=None, max_length=8)
+    color_acento: ColorAcento | None = None
+    pagina_inicio: PaginaInicio | None = None
+    dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
+    widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)
 
 
 class TasaRead(SQLModel):

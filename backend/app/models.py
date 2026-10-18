@@ -57,6 +57,29 @@ class OrigenTasa(str, Enum):
     API = "api"  # descargada de internet
     MANUAL = "manual"  # escrita por el usuario (tiene prioridad sobre la de internet)
 
+class ColorAcento(str, Enum):
+    ESMERALDA = "esmeralda"
+    AZUL = "azul"
+    INDIGO = "indigo"
+    VIOLETA = "violeta"
+    ROSA = "rosa"
+    NARANJA = "naranja"
+
+
+class PaginaInicio(str, Enum):
+    DASHBOARD = "dashboard"
+    TRANSACCIONES = "transacciones"
+    PRESUPUESTOS = "presupuestos"
+    SUSCRIPCIONES = "suscripciones"
+    CUENTAS = "cuentas"
+
+
+class TamanoWidget(str, Enum):
+    PEQUENO = "pequeno"  # 1 columna
+    MEDIANO = "mediano"  # 2 columnas
+    GRANDE = "grande"  # ancho completo
+
+
 
 # ---------------------------------------------------------------------------
 # Validadores reutilizables (también los usan los schemas de actualización).
@@ -208,6 +231,16 @@ class Configuracion(SQLModel, table=True):
     # Monedas que se ofrecen en los formularios, separadas por comas ("MXN,EUR").
     # null = todas. Texto simple porque SQLite no tiene un tipo lista.
     monedas_activas: str | None = None
+    # --- Personalización (null = valor por defecto) ---
+    nombre: str | None = Field(default=None, max_length=50)
+    avatar: str | None = Field(default=None, max_length=8)  # un emoji; null = inicial del nombre
+    color_acento: ColorAcento | None = None
+    pagina_inicio: PaginaInicio | None = None
+    # Día en que empieza el "mes financiero" (p. ej. el día de cobro). 1-28 para
+    # que exista en todos los meses, febrero incluido.
+    dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
+    # Disposición del panel en JSON: [{"id": ..., "tamano": ..., "visible": ...}, ...]
+    widgets: str | None = None
 
 
 # ---------------------------------------------------------------------------

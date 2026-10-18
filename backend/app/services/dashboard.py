@@ -18,23 +18,21 @@ from app.schemas import (
     ResumenMes,
     SaldoCuenta,
 )
-from app.services import configuracion, divisas
+from app.services import configuracion, divisas, mes_financiero
 from app.services.saldos import IMPORTE_CON_SIGNO, a_decimal
 
 
 # ---------------------------------------------------------------------------
 # Utilidades de fechas y dinero
 # ---------------------------------------------------------------------------
-def mes_actual() -> str:
-    return date.today().strftime("%Y-%m")
+def mes_actual(session: Session) -> str:
+    """El mes financiero en curso (depende del día de inicio de mes elegido)."""
+    return mes_financiero.mes_actual(configuracion.dia_inicio_mes(session))
 
 
-def _rango_mes(mes_anio: str) -> tuple[date, date]:
-    """Devuelve [primer día del mes, primer día del mes siguiente)."""
-    anio, mes = map(int, mes_anio.split("-"))
-    inicio = date(anio, mes, 1)
-    fin = date(anio + 1, 1, 1) if mes == 12 else date(anio, mes + 1, 1)
-    return inicio, fin
+def _rango_mes(session: Session, mes_anio: str) -> tuple[date, date]:
+    """[inicio, fin) del mes financiero `mes_anio` según la configuración."""
+    return mes_financiero.rango_mes(mes_anio, configuracion.dia_inicio_mes(session))
 
 
 def _meses_anteriores(hasta_mes: str, cantidad: int) -> list[str]:
@@ -102,7 +100,7 @@ def _totales_por_tipo(session: Session, inicio: date, fin: date) -> dict[TipoMov
 
 
 def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decimal]:
-    inicio, fin = _rango_mes(mes_anio)
+    inicio, fin = _rango_mes(session, mes_anio)
     consulta = (
         select(Transaccion.categoria_id, func.sum(Transaccion.monto_principal))
         .where(
@@ -121,7 +119,7 @@ def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decim
 def resumen(session: Session, mes_anio: str) -> ResumenMes:
     """Balance global (todas las cuentas, de siempre) y flujo del mes indicado."""
     cuentas = _saldos_por_cuenta(session)
-    totales = _totales_por_tipo(session, *_rango_mes(mes_anio))
+    totales = _totales_por_tipo(session, *_rango_mes(session, mes_anio))
     ingresos, gastos = totales[TipoMovimiento.INGRESO], totales[TipoMovimiento.GASTO]
     return ResumenMes(
         mes_anio=mes_anio,
@@ -136,11 +134,12 @@ def resumen(session: Session, mes_anio: str) -> ResumenMes:
 def flujo_mensual(session: Session, hasta_mes: str, meses: int) -> list[FlujoMensual]:
     """Ingresos y gastos de los últimos `meses` meses (para el gráfico de barras)."""
     lista_meses = _meses_anteriores(hasta_mes, meses)
-    inicio, _ = _rango_mes(lista_meses[0])
-    _, fin = _rango_mes(lista_meses[-1])
+    inicio, _ = _rango_mes(session, lista_meses[0])
+    _, fin = _rango_mes(session, lista_meses[-1])
 
-    # strftime agrupa por "YYYY-MM" (función propia de SQLite).
-    mes_de_fecha = func.strftime("%Y-%m", Transaccion.fecha)
+    # Agrupamos por mes financiero ("YYYY-MM"), calculado en SQL.
+    dia_inicio = configuracion.dia_inicio_mes(session)
+    mes_de_fecha = mes_financiero.expresion_mes_sql(col(Transaccion.fecha), dia_inicio)
     consulta = (
         select(mes_de_fecha, Transaccion.tipo, func.sum(Transaccion.monto_principal))
         .where(Transaccion.fecha >= inicio, Transaccion.fecha < fin)
