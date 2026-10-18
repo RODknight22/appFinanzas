@@ -6,7 +6,7 @@ Cada entidad tiene dos clases:
 """
 
 import re
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 
@@ -227,3 +227,21 @@ class TasaCambio(SQLModel, table=True):
     moneda: Moneda
     por_usd: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
     origen: OrigenTasa
+
+
+# ---------------------------------------------------------------------------
+# Acceso: un único usuario y sus sesiones abiertas
+# ---------------------------------------------------------------------------
+class Usuario(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    usuario: str = Field(min_length=1, max_length=50)
+    # Nunca la contraseña en claro: "scrypt$n$r$p$sal$hash" (ver seguridad.py).
+    password_hash: str
+
+
+class Sesion(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    # Hash del token de la cookie: si alguien leyera la BD, no podría usarlo.
+    token_hash: str = Field(index=True, unique=True)
+    creada: datetime
+    expira: datetime

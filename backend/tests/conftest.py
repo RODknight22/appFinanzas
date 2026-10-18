@@ -19,8 +19,10 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
 from app import models  # noqa: F401  (registra las tablas en el metadata)
-from app.models import Moneda, OrigenTasa, TasaCambio
+from app.models import Moneda, OrigenTasa, TasaCambio, Usuario
+from app.services import acceso
 from app.database import get_session
+from app.dependencias import requiere_sesion
 from app.main import app
 
 
@@ -36,11 +38,19 @@ def session() -> Generator[Session, None, None]:
 
 
 @pytest.fixture
-def client(session: Session) -> Generator[TestClient, None, None]:
-    # Sustituimos la sesión real por la de test en todos los endpoints.
+def cliente_sin_sesion(session: Session) -> Generator[TestClient, None, None]:
+    """Cliente "real": hay que registrarse o iniciar sesión como en la app."""
     app.dependency_overrides[get_session] = lambda: session
+    acceso.reiniciar_freno_de_intentos()
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client(cliente_sin_sesion: TestClient) -> TestClient:
+    """Cliente con sesión simulada: así cada test de datos no repite el login."""
+    app.dependency_overrides[requiere_sesion] = lambda: Usuario(usuario="test", password_hash="")
+    return cliente_sin_sesion
 
 
 @pytest.fixture

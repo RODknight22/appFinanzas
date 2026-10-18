@@ -37,3 +37,15 @@ class ServicioExternoError(ErrorDeDominio):
     """Un servicio de internet del que dependemos no respondió (503)."""
 
     status_code = 503
+
+
+class NoAutenticadoError(ErrorDeDominio):
+    """Falta iniciar sesión o la sesión caducó (401)."""
+
+    status_code = 401
+
+
+class DemasiadosIntentosError(ErrorDeDominio):
+    """Demasiados intentos fallidos seguidos: hay que esperar (429)."""
+
+    status_code = 429

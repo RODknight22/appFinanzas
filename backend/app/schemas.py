@@ -226,3 +226,25 @@ class TasaRead(SQLModel):
 
 class TasaManual(SQLModel):
     por_usd: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
+
+
+# --- Acceso (login) --------------------------------------------------------
+class DatosLogin(SQLModel):
+    usuario: str = Field(min_length=1, max_length=50)
+    contrasena: str = Field(min_length=1, max_length=128)
+
+
+class DatosRegistro(DatosLogin):
+    # Al crearla sí exigimos un mínimo; al iniciar sesión no (daría pistas).
+    contrasena: str = Field(min_length=8, max_length=128)
+
+
+class CambioContrasena(SQLModel):
+    actual: str = Field(min_length=1, max_length=128)
+    nueva: str = Field(min_length=8, max_length=128)
+
+
+class EstadoAcceso(SQLModel):
+    configurado: bool  # ¿ya se creó el usuario?
+    autenticado: bool  # ¿esta petición trae una sesión válida?
+    usuario: str | None = None

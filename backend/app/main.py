@@ -3,12 +3,14 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.database import init_db
+from app.dependencias import requiere_sesion
 from app.routers import (
+    acceso,
     categorias,
     configuracion,
     cuentas,
@@ -49,13 +51,13 @@ async def manejar_error_de_dominio(_request: Request, exc: ErrorDeDominio) -> JS
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.mensaje})
 
 
-app.include_router(cuentas.router)
-app.include_router(categorias.router)
-app.include_router(transacciones.router)
-app.include_router(presupuestos.router)
-app.include_router(suscripciones.router)
-app.include_router(dashboard.router)
-app.include_router(configuracion.router)
+# Público: lo necesario para iniciar sesión.
+app.include_router(acceso.router)
+
+# Protegido: todos los datos exigen una sesión válida (si no, 401).
+# Añadir la dependencia aquí evita olvidarla en algún endpoint concreto.
+for modulo in (cuentas, categorias, transacciones, presupuestos, suscripciones, dashboard, configuracion):
+    app.include_router(modulo.router, dependencies=[Depends(requiere_sesion)])
 
 
 @app.get("/health", tags=["Sistema"])
