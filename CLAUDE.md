@@ -10,16 +10,14 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - **Frontend**: React 18+ (Vite), Tailwind CSS (estilo moderno con soporte Dark Mode), Recharts para dashboards, Lucide React para iconos.
 - **Containerization**: Docker & Docker Compose (servicios: `backend`, `frontend`, con volumen persistente para la BD).
 
-## Core Features (MVP - Phase 1)
-1. **Transacciones**: Registro manual de ingresos y gastos categorizados (fecha, monto, categoría, notas, tipo de cuenta).
-2. **Suscripciones y Gastos Recurrentes**: Lista de pagos periódicos con periodicidad, recordatorio de fecha de cobro y monto estimado.
-3. **Presupuestos**: Límite mensual por categoría con barra de progreso y cálculo de consumo actual.
-4. **Dashboard**: Balance global, métricas de flujo neto mensual, gráfico de barras (ingresos vs. gastos) y gráfico de pastel/anillo (gastos por categoría).
+## Funcionalidades
+Transacciones, suscripciones, presupuestos, dashboard de widgets, cuentas (crédito/débito/rendimientos),
+categorías, multidivisa con tasas históricas, login y personalización (acento, perfil, mes financiero).
 
 ## Coding Principles & Developer Mentorship
 - **Legibilidad ante todo**: Escribe código autodocumentado, modular y con tipado estricto (Type hints en Python, TypeScript o JSDoc claro en React).
 - **Comentarios explicativos**: Agrega comentarios breves que expliquen el *por qué* de las funciones clave para facilitar el aprendizaje del usuario al leer los archivos.
-- **Manejo de errores limpio**: Respuestas HTTP semánticas (`400`, `404`, `409`, `422`, `500`) con mensajes legibles.
+- **Manejo de errores limpio**: Respuestas HTTP semánticas (`400`, `401`, `404`, `409`, `422`, `429`, `503`) con mensajes legibles.
 - **Separación de responsabilidades**:
   - Backend: Routers -> Services / CRUD -> Models / Schemas.
   - Frontend: Pages -> Components -> API services (`fetch`/`axios`).
@@ -50,18 +48,20 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - Inputs con `CLASE_ENTRADA` (o `CLASE_ENTRADA_BASE` + ancho).
 - Configuración y tasas vía `useConfiguracion()`; formatear con `formatearDinero(valor, moneda)`
   (todas las monedas en la región de la principal: "$" solo para ella, código para el resto).
+- Color de la app: clases `*-acento-*` (variables CSS en index.css). emerald/rose solo para
+  ingreso/gasto o éxito/error. Mes financiero: `mesActual()`/`rangoDelMes()` (día de inicio).
+- Widgets: añadirlos en dashboard/registroWidgets.tsx; pintan con `DatosPanel` (no piden datos).
 
 ## Estado del Proyecto
-- [x] Pasos 1-4: CRUD, dashboard, frontend, Docker, tipos de cuenta. Fases 1-2: multidivisa, login.
-- [ ] Fase 3: widgets reordenables, acento, nombre/avatar, inicio, día de mes. Ideas: transferencias.
+- [x] Pasos 1-4 y Fases 1-3: CRUD, dashboard, tipos de cuenta, multidivisa, login, widgets
+  reordenables y personalización. Ideas: transferencias entre cuentas, exportar CSV, Alembic.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
 - `docker compose down`: Apaga los contenedores conservando el volumen de SQLite.
-- Tests (BD en memoria, no tocan datos reales), desde la raíz del repo en Git Bash:
-  `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
-- Comprobar tipos del frontend (no hay Node local):
-  `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit`
+- Si cambia package.json: `docker compose up -d --build -V frontend` (-V renueva node_modules).
+- Tests (BD en memoria; Git Bash, raíz del repo): `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
+- Tipos del frontend (no hay Node local): `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit`
 - App web: `http://localhost:5173` · Docs de la API: `http://localhost:8000/docs`.
 
 ## Reglas
