@@ -36,12 +36,15 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 ## Estado del Proyecto
 - [x] Paso 1: estructura, modelos, SQLite persistente, CRUD de cuentas, categorías,
   transacciones y presupuestos; Docker del backend.
-- [ ] Pendiente: CRUD de suscripciones, endpoints del dashboard, frontend, tests.
+- [x] Paso 2: suscripciones (+ registrar-pago), endpoints `/dashboard/*`, tests con pytest.
+- [ ] Paso 3: frontend (React + Vite + Tailwind) y servicio `frontend` en docker-compose.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
 - `docker compose down`: Apaga los contenedores conservando el volumen de SQLite.
 - Sin Docker: `cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload`.
+- Tests (BD en memoria, no tocan datos reales), desde la raíz del repo en Git Bash:
+  `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
 - Backend API Docs: accesible localmente en `http://localhost:8000/docs`.
 - Frontend Web UI: accesible localmente en `http://localhost:5173`.
 
