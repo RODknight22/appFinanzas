@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.database import init_db
 from app.routers import categorias, cuentas, presupuestos, transacciones
@@ -51,3 +51,9 @@ app.include_router(presupuestos.router)
 def health() -> dict[str, str]:
     """Comprobación rápida de que la API está viva (útil para Docker)."""
     return {"status": "ok"}
+
+
+@app.get("/", include_in_schema=False)
+def raiz() -> RedirectResponse:
+    """La raíz no tiene contenido propio: redirigimos a la documentación interactiva."""
+    return RedirectResponse(url="/docs")

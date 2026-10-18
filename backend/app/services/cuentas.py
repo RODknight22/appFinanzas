@@ -16,13 +16,24 @@ def obtener(session: Session, cuenta_id: int) -> Cuenta:
     return obtener_o_404(session, Cuenta, cuenta_id, "la cuenta")
 
 
+def _comprobar_nombre_libre(session: Session, nombre: str, excluir_id: int | None = None) -> None:
+    """Dos cuentas con el mismo nombre serían indistinguibles en la interfaz."""
+    duplicada = session.exec(select(Cuenta).where(Cuenta.nombre == nombre)).first()
+    if duplicada is not None and duplicada.id != excluir_id:
+        raise ConflictoError(f"Ya existe una cuenta llamada '{nombre}'")
+
+
 def crear(session: Session, datos: CuentaCreate) -> Cuenta:
+    _comprobar_nombre_libre(session, datos.nombre)
     return guardar(session, Cuenta.model_validate(datos))
 
 
 def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuenta:
     cuenta = obtener(session, cuenta_id)
-    cuenta.sqlmodel_update(cambios_parciales(cambios))
+    datos = cambios_parciales(cambios)
+    if "nombre" in datos:
+        _comprobar_nombre_libre(session, datos["nombre"], excluir_id=cuenta_id)
+    cuenta.sqlmodel_update(datos)
     return guardar(session, cuenta)
 
 
