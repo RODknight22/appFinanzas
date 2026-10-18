@@ -31,20 +31,28 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 - Los servicios lanzan `ErrorDeDominio` (services/errores.py): 400 regla, 404 no existe, 409 conflicto;
   main.py los traduce a `{"detail": "..."}`. Los routers no contienen lógica.
 - PATCH parcial vía `cambios_parciales()`; no se borran registros con dependencias (409).
-- Tablas creadas con `create_all` al arrancar. Sin Alembic aún: cambiar el esquema = borrar `data/finance.db`.
+- Arranque (`init_db`): `create_all` + migraciones.py (solo añade columnas *nullable* y renombra
+  valores) + datos_iniciales.py (config y categorías si la BD está vacía). Nunca borrar `finance.db`.
+- Cuentas: campos por tipo (crédito: dia_corte/dia_pago/limite; rendimientos: tasa anual) que
+  `_normalizar_por_tipo` exige o anula. Saldo de tarjeta negativo = deuda.
 
 ## Convenciones del Frontend (`frontend/src/`, TypeScript estricto)
 - `api/cliente.ts` es el único que usa `fetch` (ruta `/api`, proxy de Vite al backend).
 - `types/` refleja schemas.py: si cambia un schema, actualizar su tipo. Importes = `string`.
 - Páginas cargan con `useDatos` + `<Contenido>`; formularios usan `useEnvio` + `PieFormulario`.
 - Modales con estado único (`null | "nueva" | entidad`); `key` reinicia el formulario.
-- Inputs con `CLASE_ENTRADA` (o `CLASE_ENTRADA_BASE` + ancho). Moneda/locale en `config.ts`.
+- Inputs con `CLASE_ENTRADA` (o `CLASE_ENTRADA_BASE` + ancho).
+- Moneda global (backend `/configuracion`) vía `ConfiguracionProvider`; formatear siempre con
+  `formatearDinero`/`formatearFecha` de utils/formato.ts (usan la moneda y locale activos).
 
 ## Estado del Proyecto
 - [x] Paso 1: modelos, SQLite persistente, CRUD base, Docker del backend.
 - [x] Paso 2: suscripciones (+ registrar-pago), endpoints `/dashboard/*`, tests con pytest.
 - [x] Paso 3: frontend completo (dashboard, transacciones, presupuestos, suscripciones,
   cuentas, categorías), modo oscuro y móvil; verificado con Playwright.
+- [x] Paso 4: monedas (MXN/USD/EUR/GTQ/HNL), categorías por defecto y creación rápida,
+  tarjetas de crédito (corte/pago), débito y cuentas con rendimientos diarios.
+- [ ] Ideas: transferencias entre cuentas (p. ej. pagar la tarjeta desde débito), Alembic.
 
 ## Development & Run Commands
 - `docker compose up --build`: Levanta la aplicación completa.
@@ -54,8 +62,7 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
   `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
 - Comprobar tipos del frontend (no hay Node local):
   `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit`
-- Backend API Docs: accesible localmente en `http://localhost:8000/docs`.
-- Frontend Web UI: accesible localmente en `http://localhost:5173`.
+- App web: `http://localhost:5173` · Docs de la API: `http://localhost:8000/docs`.
 
 ## Reglas
 - Mantener este documento actualizado y con menos de 70 líneas.
