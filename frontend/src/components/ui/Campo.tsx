@@ -14,14 +14,20 @@ interface CampoProps {
   ayuda?: string;
 }
 
-/** Etiqueta + control de formulario. Envolver el control en <label> lo asocia sin ids. */
+/**
+ * Etiqueta + control de formulario. Envolver el control en <label> lo asocia sin ids.
+ * La ayuda va fuera del <label> para no formar parte del nombre del campo
+ * (un lector de pantalla diría "Contraseña Mínimo 8 caracteres").
+ */
 export function Campo({ etiqueta, children, ayuda }: CampoProps) {
   return (
-    <label className="block space-y-1.5">
-      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{etiqueta}</span>
-      {children}
-      {ayuda && <span className="block text-xs text-slate-500">{ayuda}</span>}
-    </label>
+    <div className="space-y-1">
+      <label className="block space-y-1.5">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{etiqueta}</span>
+        {children}
+      </label>
+      {ayuda && <p className="text-xs text-slate-500">{ayuda}</p>}
+    </div>
   );
 }
 

@@ -17,6 +17,14 @@ export class ApiError extends Error {
   }
 }
 
+// Quién avisar si una petición devuelve 401 (sesión caducada o cerrada en otro sitio).
+let alPerderSesion: (() => void) | null = null;
+
+/** Lo registra el proveedor de acceso para volver a mostrar la pantalla de login. */
+export function registrarAlPerderSesion(manejador: () => void): void {
+  alPerderSesion = manejador;
+}
+
 type ParametrosConsulta = Record<string, string | number | undefined | null>;
 
 /** Convierte { mes_anio: "2026-10", tipo: undefined } en "?mes_anio=2026-10". */
@@ -61,6 +69,9 @@ async function peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Prom
   });
 
   if (!respuesta.ok) {
+    // Un 401 fuera de /auth significa que la sesión ya no vale (en /auth/login
+    // es solo una contraseña incorrecta, y lo muestra el propio formulario).
+    if (respuesta.status === 401 && !ruta.startsWith("/auth")) alPerderSesion?.();
     throw new ApiError(respuesta.status, await leerMensajeDeError(respuesta));
   }
   // 204 No Content (p. ej. DELETE) no trae cuerpo que leer.

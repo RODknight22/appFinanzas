@@ -2,6 +2,7 @@ import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import { tasasApi } from "../api/configuracion";
+import { SeccionContrasena } from "../components/ajustes/SeccionContrasena";
 import { Boton } from "../components/ui/Boton";
 import { CLASE_ENTRADA_BASE } from "../components/ui/Campo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
@@ -163,10 +164,11 @@ function SeccionTasas() {
 export function AjustesPage() {
   return (
     <>
-      <EncabezadoPagina titulo="Ajustes" descripcion="Monedas, tasas de cambio y preferencias" />
+      <EncabezadoPagina titulo="Ajustes" descripcion="Monedas, tasas de cambio, seguridad y preferencias" />
       <div className="grid gap-6 lg:grid-cols-2">
         <SeccionMonedas />
         <SeccionTasas />
+        <SeccionContrasena />
       </div>
     </>
   );

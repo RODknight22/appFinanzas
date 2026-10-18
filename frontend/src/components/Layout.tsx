@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   LayoutDashboard,
+  LogOut,
   Moon,
   PiggyBank,
   Repeat,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 
+import { useAcceso } from "../hooks/useAcceso";
 import { useTema } from "../hooks/useTema";
 
 interface ItemMenu {
@@ -46,6 +48,7 @@ function claseEnlace({ isActive }: { isActive: boolean }): string {
  */
 export function Layout() {
   const { tema, alternar } = useTema();
+  const { usuario, cerrarSesion } = useAcceso();
   const IconoTema = tema === "oscuro" ? Sun : Moon;
 
   return (
@@ -85,6 +88,14 @@ export function Layout() {
           <IconoTema size={18} />
           {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
         </button>
+        <button
+          type="button"
+          onClick={cerrarSesion}
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+        >
+          <LogOut size={18} />
+          <span className="truncate">Salir ({usuario})</span>
+        </button>
       </aside>
 
       {/* Cabecera móvil con ajustes y botón de tema */}
@@ -96,6 +107,9 @@ export function Layout() {
           </Link>
           <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-slate-500">
             <IconoTema size={18} />
+          </button>
+          <button type="button" onClick={cerrarSesion} aria-label="Cerrar sesión" className="rounded-lg p-2 text-slate-500">
+            <LogOut size={18} />
           </button>
         </div>
       </header>
