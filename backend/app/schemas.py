@@ -138,3 +138,49 @@ class PagoSuscripcionRead(SQLModel):
 
     transaccion: TransaccionRead
     suscripcion: SuscripcionRead
+
+
+# --- Dashboard (solo lectura: datos calculados, no tablas) -----------------
+class SaldoCuenta(SQLModel):
+    cuenta_id: int
+    nombre: str
+    tipo: TipoCuenta
+    saldo: Decimal
+
+
+class ResumenMes(SQLModel):
+    mes_anio: str
+    balance_global: Decimal
+    ingresos: Decimal
+    gastos: Decimal
+    flujo_neto: Decimal
+    cuentas: list[SaldoCuenta]
+
+
+class FlujoMensual(SQLModel):
+    mes_anio: str
+    ingresos: Decimal
+    gastos: Decimal
+    flujo_neto: Decimal
+
+
+class GastoPorCategoria(SQLModel):
+    categoria_id: int
+    nombre: str
+    icono: str
+    color: str
+    total: Decimal
+    porcentaje: float
+
+
+class ProgresoPresupuesto(SQLModel):
+    presupuesto_id: int
+    categoria_id: int
+    nombre: str
+    color: str
+    mes_anio: str
+    monto_limite: Decimal
+    gastado: Decimal
+    restante: Decimal
+    porcentaje: float
+    excedido: bool

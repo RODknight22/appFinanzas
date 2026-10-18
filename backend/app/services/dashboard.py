@@ -1,0 +1,208 @@
+"""Cálculos del dashboard: balances, flujo mensual, gastos por categoría y presupuestos.
+
+Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en memoria.
+"""
+
+from datetime import date
+from decimal import Decimal
+from typing import Any
+
+from sqlalchemy import case, func
+from sqlmodel import Session, col, select
+
+from app.models import Categoria, Cuenta, Presupuesto, TipoMovimiento, Transaccion
+from app.schemas import (
+    FlujoMensual,
+    GastoPorCategoria,
+    ProgresoPresupuesto,
+    ResumenMes,
+    SaldoCuenta,
+)
+
+_CENTIMOS = Decimal("0.01")
+
+
+# ---------------------------------------------------------------------------
+# Utilidades de fechas y dinero
+# ---------------------------------------------------------------------------
+def mes_actual() -> str:
+    return date.today().strftime("%Y-%m")
+
+
+def _rango_mes(mes_anio: str) -> tuple[date, date]:
+    """Devuelve [primer día del mes, primer día del mes siguiente)."""
+    anio, mes = map(int, mes_anio.split("-"))
+    inicio = date(anio, mes, 1)
+    fin = date(anio + 1, 1, 1) if mes == 12 else date(anio, mes + 1, 1)
+    return inicio, fin
+
+
+def _meses_anteriores(hasta_mes: str, cantidad: int) -> list[str]:
+    """Lista de `cantidad` meses terminando en `hasta_mes`, del más antiguo al más nuevo."""
+    anio, mes = map(int, hasta_mes.split("-"))
+    meses: list[str] = []
+    for _ in range(cantidad):
+        meses.append(f"{anio:04d}-{mes:02d}")
+        anio, mes = (anio - 1, 12) if mes == 1 else (anio, mes - 1)
+    return list(reversed(meses))
+
+
+def _a_decimal(valor: Any) -> Decimal:
+    """SQLite suma los importes como números flotantes; los devolvemos a Decimal exacto."""
+    return Decimal(str(valor or 0)).quantize(_CENTIMOS)
+
+
+def _porcentaje(parte: Decimal, total: Decimal) -> float:
+    return round(float(parte / total * 100), 1) if total else 0.0
+
+
+# Importe con signo: los ingresos suman y los gastos restan.
+_IMPORTE_CON_SIGNO = case(
+    (col(Transaccion.tipo) == TipoMovimiento.GASTO, -col(Transaccion.monto)),
+    else_=col(Transaccion.monto),
+)
+
+
+# ---------------------------------------------------------------------------
+# Consultas
+# ---------------------------------------------------------------------------
+def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
+    # outerjoin: incluye también las cuentas sin transacciones (movimiento = 0).
+    consulta = (
+        select(Cuenta, func.sum(_IMPORTE_CON_SIGNO))
+        .outerjoin(Transaccion, col(Transaccion.cuenta_id) == col(Cuenta.id))
+        .group_by(col(Cuenta.id))
+        .order_by(col(Cuenta.nombre))
+    )
+    return [
+        SaldoCuenta(
+            cuenta_id=cuenta.id,
+            nombre=cuenta.nombre,
+            tipo=cuenta.tipo,
+            saldo=_a_decimal(cuenta.balance_inicial + _a_decimal(movimiento)),
+        )
+        for cuenta, movimiento in session.exec(consulta).all()
+    ]
+
+
+def _totales_por_tipo(session: Session, inicio: date, fin: date) -> dict[TipoMovimiento, Decimal]:
+    consulta = (
+        select(Transaccion.tipo, func.sum(Transaccion.monto))
+        .where(Transaccion.fecha >= inicio, Transaccion.fecha < fin)
+        .group_by(col(Transaccion.tipo))
+    )
+    totales = {tipo: Decimal("0.00") for tipo in TipoMovimiento}
+    for tipo, suma in session.exec(consulta).all():
+        totales[tipo] = _a_decimal(suma)
+    return totales
+
+
+def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decimal]:
+    inicio, fin = _rango_mes(mes_anio)
+    consulta = (
+        select(Transaccion.categoria_id, func.sum(Transaccion.monto))
+        .where(
+            Transaccion.tipo == TipoMovimiento.GASTO,
+            Transaccion.fecha >= inicio,
+            Transaccion.fecha < fin,
+        )
+        .group_by(col(Transaccion.categoria_id))
+    )
+    return {categoria_id: _a_decimal(suma) for categoria_id, suma in session.exec(consulta).all()}
+
+
+# ---------------------------------------------------------------------------
+# Funciones públicas (una por endpoint)
+# ---------------------------------------------------------------------------
+def resumen(session: Session, mes_anio: str) -> ResumenMes:
+    """Balance global (todas las cuentas, de siempre) y flujo del mes indicado."""
+    cuentas = _saldos_por_cuenta(session)
+    totales = _totales_por_tipo(session, *_rango_mes(mes_anio))
+    ingresos, gastos = totales[TipoMovimiento.INGRESO], totales[TipoMovimiento.GASTO]
+    return ResumenMes(
+        mes_anio=mes_anio,
+        balance_global=sum((c.saldo for c in cuentas), Decimal("0.00")),
+        ingresos=ingresos,
+        gastos=gastos,
+        flujo_neto=ingresos - gastos,
+        cuentas=cuentas,
+    )
+
+
+def flujo_mensual(session: Session, hasta_mes: str, meses: int) -> list[FlujoMensual]:
+    """Ingresos y gastos de los últimos `meses` meses (para el gráfico de barras)."""
+    lista_meses = _meses_anteriores(hasta_mes, meses)
+    inicio, _ = _rango_mes(lista_meses[0])
+    _, fin = _rango_mes(lista_meses[-1])
+
+    # strftime agrupa por "YYYY-MM" (función propia de SQLite).
+    mes_de_fecha = func.strftime("%Y-%m", Transaccion.fecha)
+    consulta = (
+        select(mes_de_fecha, Transaccion.tipo, func.sum(Transaccion.monto))
+        .where(Transaccion.fecha >= inicio, Transaccion.fecha < fin)
+        .group_by(mes_de_fecha, col(Transaccion.tipo))
+    )
+    sumas = {(mes, tipo): _a_decimal(suma) for mes, tipo, suma in session.exec(consulta).all()}
+
+    # Rellenamos con 0 los meses sin movimientos para que el gráfico no tenga huecos.
+    resultado: list[FlujoMensual] = []
+    for mes in lista_meses:
+        ingresos = sumas.get((mes, TipoMovimiento.INGRESO), Decimal("0.00"))
+        gastos = sumas.get((mes, TipoMovimiento.GASTO), Decimal("0.00"))
+        resultado.append(
+            FlujoMensual(mes_anio=mes, ingresos=ingresos, gastos=gastos, flujo_neto=ingresos - gastos)
+        )
+    return resultado
+
+
+def gastos_por_categoria(session: Session, mes_anio: str) -> list[GastoPorCategoria]:
+    """Reparto de los gastos del mes por categoría (para el gráfico de anillo)."""
+    totales = _gastos_por_categoria_id(session, mes_anio)
+    if not totales:
+        return []
+    total_mes = sum(totales.values(), Decimal("0.00"))
+    categorias = session.exec(select(Categoria).where(col(Categoria.id).in_(totales))).all()
+
+    resultado = [
+        GastoPorCategoria(
+            categoria_id=categoria.id,
+            nombre=categoria.nombre,
+            icono=categoria.icono,
+            color=categoria.color,
+            total=totales[categoria.id],
+            porcentaje=_porcentaje(totales[categoria.id], total_mes),
+        )
+        for categoria in categorias
+    ]
+    return sorted(resultado, key=lambda g: g.total, reverse=True)
+
+
+def progreso_presupuestos(session: Session, mes_anio: str) -> list[ProgresoPresupuesto]:
+    """Cuánto se ha gastado de cada presupuesto del mes (para las barras de progreso)."""
+    gastado_por_categoria = _gastos_por_categoria_id(session, mes_anio)
+    consulta = (
+        select(Presupuesto, Categoria)
+        .join(Categoria, col(Categoria.id) == col(Presupuesto.categoria_id))
+        .where(Presupuesto.mes_anio == mes_anio)
+        .order_by(col(Categoria.nombre))
+    )
+
+    resultado: list[ProgresoPresupuesto] = []
+    for presupuesto, categoria in session.exec(consulta).all():
+        gastado = gastado_por_categoria.get(categoria.id, Decimal("0.00"))
+        limite = _a_decimal(presupuesto.monto_limite)
+        resultado.append(
+            ProgresoPresupuesto(
+                presupuesto_id=presupuesto.id,
+                categoria_id=categoria.id,
+                nombre=categoria.nombre,
+                color=categoria.color,
+                mes_anio=mes_anio,
+                monto_limite=limite,
+                gastado=gastado,
+                restante=limite - gastado,
+                porcentaje=_porcentaje(gastado, limite),
+                excedido=gastado > limite,
+            )
+        )
+    return resultado

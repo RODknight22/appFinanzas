@@ -8,7 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.database import init_db
-from app.routers import categorias, cuentas, presupuestos, suscripciones, transacciones
+from app.routers import (
+    categorias,
+    cuentas,
+    dashboard,
+    presupuestos,
+    suscripciones,
+    transacciones,
+)
 from app.services.errores import ErrorDeDominio
 
 
@@ -46,6 +53,7 @@ app.include_router(categorias.router)
 app.include_router(transacciones.router)
 app.include_router(presupuestos.router)
 app.include_router(suscripciones.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/health", tags=["Sistema"])
