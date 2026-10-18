@@ -1,0 +1,70 @@
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  type TooltipProps,
+} from "recharts";
+
+import type { FlujoMensual } from "../../types";
+import { formatearDinero, formatearMes } from "../../utils/formato";
+
+const COLOR_INGRESOS = "#10b981";
+const COLOR_GASTOS = "#f43f5e";
+
+/** Tooltip propio con clases de Tailwind, para que respete el modo oscuro. */
+function TooltipFlujo({ active, payload, label }: TooltipProps<number, string>) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-800">
+      <p className="mb-1 font-semibold capitalize">{formatearMes(String(label))}</p>
+      {payload.map((serie) => (
+        <p key={serie.dataKey} className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: serie.color }} />
+          {serie.name}: <span className="font-medium tabular-nums">{formatearDinero(serie.value ?? 0)}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/** Barras de ingresos vs. gastos por mes. */
+export function GraficoFlujo({ datos }: { datos: FlujoMensual[] }) {
+  // Recharts necesita números; el backend envía los importes como texto.
+  const filas = datos.map((mes) => ({
+    mes_anio: mes.mes_anio,
+    ingresos: Number(mes.ingresos),
+    gastos: Number(mes.gastos),
+  }));
+
+  return (
+    // text-slate-500 + "currentColor" hacen que ejes y rejilla sigan el tema.
+    <div className="h-72 text-slate-500">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={filas} barGap={4} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+          <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.15} />
+          <XAxis
+            dataKey="mes_anio"
+            tickFormatter={(mes: string) => formatearMes(mes, "corto")}
+            tick={{ fill: "currentColor", fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tickFormatter={(valor: number) => new Intl.NumberFormat(undefined, { notation: "compact" }).format(valor)}
+            tick={{ fill: "currentColor", fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
+            width={48}
+          />
+          <Tooltip content={<TooltipFlujo />} cursor={{ fill: "currentColor", fillOpacity: 0.06 }} />
+          <Bar dataKey="ingresos" name="Ingresos" fill={COLOR_INGRESOS} radius={[6, 6, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="gastos" name="Gastos" fill={COLOR_GASTOS} radius={[6, 6, 0, 0]} maxBarSize={28} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
