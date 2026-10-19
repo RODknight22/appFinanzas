@@ -11,8 +11,8 @@ Hablarle en español, explicar el diseño antes de cambios grandes y avanzar por
 - Docker Compose: servicios `backend` (:8000) y `frontend` (:5173, proxy `/api` → backend).
 
 ## Funcionalidades actuales
-Transacciones, transferencias (comisión, pago de tarjeta), suscripciones, presupuestos, dashboard de
-widgets, cuentas (crédito/débito/rendimientos), categorías, multidivisa con tasas históricas, login y
+Transacciones (búsqueda sin tildes, filtros en la URL, paginación), transferencias (comisión,
+pago de tarjeta), suscripciones, presupuestos, dashboard de widgets, cuentas (crédito/débito/rendimientos), categorías, multidivisa con tasas históricas, login y
 personalización (acento, perfil con foto, mes financiero).
 
 ## Principios
@@ -33,6 +33,8 @@ personalización (acento, perfil con foto, mes financiero).
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api); la API las expone en la moneda
   principal (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo)
   y `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
+- Búsqueda: `FiltrosTransacciones` + `_filtrar()` en services/transacciones.py; textos con `sin_acentos()`
+  (función SQLite registrada en database.py).
 - Mes financiero (services/mes_financiero.py) según `dia_inicio_mes` de la configuración.
 - Acceso: un usuario (scrypt) + cookie HttpOnly `sesion`; routers de datos con `requiere_sesion`
   en main.py. Tests: `client` simula sesión, `cliente_sin_sesion` no. Olvido: `python -m app.restablecer_contrasena`.
@@ -46,8 +48,7 @@ personalización (acento, perfil con foto, mes financiero).
 - Widgets en dashboard/registroWidgets.tsx (pintan con `DatosPanel`). Ajustes: components/ajustes/.
 
 ## Hoja de ruta
-- [ ] Siguiente: 1) Búsqueda y filtros en transacciones (texto, cuenta, categoría, importe,
-  paginación). 2) Metas de ahorro.
+- [ ] Siguiente: metas de ahorro.
 - [ ] Después: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
   seguridad/exportar. Mejoras: importes como céntimos enteros (SQLite guarda Decimal como float),
   E2E Playwright en el repo + CI, notificaciones en vez de alert/confirm, quitar CORS sin uso,
