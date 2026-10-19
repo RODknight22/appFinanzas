@@ -3,10 +3,13 @@
  * Las páginas usan esto en lugar de escribir URLs a mano.
  */
 import type {
+  AportacionMeta,
   Categoria,
   Cuenta,
+  DatosMeta,
   DatosNuevos,
   MesAnio,
+  Meta,
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
@@ -67,4 +70,17 @@ export const suscripcionesApi = {
   ...crearRecurso<Suscripcion, { proximos_dias?: number }>("/suscripciones"),
   registrarPago: (id: number, datos: { cuenta_id: number; categoria_id: number }) =>
     http.post<PagoSuscripcion>(`/suscripciones/${id}/registrar-pago`, datos),
+};
+
+/** Las metas no usan crearRecurso: su respuesta trae campos calculados que no se envían. */
+export const metasApi = {
+  listar: () => http.get<Meta[]>("/metas"),
+  crear: (datos: DatosMeta) => http.post<Meta>("/metas", datos),
+  /** `cumplida`: marcarla a mano como cumplida (true) o reabrirla (false). */
+  actualizar: (id: number, cambios: Partial<DatosMeta> & { cumplida?: boolean }) => http.patch<Meta>(`/metas/${id}`, cambios),
+  eliminar: (id: number) => http.delete(`/metas/${id}`),
+  aportaciones: (id: number) => http.get<AportacionMeta[]>(`/metas/${id}/aportaciones`),
+  aportar: (id: number, datos: Omit<AportacionMeta, "id" | "meta_id">) =>
+    http.post<AportacionMeta>(`/metas/${id}/aportaciones`, datos),
+  eliminarAportacion: (id: number, aportacionId: number) => http.delete(`/metas/${id}/aportaciones/${aportacionId}`),
 };

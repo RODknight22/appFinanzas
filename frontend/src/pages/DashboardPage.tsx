@@ -2,7 +2,7 @@ import { LayoutGrid, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
-import { categoriasApi, cuentasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
+import { categoriasApi, cuentasApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
 import { avisarError } from "../components/ajustes/avisarError";
 import { PanelWidgets } from "../components/dashboard/PanelWidgets";
 import { DISPOSICION_POR_DEFECTO, reconciliar, type DatosPanel } from "../components/dashboard/registroWidgets";
@@ -39,6 +39,7 @@ export function DashboardPage() {
         cuentasApi.listar(),
         transaccionesApi.listar({ limit: 5 }),
         categoriasApi.listar(),
+        metasApi.listar(),
       ]),
     [mes],
   );
@@ -78,7 +79,7 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
-        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
             resumen,
@@ -89,6 +90,7 @@ export function DashboardPage() {
             diasProximos: DIAS_PROXIMOS,
             ultimas,
             categorias,
+            metas,
           };
           return <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />;
         }}

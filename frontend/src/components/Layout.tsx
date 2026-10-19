@@ -8,6 +8,7 @@ import {
   Settings,
   Sun,
   Tags,
+  Target,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
@@ -24,15 +25,18 @@ interface ItemMenu {
   /** Versión corta para la barra inferior del móvil, donde hay poco espacio. */
   corta: string;
   icono: LucideIcon;
+  /** En la barra inferior del móvil solo caben 6: el resto va en la cabecera. */
+  soloEscritorio?: boolean;
 }
 
 const MENU: ItemMenu[] = [
   { ruta: "/dashboard", etiqueta: "Dashboard", corta: "Panel", icono: LayoutDashboard },
   { ruta: "/transacciones", etiqueta: "Transacciones", corta: "Movimientos", icono: ArrowLeftRight },
   { ruta: "/presupuestos", etiqueta: "Presupuestos", corta: "Límites", icono: PiggyBank },
+  { ruta: "/metas", etiqueta: "Metas", corta: "Metas", icono: Target },
   { ruta: "/suscripciones", etiqueta: "Suscripciones", corta: "Recurrentes", icono: Repeat },
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
-  { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags },
+  { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
 ];
 
 /** Clases de un enlace del menú lateral según esté activo o no. */
@@ -110,6 +114,9 @@ export function Layout() {
           <span className="truncate font-semibold">Hola, {nombre}</span>
         </span>
         <div className="flex items-center gap-1">
+          <Link to="/categorias" aria-label="Categorías" className="rounded-lg p-2 text-slate-500">
+            <Tags size={18} />
+          </Link>
           <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-slate-500">
             <Settings size={18} />
           </Link>
@@ -128,7 +135,7 @@ export function Layout() {
 
       {/* Barra inferior en móvil */}
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden dark:border-slate-800 dark:bg-slate-900">
-        {MENU.map(({ ruta, etiqueta, corta, icono: Icono }) => (
+        {MENU.filter((item) => !item.soloEscritorio).map(({ ruta, etiqueta, corta, icono: Icono }) => (
           <NavLink
             key={ruta}
             to={ruta}

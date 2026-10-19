@@ -59,6 +59,39 @@ export interface Transaccion {
   readonly transferencia_id: number | null;
 }
 
+/** Meta de ahorro con su progreso calculado por el backend (en la moneda de la meta). */
+export interface Meta {
+  id: number;
+  nombre: string;
+  /** Un emoji. */
+  icono: string;
+  monto_objetivo: Dinero;
+  moneda: Moneda;
+  fecha_limite: FechaISO | null;
+  /** Con cuenta, el progreso es su saldo; sin ella, la suma de aportaciones. */
+  cuenta_id: number | null;
+  readonly fecha_cumplida: FechaISO | null;
+  readonly ahorrado: Dinero;
+  readonly restante: Dinero;
+  readonly porcentaje: number;
+  readonly cumplida: boolean;
+  readonly vencida: boolean;
+  readonly meses_restantes: number | null;
+  /** Cuánto apartar al mes para llegar a la fecha límite. */
+  readonly ahorro_mensual: Dinero | null;
+}
+
+export type DatosMeta = Pick<Meta, "nombre" | "icono" | "monto_objetivo" | "moneda" | "fecha_limite" | "cuenta_id">;
+
+/** Dinero apartado (positivo) o retirado (negativo) de una meta sin cuenta. */
+export interface AportacionMeta {
+  id: number;
+  meta_id: number;
+  monto: Dinero;
+  fecha: FechaISO;
+  notas: string | null;
+}
+
 /** Resultado de /transacciones/buscar: una página y los totales de *todas* las coincidencias. */
 export interface PaginaTransacciones {
   items: Transaccion[];
@@ -162,7 +195,7 @@ export interface ProgresoPresupuesto {
 
 // --- Configuración ---------------------------------------------------------
 export type ColorAcento = "esmeralda" | "azul" | "indigo" | "violeta" | "rosa" | "naranja";
-export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "cuentas";
+export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "cuentas" | "metas";
 export type TamanoWidget = "pequeno" | "mediano" | "grande";
 
 export interface WidgetDisposicion {
