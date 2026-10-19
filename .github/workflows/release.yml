@@ -1,0 +1,98 @@
+# Publica una versión. Se dispara al subir una etiqueta:
+#     git tag v1.0.0 && git push origin v1.0.0
+# Resultado: un Release en GitHub con los ejecutables de Windows y Linux, sus
+# sumas SHA-256 y la imagen Docker en ghcr.io.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # crear el Release
+  packages: write # publicar la imagen Docker
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: frontend/dist
+
+  ejecutables:
+    needs: web
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            nombre: AppFinanzas-${{ github.ref_name }}-windows.exe
+            origen: dist/AppFinanzas.exe
+          # Ubuntu 22.04: el ejecutable funciona también en distribuciones algo más antiguas.
+          - os: ubuntu-22.04
+            nombre: AppFinanzas-${{ github.ref_name }}-linux
+            origen: dist/AppFinanzas
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: frontend/dist
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r backend/requirements.txt -c backend/constraints.txt pyinstaller==6.11.1
+      - run: pyinstaller --noconfirm empaquetado/appfinanzas.spec
+      - name: Nombre final
+        shell: bash
+        run: mkdir salida && mv "${{ matrix.origen }}" "salida/${{ matrix.nombre }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ejecutable-${{ matrix.os }}
+          path: salida/*
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Nombre de la imagen (ghcr exige minúsculas)
+        id: imagen
+        run: echo "nombre=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.imagen.outputs.nombre }}:${{ github.ref_name }}
+            ${{ steps.imagen.outputs.nombre }}:latest
+
+  publicar:
+    needs: [ejecutables, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ejecutable-*
+          path: descargas
+          merge-multiple: true
+      # Sumas SHA-256: quien descarga puede comprobar que el archivo no se alteró.
+      - run: cd descargas && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: descargas/*
+          body_path: NOTAS_RELEASE.md

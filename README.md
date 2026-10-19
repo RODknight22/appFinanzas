@@ -1,0 +1,139 @@
+# Finanzas Personales
+
+[![CI](https://github.com/RODknight22/appFinanzas/actions/workflows/ci.yml/badge.svg)](https://github.com/RODknight22/appFinanzas/actions/workflows/ci.yml)
+[![Licencia: GPL v3](https://img.shields.io/badge/licencia-GPLv3-blue.svg)](LICENSE)
+
+App de finanzas personales que funciona **en tu ordenador**. Tus datos se quedan contigo: no hay
+cuentas en la nube, ni anuncios, ni nadie más que vea en qué gastas.
+
+Pensada para quien maneja **varias monedas**: cobras en una, gastas en otra y quieres saber cuánto
+tienes en total sin hacer cuentas a mano.
+
+![Panel principal en modo oscuro](docs/capturas/dashboard.png)
+
+## Qué puedes hacer
+
+- **Panel personalizable**: balance global, ingresos y gastos con su tendencia, evolución de tu
+  patrimonio, calendario de gastos, presupuestos y más. Ordena los widgets arrastrándolos y elige
+  su tamaño.
+- **Transacciones**: búsqueda sin importar tildes ni mayúsculas, filtros por cuenta, categoría,
+  importe y fecha.
+- **Cuentas**: efectivo, débito, tarjetas de crédito (con fecha de corte, de pago y límite) y
+  cuentas con rendimientos diarios.
+- **Transferencias** entre cuentas, también entre monedas: guarda el tipo de cambio real que te
+  aplicó el banco y te dice cuánto peor fue que el del mercado. Pagar la tarjeta es un clic.
+- **Multidivisa**: peso mexicano, dólar, euro, quetzal y lempira. Cada movimiento se convierte con
+  la tasa del día en que ocurrió; las tasas se actualizan solas y puedes corregirlas a mano.
+- **Metas de ahorro** que siguen el saldo de una cuenta o tus aportaciones, te dicen cuánto apartar
+  al mes y lo celebran contigo al llegar al 25, 50, 75 y 100 %.
+- **Presupuestos** por categoría y **suscripciones** con aviso de los próximos pagos.
+- **Personalización**: modo oscuro o claro, color de acento, foto de perfil, página de inicio y
+  día en que empieza tu "mes" (por ejemplo, el día de cobro).
+
+| Metas de ahorro | Transacciones | En el móvil |
+| --- | --- | --- |
+| ![Metas](docs/capturas/metas.png) | ![Transacciones](docs/capturas/transacciones.png) | ![Móvil](docs/capturas/movil-metas.png) |
+
+## Instalación
+
+Descarga la última versión desde la página de
+[**Releases**](https://github.com/RODknight22/appFinanzas/releases/latest).
+
+### Windows
+
+1. Descarga `AppFinanzas-vX.Y.Z-windows.exe`.
+2. Haz doble clic. Se abrirá una ventana negra (esa ventana **es** la app) y, después, tu navegador.
+3. La primera vez, Windows puede mostrar *"Windows protegió su PC"*: el ejecutable no está firmado
+   con un certificado de pago. Pulsa **Más información → Ejecutar de todas formas**.
+
+### Linux
+
+```bash
+chmod +x AppFinanzas-vX.Y.Z-linux
+./AppFinanzas-vX.Y.Z-linux
+```
+
+### Docker (para usuarios técnicos)
+
+```bash
+docker run -d --name finanzas -p 127.0.0.1:8000:8000 -v finanzas:/data \
+  --restart unless-stopped ghcr.io/rodknight22/appfinanzas:latest
+```
+
+Abre <http://127.0.0.1:8000>. El `127.0.0.1` hace que solo tu ordenador pueda entrar; los datos
+viven en el volumen `finanzas`.
+
+### Comprobar la descarga (opcional)
+
+Cada versión incluye `SHA256SUMS.txt` con la huella de cada archivo. Si coincide, el archivo es
+exactamente el que se publicó:
+
+```bash
+sha256sum AppFinanzas-vX.Y.Z-linux          # Linux
+certutil -hashfile AppFinanzas-vX.Y.Z-windows.exe SHA256   # Windows
+```
+
+## Uso
+
+- **Primera vez**: crea tu usuario y contraseña (mínimo 8 caracteres). Es un único usuario local.
+- **Cerrar la app**: cierra la ventana de la consola. **Abrirla de nuevo**: doble clic otra vez; si
+  ya estaba abierta, solo se abre otra pestaña.
+- **Dónde están tus datos**: en un único archivo `finance.db` dentro de
+  - Windows: `%APPDATA%\AppFinanzas`
+  - Linux: `~/.local/share/AppFinanzas`
+- **Copia de seguridad**: con la app **cerrada**, copia esa carpeta entera a otro sitio.
+- **¿Olvidaste la contraseña?** Ejecuta la app con `--restablecer-contrasena` (en Docker:
+  `docker exec finanzas python -m app.restablecer_contrasena`). Se borra el usuario, **no** tus
+  datos: al abrirla, creas uno nuevo.
+
+## Privacidad y seguridad
+
+- La app **solo escucha en tu propio ordenador** (`127.0.0.1`): nadie de tu red puede conectarse.
+- Lo único que sale a internet es la descarga diaria de tasas de cambio desde
+  [ExchangeRate-API](https://www.exchangerate-api.com). No se envía ningún dato tuyo.
+- Contraseña guardada con *scrypt* (nunca en claro); sesión en una cookie que JavaScript no puede
+  leer; bloqueos crecientes tras varios intentos fallidos.
+- Protecciones frente a webs maliciosas abiertas en el mismo navegador (comprobación de `Host` y
+  `Origin`, política de seguridad de contenido estricta).
+- La carpeta de datos solo es accesible para tu usuario del sistema. La base de datos **no está
+  cifrada**: protege tu ordenador con contraseña.
+- ¿Encontraste un fallo de seguridad? Escríbeme de forma privada desde mi perfil de GitHub antes de
+  publicarlo.
+
+## Desarrollo
+
+Solo necesitas [Docker](https://www.docker.com/products/docker-desktop/).
+
+```bash
+git clone https://github.com/RODknight22/appFinanzas.git
+cd appFinanzas
+docker compose up --build     # web en http://localhost:5173 · API en http://localhost:8000/docs
+```
+
+| Carpeta | Contenido |
+| --- | --- |
+| `backend/app` | API con FastAPI + SQLModel + SQLite (routers → services → models) |
+| `backend/tests` | Tests con pytest |
+| `frontend/src` | React 18 + TypeScript + Tailwind v4 + Recharts |
+| `empaquetado/` | Receta de PyInstaller para los ejecutables |
+| `.github/workflows` | CI (tests, tipos, auditoría) y publicación de versiones |
+
+```bash
+# Tests del backend
+docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend \
+  sh -c "pip install -q -r requirements-dev.txt && pytest -q"
+# Tipos del frontend
+docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit
+```
+
+**Publicar una versión**: cambia `backend/app/version.py` y `frontend/package.json`, añade los
+cambios a `CHANGELOG.md` y `NOTAS_RELEASE.md`, y sube una etiqueta:
+`git tag v1.0.0 && git push origin v1.0.0`. GitHub Actions fabrica los ejecutables y la imagen
+Docker y crea el Release.
+
+## Licencia
+
+[GPL-3.0](LICENSE): puedes usar, estudiar, modificar y compartir esta app; si distribuyes una
+versión modificada, debe seguir siendo software libre bajo la misma licencia.
+
+© 2026 Rodrigo (RODknight22)
