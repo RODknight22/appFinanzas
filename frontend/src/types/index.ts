@@ -59,6 +59,15 @@ export interface Transaccion {
   readonly transferencia_id: number | null;
 }
 
+/** Resultado de /transacciones/buscar: una página y los totales de *todas* las coincidencias. */
+export interface PaginaTransacciones {
+  items: Transaccion[];
+  total: number;
+  /** En la moneda principal. */
+  total_ingresos: Dinero;
+  total_gastos: Dinero;
+}
+
 /** Dinero que pasa de una cuenta a otra (no es ingreso ni gasto). */
 export interface Transferencia {
   id: number;

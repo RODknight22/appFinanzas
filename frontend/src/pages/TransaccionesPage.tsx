@@ -1,45 +1,37 @@
-import { ArrowRightLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
-import { AccionesFila } from "../components/ui/AccionesFila";
+import { BarraFiltros } from "../components/transacciones/BarraFiltros";
+import { FilaTransaccion } from "../components/transacciones/FilaTransaccion";
 import { Boton } from "../components/ui/Boton";
-import { CLASE_ENTRADA_BASE } from "../components/ui/Campo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
-import { Contenido, Vacio } from "../components/ui/Estados";
-import { IconoCategoria } from "../components/ui/IconoCategoria";
+import { Cargando, Contenido, MensajeError, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
-import { SelectorMes } from "../components/ui/SelectorMes";
+import { Paginacion } from "../components/ui/Paginacion";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
-import type { TipoMovimiento, Transaccion } from "../types";
-import { formatearDinero, formatearFecha, mesActual, rangoDelMes } from "../utils/formato";
+import { aConsulta, POR_PAGINA, useFiltrosTransacciones } from "../hooks/useFiltrosTransacciones";
+import type { Transaccion } from "../types";
+import { formatearDinero } from "../utils/formato";
 
 type EstadoModal = null | "nueva" | Transaccion;
 
 export function TransaccionesPage() {
-  const [mes, setMes] = useState(mesActual());
-  const [tipo, setTipo] = useState<TipoMovimiento | "">("");
+  const { filtros, cambiar, limpiar } = useFiltrosTransacciones();
   const [modal, setModal] = useState<EstadoModal>(null);
 
-  // Las transacciones dependen de los filtros; categorías y cuentas se usan
-  // para mostrar nombres e iconos y para rellenar el formulario.
-  const estado = useDatos(
-    () =>
-      Promise.all([
-        transaccionesApi.listar({ ...rangoDelMes(mes), tipo: tipo || undefined, limit: 500 }),
-        categoriasApi.listar(),
-        cuentasApi.listar(),
-      ]),
-    [mes, tipo],
-  );
+  // Categorías y cuentas se cargan una vez; los resultados, con cada cambio de filtros.
+  // JSON.stringify: una dependencia que solo cambia cuando cambia algún filtro.
+  const catalogos = useDatos(() => Promise.all([categoriasApi.listar(), cuentasApi.listar()]), []);
+  const consulta = aConsulta(filtros);
+  const resultados = useDatos(() => transaccionesApi.buscar(consulta), [JSON.stringify(consulta)]);
 
   function alGuardar() {
     setModal(null);
-    estado.recargar();
+    resultados.recargar();
   }
 
   return (
@@ -47,91 +39,58 @@ export function TransaccionesPage() {
       <EncabezadoPagina
         titulo="Transacciones"
         descripcion="Tus ingresos y gastos registrados"
-        acciones={
-          <>
-            <SelectorMes mes={mes} onCambiar={setMes} />
-            <select className={`${CLASE_ENTRADA_BASE} w-auto`} value={tipo} onChange={(e) => setTipo(e.target.value as TipoMovimiento | "")} aria-label="Filtrar por tipo">
-              <option value="">Todos</option>
-              <option value="gasto">Gastos</option>
-              <option value="ingreso">Ingresos</option>
-            </select>
-            <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva</Boton>
-          </>
-        }
+        acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva</Boton>}
       />
 
-      <Contenido {...estado} onReintentar={estado.recargar}>
-        {([transacciones, categorias, cuentas]) => {
+      <Contenido {...catalogos} onReintentar={catalogos.recargar}>
+        {([categorias, cuentas]) => {
           // Map: búsqueda por id en O(1) en lugar de recorrer la lista en cada fila.
           const categoriaPorId = new Map(categorias.map((c) => [c.id, c]));
           const cuentaPorId = new Map(cuentas.map((c) => [c.id, c]));
-          // Se suma monto_principal: los importes originales pueden estar en distintas monedas.
-          const sumar = (t: TipoMovimiento) =>
-            transacciones.filter((x) => x.tipo === t).reduce((total, x) => total + Number(x.monto_principal), 0);
+          const pagina = resultados.datos;
 
           return (
             <>
-              <div className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                <span>Ingresos: <strong className="text-emerald-600 tabular-nums">{formatearDinero(sumar("ingreso"))}</strong></span>
-                <span>Gastos: <strong className="text-rose-600 tabular-nums">{formatearDinero(sumar("gasto"))}</strong></span>
-                <span className="text-slate-500">{transacciones.length} movimientos</span>
-              </div>
+              <BarraFiltros filtros={filtros} cuentas={cuentas} categorias={categorias} onCambiar={cambiar} onLimpiar={limpiar} />
+
+              {pagina && (
+                <div className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  <span>Ingresos: <strong className="text-emerald-600 tabular-nums">{formatearDinero(pagina.total_ingresos)}</strong></span>
+                  <span>Gastos: <strong className="text-rose-600 tabular-nums">{formatearDinero(pagina.total_gastos)}</strong></span>
+                  <span className="text-slate-500">{pagina.total} movimiento{pagina.total === 1 ? "" : "s"}</span>
+                </div>
+              )}
 
               <Tarjeta>
-                {transacciones.length === 0 ? (
+                {resultados.error ? (
+                  <MensajeError mensaje={resultados.error} onReintentar={resultados.recargar} />
+                ) : !pagina ? (
+                  <Cargando />
+                ) : pagina.total === 0 ? (
                   <Vacio
-                    mensaje="No hay transacciones en este periodo"
-                    accion={<Boton variante="secundario" onClick={() => setModal("nueva")}>Registrar la primera</Boton>}
+                    mensaje="No hay transacciones con estos filtros"
+                    accion={<Boton variante="secundario" onClick={() => setModal("nueva")}>Registrar una</Boton>}
                   />
                 ) : (
-                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {transacciones.map((transaccion) => {
-                      const categoria = categoriaPorId.get(transaccion.categoria_id);
-                      const esGasto = transaccion.tipo === "gasto";
-                      const cuenta = cuentaPorId.get(transaccion.cuenta_id);
-                      return (
-                        <li key={transaccion.id} className="flex items-center gap-3 py-3">
-                          <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? "#64748b"} />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium">{categoria?.nombre ?? "Sin categoría"}</p>
-                            <p className="truncate text-xs text-slate-500">
-                              {formatearFecha(transaccion.fecha)} · {cuenta?.nombre}
-                              {transaccion.notas && ` · ${transaccion.notas}`}
-                            </p>
-                          </div>
-                          <span className="text-right">
-                            <span className={`block font-semibold tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-                              {esGasto ? "−" : "+"}{formatearDinero(transaccion.monto, transaccion.moneda)}
-                            </span>
-                            {/* Pagado en otra divisa: lo que movió en la cuenta */}
-                            {cuenta && transaccion.moneda !== cuenta.moneda && (
-                              <span className="block text-xs text-slate-500 tabular-nums">
-                                ≈ {formatearDinero(transaccion.monto_cuenta, cuenta.moneda)}
-                              </span>
-                            )}
-                          </span>
-                          {transaccion.transferencia_id === null ? (
-                            <AccionesFila
-                              onEditar={() => setModal(transaccion)}
-                              onEliminar={() =>
-                                confirmarYEliminar("¿Eliminar esta transacción?", () => transaccionesApi.eliminar(transaccion.id), estado.recargar)
-                              }
-                            />
-                          ) : (
-                            // La comisión de una transferencia se cambia desde la transferencia.
-                            <Link
-                              to="/cuentas"
-                              title="Comisión de una transferencia: se edita desde Cuentas"
-                              aria-label="Editar desde Cuentas"
-                              className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                            >
-                              <ArrowRightLeft size={16} />
-                            </Link>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  // Mientras llegan resultados nuevos se atenúan los anteriores en vez de
+                  // mostrar "Cargando…": así la lista no parpadea al escribir.
+                  <div className={`transition-opacity ${resultados.cargando ? "opacity-50" : ""}`}>
+                    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {pagina.items.map((transaccion) => (
+                        <FilaTransaccion
+                          key={transaccion.id}
+                          transaccion={transaccion}
+                          categoria={categoriaPorId.get(transaccion.categoria_id)}
+                          cuenta={cuentaPorId.get(transaccion.cuenta_id)}
+                          onEditar={() => setModal(transaccion)}
+                          onEliminar={() =>
+                            confirmarYEliminar("¿Eliminar esta transacción?", () => transaccionesApi.eliminar(transaccion.id), resultados.recargar)
+                          }
+                        />
+                      ))}
+                    </ul>
+                    <Paginacion pagina={filtros.pagina} porPagina={POR_PAGINA} total={pagina.total} onCambiar={(n) => cambiar({ pagina: n })} />
+                  </div>
                 )}
               </Tarjeta>
 

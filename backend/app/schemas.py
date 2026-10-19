@@ -94,6 +94,15 @@ class TransaccionRead(TransaccionBase):
     transferencia_id: int | None = None
 
 
+class PaginaTransacciones(SQLModel):
+    """Resultado de una búsqueda: una página y los totales de todas las coincidencias."""
+
+    items: list[TransaccionRead]
+    total: int  # cuántas transacciones cumplen los filtros (no solo las de esta página)
+    total_ingresos: Decimal  # en la moneda principal
+    total_gastos: Decimal
+
+
 class TransaccionUpdate(SQLModel):
     monto: Decimal | None = Field(
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES

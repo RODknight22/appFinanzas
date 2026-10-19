@@ -5,6 +5,7 @@ código solo pide una sesión mediante `SessionDep`.
 """
 
 import os
+import unicodedata
 from collections.abc import Generator
 from pathlib import Path
 from typing import Annotated
@@ -29,12 +30,27 @@ DATABASE_URL = f"sqlite:///{(DATA_DIR / 'finance.db').as_posix()}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 
+def normalizar_texto(texto: str | None) -> str | None:
+    """Minúsculas y sin tildes: "Educación" → "educacion". Para buscar sin importar cómo se escriba.
+
+    NFD separa cada letra de su tilde ("ó" → "o" + "́"); luego quitamos las tildes (categoría Mn).
+    """
+    if texto is None:
+        return None
+    descompuesto = unicodedata.normalize("NFD", texto.casefold())
+    return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
+
+
 @event.listens_for(Engine, "connect")
-def _activar_claves_foraneas(dbapi_connection, _connection_record) -> None:
-    """SQLite ignora las claves foráneas salvo que se activen en cada conexión."""
+def _preparar_conexion(dbapi_connection, _connection_record) -> None:
+    """Se ejecuta en cada conexión nueva a SQLite (también en los tests)."""
+    # SQLite ignora las claves foráneas salvo que se activen en cada conexión.
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
+    # LOWER() de SQLite solo entiende ASCII ("É" no pasa a "é"): registramos
+    # nuestra función de Python para usarla en las búsquedas como sin_acentos(columna).
+    dbapi_connection.create_function("sin_acentos", 1, normalizar_texto, deterministic=True)
 
 
 def init_db() -> None:
