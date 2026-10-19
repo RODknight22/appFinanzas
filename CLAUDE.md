@@ -11,9 +11,9 @@ Hablarle en español, explicar el diseño antes de cambios grandes y avanzar por
 - Docker Compose: servicios `backend` (:8000) y `frontend` (:5173, proxy `/api` → backend).
 
 ## Funcionalidades actuales
-Transacciones (búsqueda sin tildes, filtros en la URL, paginación), transferencias (comisión,
-pago de tarjeta), suscripciones, presupuestos, dashboard de widgets, cuentas (crédito/débito/rendimientos), categorías, multidivisa con tasas históricas, login y
-personalización (acento, perfil con foto, mes financiero).
+Transacciones (búsqueda sin tildes, filtros en URL, paginación), transferencias (comisión, pago de
+tarjeta), metas de ahorro (cuenta vinculada o aportaciones), suscripciones, presupuestos, widgets,
+cuentas (crédito/débito/rendimientos), categorías, multidivisa, login y personalización.
 
 ## Principios
 - Código autodocumentado, modular y con tipado estricto; comentarios breves que expliquen el *por qué*.
@@ -30,11 +30,11 @@ personalización (acento, perfil con foto, mes financiero).
 - Cuentas: campos por tipo en `_normalizar_por_tipo`. Saldo de tarjeta negativo = deuda. Saldos solo vía
   `saldos.movimientos_por_cuenta` (transacciones + transferencias). Transferencias: no son ingreso/gasto;
   su comisión es una Transaccion con `transferencia_id` (solo se edita desde la transferencia).
+- Metas: progreso en `metas._con_progreso` (saldo de cuenta o aportaciones); `fecha_cumplida` persiste.
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api); la API las expone en la moneda
   principal (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo)
   y `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
-- Búsqueda: `FiltrosTransacciones` + `_filtrar()` en services/transacciones.py; textos con `sin_acentos()`
-  (función SQLite registrada en database.py).
+- Búsqueda: `_filtrar()` en services/transacciones.py; texto con `sin_acentos()` (SQLite, database.py).
 - Mes financiero (services/mes_financiero.py) según `dia_inicio_mes` de la configuración.
 - Acceso: un usuario (scrypt) + cookie HttpOnly `sesion`; routers de datos con `requiere_sesion`
   en main.py. Tests: `client` simula sesión, `cliente_sin_sesion` no. Olvido: `python -m app.restablecer_contrasena`.
@@ -48,11 +48,10 @@ personalización (acento, perfil con foto, mes financiero).
 - Widgets en dashboard/registroWidgets.tsx (pintan con `DatosPanel`). Ajustes: components/ajustes/.
 
 ## Hoja de ruta
-- [ ] Siguiente: metas de ahorro.
-- [ ] Después: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
-  seguridad/exportar. Mejoras: importes como céntimos enteros (SQLite guarda Decimal como float),
-  E2E Playwright en el repo + CI, notificaciones en vez de alert/confirm, quitar CORS sin uso,
-  dar sentido o quitar tipos ahorro/inversión, Alembic si hay cambios no aditivos. Ideas: PDF con IA, Open Banking (PSD2).
+- [ ] Siguiente: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
+  seguridad/exportar. Mejoras: importes como céntimos enteros, E2E Playwright en el repo + CI,
+  notificaciones en vez de alert/confirm, quitar CORS sin uso, dar sentido o quitar tipos
+  ahorro/inversión, Alembic si hay cambios no aditivos. Ideas: PDF con IA, Open Banking (PSD2).
 
 ## Comandos
 - `docker compose up --build` / `docker compose down` (conserva la BD).
