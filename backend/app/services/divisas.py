@@ -21,6 +21,7 @@ from decimal import Decimal
 from sqlmodel import Session, col, select
 
 from app.models import Moneda, OrigenTasa, TasaCambio, Transaccion
+from app.schemas import TasaRead
 from app.services.errores import ReglaDeNegocioError, ServicioExternoError
 from app.services.saldos import CENTIMOS
 
@@ -64,25 +65,51 @@ def tasa_por_usd(session: Session, moneda: Moneda, fecha: date) -> Decimal:
     return mas_antigua.por_usd
 
 
-def convertir(session: Session, monto: Decimal, de: Moneda, a: Moneda, fecha: date) -> Decimal:
-    """Convierte `monto` de una moneda a otra con las tasas de `fecha`."""
+def convertir_sin_redondeo(session: Session, monto: Decimal, de: Moneda, a: Moneda, fecha: date) -> Decimal:
     if de == a:
         return monto
-    en_usd = monto / tasa_por_usd(session, de, fecha)
-    return (en_usd * tasa_por_usd(session, a, fecha)).quantize(CENTIMOS)
+    return monto / tasa_por_usd(session, de, fecha) * tasa_por_usd(session, a, fecha)
 
 
-def tasas_vigentes(session: Session) -> list[TasaCambio]:
-    """La tasa más reciente de cada moneda (sin USD, que siempre vale 1)."""
-    vigentes = []
+def convertir(session: Session, monto: Decimal, de: Moneda, a: Moneda, fecha: date) -> Decimal:
+    """Convierte `monto` de una moneda a otra con las tasas de `fecha` (redondeado a céntimos)."""
+    return convertir_sin_redondeo(session, monto, de, a, fecha).quantize(CENTIMOS)
+
+
+def _ultima_tasa(session: Session, moneda: Moneda) -> TasaCambio | None:
+    return session.exec(
+        select(TasaCambio).where(TasaCambio.moneda == moneda).order_by(col(TasaCambio.fecha).desc())
+    ).first()
+
+
+def tasas_vigentes(session: Session, principal: Moneda) -> list[TasaRead]:
+    """Cuánto vale hoy 1 unidad de cada moneda en la principal (1 EUR = 20.76 MXN).
+
+    Internamente todo se guarda respecto al USD; aquí se traduce a la moneda
+    principal, que es como lo piensa el usuario. La principal no aparece (vale 1).
+    """
+    hoy = date.today()
+    vigentes: list[TasaRead] = []
     for moneda in Moneda:
-        if moneda == Moneda.USD:
+        if moneda == principal:
             continue
-        fila = session.exec(
-            select(TasaCambio).where(TasaCambio.moneda == moneda).order_by(col(TasaCambio.fecha).desc())
-        ).first()
-        if fila is not None:
-            vigentes.append(fila)
+        # La fila que "manda" en esta tasa: la de la moneda, o la de la principal
+        # cuando la moneda es el USD (que no tiene fila propia).
+        fila = _ultima_tasa(session, principal if moneda == Moneda.USD else moneda)
+        if fila is None:
+            continue
+        try:
+            en_principal = convertir_sin_redondeo(session, Decimal(1), moneda, principal, hoy)
+        except ReglaDeNegocioError:
+            continue  # falta la tasa de esta moneda o de la principal: no se puede convertir
+        vigentes.append(
+            TasaRead(
+                moneda=moneda,
+                en_principal=en_principal.quantize(Decimal("0.000001")),
+                fecha=fila.fecha,
+                origen=fila.origen,
+            )
+        )
     return vigentes
 
 
@@ -148,15 +175,30 @@ def asegurar_tasas_del_dia(session: Session) -> None:
         log.warning("%s. Se usarán las últimas tasas guardadas.", e.mensaje)
 
 
-def fijar_tasa_manual(session: Session, moneda: Moneda, por_usd: Decimal, fecha: date | None = None) -> TasaCambio:
+def fijar_tasa_manual(session: Session, moneda: Moneda, por_usd: Decimal, fecha: date | None = None) -> None:
+    """Guarda a mano la tasa interna (unidades de `moneda` por 1 USD)."""
     if moneda == Moneda.USD:
-        raise ReglaDeNegocioError("El dólar es la moneda de referencia: su tasa siempre es 1")
-    fecha = fecha or date.today()
-    _guardar_tasa(session, moneda, por_usd, fecha, OrigenTasa.MANUAL)
+        raise ReglaDeNegocioError("El dólar es la moneda de referencia interna: su tasa siempre es 1")
+    _guardar_tasa(session, moneda, por_usd.quantize(Decimal("0.000001")), fecha or date.today(), OrigenTasa.MANUAL)
     session.commit()
-    return session.exec(
-        select(TasaCambio).where(TasaCambio.moneda == moneda, TasaCambio.fecha == fecha)
-    ).one()
+
+
+def fijar_tasa_en_principal(session: Session, moneda: Moneda, en_principal: Decimal, principal: Moneda) -> None:
+    """El usuario escribe "1 `moneda` = `en_principal` en mi moneda principal".
+
+    Lo traducimos a la tasa interna respecto al USD:
+    - moneda = USD: 1 USD = N principal → es justo la tasa de la principal.
+    - principal = USD: 1 X = N USD → tasa de X = 1 / N.
+    - resto: 1 X = N principal → tasa de X = tasa(principal) / N.
+    """
+    if moneda == principal:
+        raise ReglaDeNegocioError("La moneda principal siempre vale 1 en sí misma")
+    if moneda == Moneda.USD:
+        fijar_tasa_manual(session, principal, en_principal)
+    elif principal == Moneda.USD:
+        fijar_tasa_manual(session, moneda, Decimal(1) / en_principal)
+    else:
+        fijar_tasa_manual(session, moneda, tasa_por_usd(session, principal, date.today()) / en_principal)
 
 
 def recalcular_montos_principales(session: Session, principal: Moneda) -> None:

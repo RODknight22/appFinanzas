@@ -4,45 +4,46 @@ import { useState } from "react";
 import { tasasApi } from "../../api/configuracion";
 import { useConfiguracion } from "../../hooks/useConfiguracion";
 import type { Moneda } from "../../types";
-import { formatearDinero, formatearFecha } from "../../utils/formato";
+import { formatearFecha } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA_BASE } from "../ui/Campo";
 import { Tarjeta } from "../ui/Tarjeta";
 import { avisarError } from "./avisarError";
 
-/** Una fila editable: "1 USD = [18.4655] MXN". */
+/** Muestra hasta 4 decimales sin ceros sobrantes: 20.7612, 0.05, 19. */
+const legible = (valor: string) => String(Number(Number(valor).toFixed(4)));
+
+/** Una fila editable: "1 EUR = [20.7612] MXN" (siempre respecto a la moneda principal). */
 function FilaTasa({ codigo }: { codigo: Moneda }) {
-  const { moneda, tasas, recargarTasas, convertir } = useConfiguracion();
+  const { moneda: principal, tasas, recargarTasas } = useConfiguracion();
   const tasa = tasas.find((t) => t.moneda === codigo);
-  const original = tasa ? String(Number(tasa.por_usd)) : "";
+  const original = tasa ? legible(tasa.en_principal) : "";
   const [valor, setValor] = useState(original);
 
   async function guardar() {
+    // El backend devuelve todas las tasas; recargamos para refrescar el contexto.
     await tasasApi.fijarManual(codigo, valor).then(recargarTasas).catch(avisarError);
   }
-
-  const enPrincipal = codigo !== moneda ? convertir(1, codigo) : undefined;
 
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 text-sm">
       <span className="flex items-center gap-2">
-        1 USD =
+        <span className="w-14 text-right">1 <span className="font-mono font-semibold">{codigo}</span> =</span>
         <input
           className={`${CLASE_ENTRADA_BASE} w-32 py-1 text-right font-mono`}
           type="number"
-          step="0.000001"
+          step="any"
           min="0.000001"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          aria-label={`Tasa de ${codigo} por dólar`}
+          aria-label={`Valor de 1 ${codigo} en ${principal}`}
         />
-        <span className="w-10 font-mono font-semibold">{codigo}</span>
+        <span className="w-10 font-mono font-semibold">{principal}</span>
       </span>
       {valor !== "" && valor !== original && (
         <Boton className="px-2.5 py-1 text-xs" onClick={guardar}>Guardar</Boton>
       )}
       <span className="flex-1 text-xs text-slate-500">
-        {enPrincipal !== undefined && `1 ${codigo} ≈ ${formatearDinero(enPrincipal)} · `}
         {tasa ? `${formatearFecha(tasa.fecha)} · ${tasa.origen === "manual" ? "manual" : "internet"}` : "Sin tasa"}
       </span>
     </li>
@@ -50,9 +51,9 @@ function FilaTasa({ codigo }: { codigo: Moneda }) {
 }
 
 export function SeccionTasas() {
-  const { monedasActivas, tasas, recargarTasas } = useConfiguracion();
+  const { moneda: principal, monedasActivas, tasas, recargarTasas } = useConfiguracion();
   const [actualizando, setActualizando] = useState(false);
-  const conTasa = monedasActivas.filter((m) => m !== "USD");
+  const otras = monedasActivas.filter((m) => m !== principal);
 
   async function actualizar() {
     setActualizando(true);
@@ -70,15 +71,16 @@ export function SeccionTasas() {
       }
     >
       <p className="mb-2 text-sm text-slate-500">
-        Se descargan solas una vez al día. Si escribes una a mano, se usará la tuya en lugar de la de internet.
+        Cuánto vale cada moneda en tu moneda principal ({principal}). Se descargan solas una vez al día; si
+        escribes una a mano, se usará la tuya.
       </p>
-      {conTasa.length === 0 ? (
-        <p className="py-4 text-sm text-slate-500">Con solo dólares activos no hace falta ninguna tasa.</p>
+      {otras.length === 0 ? (
+        <p className="py-4 text-sm text-slate-500">Solo tienes activa tu moneda principal: no hace falta ninguna tasa.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-          {conTasa.map((codigo) => (
+          {otras.map((codigo) => (
             // La key incluye la tasa: al recargarlas, la fila se reinicia con el valor nuevo.
-            <FilaTasa key={`${codigo}-${tasas.find((t) => t.moneda === codigo)?.por_usd}`} codigo={codigo} />
+            <FilaTasa key={`${codigo}-${principal}-${tasas.find((t) => t.moneda === codigo)?.en_principal}`} codigo={codigo} />
           ))}
         </ul>
       )}

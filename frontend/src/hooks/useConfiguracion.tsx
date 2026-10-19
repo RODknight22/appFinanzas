@@ -83,6 +83,8 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
     aplicar({ ...configuracion, ...cambios });
     try {
       aplicar(await configuracionApi.actualizar(cambios));
+      // Las tasas se expresan en la moneda principal: si cambia, hay que pedirlas de nuevo.
+      if (cambios.moneda && cambios.moneda !== anterior.moneda) await recargarTasas();
     } catch (e) {
       aplicar(anterior);
       throw e;
@@ -100,7 +102,7 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
     tasas,
     actualizarConfiguracion,
     recargarTasas,
-    convertir: (monto, de, a = configuracion.moneda) => convertir(monto, de, a, tasas),
+    convertir: (monto, de, a = configuracion.moneda) => convertir(monto, de, a, configuracion.moneda, tasas),
   };
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

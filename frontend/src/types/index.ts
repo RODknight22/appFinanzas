@@ -162,8 +162,8 @@ export interface Configuracion {
 
 export interface Tasa {
   moneda: Moneda;
-  /** Unidades de `moneda` por 1 USD. */
-  por_usd: string;
+  /** Cuánto vale 1 unidad de `moneda` en la moneda principal ("1 EUR = 20.76 MXN"). */
+  en_principal: string;
   fecha: FechaISO;
   origen: "api" | "manual";
 }

@@ -155,18 +155,45 @@ def test_suscripcion_en_dolares_pagada_con_cuenta_en_pesos(
     assert pago["transaccion"]["monto_cuenta"] == "270.00"  # 15 × 18
 
 
-def test_tasa_manual_no_la_pisa_la_descarga(
-    client: TestClient, session: Session, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # Simulamos internet: la "descarga" devuelve estas tasas
+@pytest.fixture
+def internet_simulado(monkeypatch: pytest.MonkeyPatch) -> None:
+    """La "descarga" devuelve siempre estas tasas (por 1 USD): 1 EUR = 19 / 0.95 = 20 MXN."""
     monkeypatch.setattr(divisas, "descargar_tasas", lambda: {
-        Moneda.MXN: Decimal("19"), Moneda.EUR: Decimal("0.95"), Moneda.GTQ: Decimal("7.7"), Moneda.HNL: Decimal("26"),
+        Moneda.MXN: Decimal("19"), Moneda.EUR: Decimal("0.95"), Moneda.GTQ: Decimal("7.6"), Moneda.HNL: Decimal("25"),
     })
-    assert client.put("/tasas/MXN", json={"por_usd": "17.5"}).json()["origen"] == "manual"
 
-    tasas = {t["moneda"]: t for t in client.post("/tasas/actualizar").json()}
 
-    assert tasas["MXN"]["por_usd"] == "17.500000"
-    assert tasas["MXN"]["origen"] == "manual"
-    assert tasas["EUR"]["por_usd"] == "0.950000"
-    assert client.put("/tasas/USD", json={"por_usd": "2"}).status_code == 400
+def _por_moneda(tasas: list[dict]) -> dict[str, dict]:
+    return {t["moneda"]: t for t in tasas}
+
+
+@pytest.mark.usefixtures("internet_simulado")
+def test_tasas_expresadas_en_la_moneda_principal(client: TestClient) -> None:
+    tasas = _por_moneda(client.post("/tasas/actualizar").json())
+
+    assert "MXN" not in tasas  # la principal no aparece: vale 1
+    assert Decimal(tasas["USD"]["en_principal"]) == Decimal("19")  # el dólar es una más
+    assert Decimal(tasas["EUR"]["en_principal"]) == Decimal("20")
+
+    # Con el euro como principal, las mismas tasas se leen al revés
+    client.patch("/configuracion", json={"moneda": "EUR"})
+    tasas = _por_moneda(client.get("/tasas").json())
+    assert Decimal(tasas["USD"]["en_principal"]) == Decimal("0.95")
+    assert Decimal(tasas["MXN"]["en_principal"]) == Decimal("0.05")
+
+
+@pytest.mark.usefixtures("internet_simulado")
+def test_tasa_manual_en_la_principal_y_no_la_pisa_la_descarga(client: TestClient) -> None:
+    client.post("/tasas/actualizar")
+
+    tasas = _por_moneda(client.put("/tasas/EUR", json={"en_principal": "21"}).json())
+    assert tasas["EUR"]["origen"] == "manual"
+    assert abs(Decimal(tasas["EUR"]["en_principal"]) - 21) < Decimal("0.0001")
+
+    tasas = _por_moneda(client.post("/tasas/actualizar").json())  # vuelve a "descargar"
+    assert tasas["EUR"]["origen"] == "manual"
+    assert abs(Decimal(tasas["EUR"]["en_principal"]) - 21) < Decimal("0.0001")
+
+    # El dólar también se puede fijar; la principal no tiene tasa propia
+    assert Decimal(_por_moneda(client.put("/tasas/USD", json={"en_principal": "20"}).json())["USD"]["en_principal"]) == 20
+    assert client.put("/tasas/MXN", json={"en_principal": "2"}).status_code == 400

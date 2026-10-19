@@ -5,18 +5,18 @@
  */
 import type { Moneda, Tasa } from "../types";
 
-/** Unidades de `moneda` por 1 USD, o undefined si no hay tasa. */
-function porUsd(moneda: Moneda, tasas: Tasa[]): number | undefined {
-  if (moneda === "USD") return 1;
+/** Valor de 1 unidad de `moneda` en la principal (la principal vale 1). */
+function enPrincipal(moneda: Moneda, principal: Moneda, tasas: Tasa[]): number | undefined {
+  if (moneda === principal) return 1;
   const tasa = tasas.find((t) => t.moneda === moneda);
-  return tasa ? Number(tasa.por_usd) : undefined;
+  return tasa ? Number(tasa.en_principal) : undefined;
 }
 
-/** Igual que en el backend: de → USD → a. Devuelve undefined si falta alguna tasa. */
-export function convertir(monto: number, de: Moneda, a: Moneda, tasas: Tasa[]): number | undefined {
+/** de → principal → a. Devuelve undefined si falta alguna tasa. */
+export function convertir(monto: number, de: Moneda, a: Moneda, principal: Moneda, tasas: Tasa[]): number | undefined {
   if (de === a) return monto;
-  const tasaDe = porUsd(de, tasas);
-  const tasaA = porUsd(a, tasas);
-  if (tasaDe === undefined || tasaA === undefined) return undefined;
-  return (monto / tasaDe) * tasaA;
+  const valorDe = enPrincipal(de, principal, tasas);
+  const valorA = enPrincipal(a, principal, tasas);
+  if (valorDe === undefined || valorA === undefined) return undefined;
+  return (monto * valorDe) / valorA;
 }

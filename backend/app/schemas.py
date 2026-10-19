@@ -242,14 +242,16 @@ class ConfiguracionUpdate(SQLModel):
 
 
 class TasaRead(SQLModel):
+    """Cuánto vale 1 unidad de `moneda` en la moneda principal (1 EUR = 20.76 MXN)."""
+
     moneda: Moneda
-    por_usd: Decimal
+    en_principal: Decimal
     fecha: date
     origen: OrigenTasa
 
 
 class TasaManual(SQLModel):
-    por_usd: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
+    en_principal: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
 
 
 # --- Acceso (login) --------------------------------------------------------
