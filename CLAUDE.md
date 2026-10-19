@@ -11,8 +11,9 @@ Hablarle en español, explicar el diseño antes de cambios grandes y avanzar por
 - Docker Compose: servicios `backend` (:8000) y `frontend` (:5173, proxy `/api` → backend).
 
 ## Funcionalidades actuales
-Transacciones, suscripciones, presupuestos, dashboard de widgets, cuentas (crédito/débito/rendimientos),
-categorías, multidivisa con tasas históricas, login y personalización (acento, perfil con foto, mes financiero).
+Transacciones, transferencias (comisión, pago de tarjeta), suscripciones, presupuestos, dashboard de
+widgets, cuentas (crédito/débito/rendimientos), categorías, multidivisa con tasas históricas, login y
+personalización (acento, perfil con foto, mes financiero).
 
 ## Principios
 - Código autodocumentado, modular y con tipado estricto; comentarios breves que expliquen el *por qué*.
@@ -26,7 +27,9 @@ categorías, multidivisa con tasas históricas, login y personalización (acento
 - Servicios lanzan `ErrorDeDominio` (services/errores.py); main.py → `{"detail": ...}`. Con dependencias: 409.
 - Arranque (`init_db`): `create_all` + migraciones.py (solo añade columnas *nullable*/renombra valores)
   + datos_iniciales.py. Nunca borrar `finance.db`: los cambios de esquema deben ser aditivos.
-- Cuentas: campos por tipo validados en `_normalizar_por_tipo`. Saldo de tarjeta negativo = deuda.
+- Cuentas: campos por tipo en `_normalizar_por_tipo`. Saldo de tarjeta negativo = deuda. Saldos solo vía
+  `saldos.movimientos_por_cuenta` (transacciones + transferencias). Transferencias: no son ingreso/gasto;
+  su comisión es una Transaccion con `transferencia_id` (solo se edita desde la transferencia).
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api); la API las expone en la moneda
   principal (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo)
   y `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
@@ -43,14 +46,12 @@ categorías, multidivisa con tasas históricas, login y personalización (acento
 - Widgets en dashboard/registroWidgets.tsx (pintan con `DatosPanel`). Ajustes: components/ajustes/.
 
 ## Hoja de ruta
-- [ ] Siguiente, en este orden: 1) Transferencias entre cuentas (tipo de cambio real, comisión,
-  pago de tarjeta desde débito; no cuentan como ingreso/gasto). 2) Búsqueda y filtros en
-  transacciones (texto, cuenta, categoría, importe, paginación). 3) Metas de ahorro.
+- [ ] Siguiente: 1) Búsqueda y filtros en transacciones (texto, cuenta, categoría, importe,
+  paginación). 2) Metas de ahorro.
 - [ ] Después: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
   seguridad/exportar. Mejoras: importes como céntimos enteros (SQLite guarda Decimal como float),
   E2E Playwright en el repo + CI, notificaciones en vez de alert/confirm, quitar CORS sin uso,
-  dar sentido o quitar tipos ahorro/inversión, Alembic si hay cambios no aditivos.
-- Ideas evaluadas: PDF con IA (opcional, datos salen fuera), Open Banking (PSD2) y Atajos de iPhone.
+  dar sentido o quitar tipos ahorro/inversión, Alembic si hay cambios no aditivos. Ideas: PDF con IA, Open Banking (PSD2).
 
 ## Comandos
 - `docker compose up --build` / `docker compose down` (conserva la BD).
