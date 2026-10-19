@@ -164,6 +164,17 @@ export interface ResumenMes {
   cuentas: SaldoCuenta[];
 }
 
+/** Dinero total al cierre de un mes, en la moneda principal. */
+export interface PuntoPatrimonio {
+  mes_anio: MesAnio;
+  total: Dinero;
+}
+
+export interface GastoDiario {
+  fecha: FechaISO;
+  total: Dinero;
+}
+
 export interface FlujoMensual {
   mes_anio: MesAnio;
   ingresos: Dinero;
@@ -196,7 +207,7 @@ export interface ProgresoPresupuesto {
 // --- Configuración ---------------------------------------------------------
 export type ColorAcento = "esmeralda" | "azul" | "indigo" | "violeta" | "rosa" | "naranja";
 export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "cuentas" | "metas";
-export type TamanoWidget = "pequeno" | "mediano" | "grande";
+export type TamanoWidget = "pequeno" | "mediano" | "ancho" | "grande";
 
 export interface WidgetDisposicion {
   id: string;

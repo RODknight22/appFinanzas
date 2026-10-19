@@ -20,18 +20,37 @@ import { EyeOff, GripVertical, Plus } from "lucide-react";
 import type { TamanoWidget, WidgetDisposicion } from "../../types";
 import { esIdWidget, WIDGETS, type DatosPanel } from "./registroWidgets";
 
-/** Columnas que ocupa cada tamaño en la cuadrícula (1 en móvil, 2 en tablet, 4 en escritorio). */
+/**
+ * Columnas que ocupa cada tamaño. La cuadrícula tiene 2 columnas en móvil y
+ * tablet y 4 en escritorio: los pequeños van de dos en dos incluso en el móvil.
+ */
 const COLUMNAS: Record<TamanoWidget, string> = {
-  pequeno: "",
-  mediano: "sm:col-span-2",
-  grande: "sm:col-span-2 lg:col-span-4",
+  pequeno: "col-span-1",
+  mediano: "col-span-2",
+  ancho: "col-span-2 lg:col-span-3",
+  grande: "col-span-2 lg:col-span-4",
 };
 
 const TAMANOS: { valor: TamanoWidget; etiqueta: string; nombre: string }[] = [
   { valor: "pequeno", etiqueta: "S", nombre: "Pequeño" },
   { valor: "mediano", etiqueta: "M", nombre: "Mediano" },
-  { valor: "grande", etiqueta: "L", nombre: "Ancho completo" },
+  { valor: "ancho", etiqueta: "L", nombre: "Ancho (3/4)" },
+  { valor: "grande", etiqueta: "XL", nombre: "Ancho completo" },
 ];
+
+/**
+ * En móvil (2 columnas) los pequeños van de dos en dos. Recorre los widgets en
+ * orden y devuelve los pequeños que se quedan sin compañero al lado.
+ */
+function pequenosSinPareja(widgets: WidgetDisposicion[]): Set<string> {
+  const solos = new Set<string>();
+  for (let i = 0; i < widgets.length; i++) {
+    if (widgets[i].tamano !== "pequeno") continue;
+    if (widgets[i + 1]?.tamano === "pequeno") i++; // forman pareja: saltamos el segundo
+    else solos.add(widgets[i].id);
+  }
+  return solos;
+}
 
 interface WidgetOrdenableProps {
   widget: WidgetDisposicion;
@@ -39,10 +58,12 @@ interface WidgetOrdenableProps {
   editando: boolean;
   onTamano: (tamano: TamanoWidget) => void;
   onOcultar: () => void;
+  /** Pequeño sin pareja: en móvil ocupa la fila entera en vez de dejar medio hueco. */
+  solitario: boolean;
 }
 
 /** Un widget en la cuadrícula. En modo edición muestra su barra de herramientas. */
-function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar }: WidgetOrdenableProps) {
+function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar, solitario }: WidgetOrdenableProps) {
   // useSortable conecta el elemento con dnd-kit: nos da la posición mientras se
   // arrastra (transform) y los manejadores para el "asa" de arrastre.
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
@@ -55,7 +76,7 @@ function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar }: Widge
       ref={setNodeRef}
       // Translate (no Transform): mover sin deformar widgets de distinto tamaño.
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={`${COLUMNAS[widget.tamano]} ${isDragging ? "relative z-10 opacity-80" : ""}`}
+      className={`${solitario ? "col-span-2 lg:col-span-1" : COLUMNAS[widget.tamano]} ${isDragging ? "relative z-10 opacity-80" : ""}`}
     >
       {editando && (
         <div className="mb-1.5 flex select-none items-center gap-1 rounded-lg bg-acento-50 px-1.5 py-1 text-xs dark:bg-acento-950/60">
@@ -79,7 +100,7 @@ function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar }: Widge
                 aria-pressed={widget.tamano === valor}
                 title={nombre}
                 aria-label={`${nombre}: ${definicion.titulo}`}
-                className={`h-6 w-6 rounded font-semibold ${
+                className={`h-6 min-w-6 rounded px-1 font-semibold ${
                   widget.tamano === valor ? "bg-acento-600 text-white" : "text-tenue hover:bg-realce"
                 }`}
               >
@@ -116,6 +137,7 @@ export function PanelWidgets({ disposicion, datos, editando, onCambiar }: PanelW
   );
   const visibles = disposicion.filter((w) => w.visible);
   const ocultos = disposicion.filter((w) => !w.visible && esIdWidget(w.id));
+  const solitarios = pequenosSinPareja(visibles);
 
   function alSoltar({ active, over }: DragEndEvent) {
     if (!over || active.id === over.id) return;
@@ -147,7 +169,7 @@ export function PanelWidgets({ disposicion, datos, editando, onCambiar }: PanelW
 
       <DndContext sensors={sensores} collisionDetection={closestCenter} onDragEnd={alSoltar}>
         <SortableContext items={visibles.map((w) => w.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {visibles.map((widget) => (
               <WidgetOrdenable
                 key={widget.id}
@@ -156,6 +178,7 @@ export function PanelWidgets({ disposicion, datos, editando, onCambiar }: PanelW
                 editando={editando}
                 onTamano={(tamano) => cambiarWidget(widget.id, { tamano })}
                 onOcultar={() => cambiarWidget(widget.id, { visible: false })}
+                solitario={solitarios.has(widget.id)}
               />
             ))}
           </div>

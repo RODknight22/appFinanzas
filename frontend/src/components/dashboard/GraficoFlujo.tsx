@@ -13,8 +13,9 @@ import type { FlujoMensual } from "../../types";
 import { formatearDinero, formatearMes } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
 
-const COLOR_INGRESOS = "#10b981";
-const COLOR_GASTOS = "#f43f5e";
+// Tonos 400: menos saturados que los 500, se ven más suaves sobre fondo oscuro.
+const COLOR_INGRESOS = "#34d399";
+const COLOR_GASTOS = "#fb7185";
 
 /** Tooltip propio con clases de Tailwind, para que respete el modo oscuro. */
 function TooltipFlujo({ active, payload, label }: TooltipProps<number, string>) {
@@ -49,7 +50,7 @@ export function GraficoFlujo({ datos }: { datos: FlujoMensual[] }) {
     <div className="h-72 text-tenue">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={filas} barGap={4} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-          <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.15} />
+          <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.12} strokeDasharray="3 6" />
           <XAxis
             dataKey="mes_anio"
             tickFormatter={(mes: string) => formatearMes(mes, "corto")}
@@ -65,8 +66,8 @@ export function GraficoFlujo({ datos }: { datos: FlujoMensual[] }) {
             width={48}
           />
           <Tooltip content={<TooltipFlujo />} cursor={{ fill: "currentColor", fillOpacity: 0.06 }} />
-          <Bar dataKey="ingresos" name="Ingresos" fill={COLOR_INGRESOS} radius={[6, 6, 0, 0]} maxBarSize={28} />
-          <Bar dataKey="gastos" name="Gastos" fill={COLOR_GASTOS} radius={[6, 6, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="ingresos" name="Ingresos" fill={COLOR_INGRESOS} radius={[8, 8, 2, 2]} maxBarSize={22} />
+          <Bar dataKey="gastos" name="Gastos" fill={COLOR_GASTOS} radius={[8, 8, 2, 2]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -34,8 +34,8 @@ cuentas (crédito/débito/rendimientos), categorías, multidivisa, login y perso
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api); la API las expone en la moneda
   principal (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo)
   y `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
-- Búsqueda: `_filtrar()` en services/transacciones.py; texto con `sin_acentos()` (SQLite, database.py).
-- Mes financiero (services/mes_financiero.py) según `dia_inicio_mes` de la configuración.
+- Búsqueda: `_filtrar()` (services/transacciones.py), texto con `sin_acentos()` (database.py). Mes
+  financiero: services/mes_financiero.py (`dia_inicio_mes`). Gráficas: `patrimonio`, `gastos_diarios`.
 - Acceso: un usuario (scrypt) + cookie HttpOnly `sesion`; routers de datos con `requiere_sesion`
   en main.py. Tests: `client` simula sesión, `cliente_sin_sesion` no. Olvido: `python -m app.restablecer_contrasena`.
 
@@ -46,7 +46,7 @@ cuentas (crédito/débito/rendimientos), categorías, multidivisa, login y perso
 - `useConfiguracion()` da config, tasas y `convertir`; formatear con `formatearDinero(valor, moneda)`.
 - Colores: nunca grises fijos (slate/white); tokens de index.css (`bg-superficie`, `text-tenue`,
   `border-linea`…) que cada estilo define (fintech por defecto, oscuro primero). Acento: `*-acento-*`.
-- Widgets en dashboard/registroWidgets.tsx (pintan con `DatosPanel`). Ajustes: components/ajustes/.
+- Widgets en dashboard/registroWidgets.tsx (pintan con `DatosPanel`; tamaños S/M/L/XL = 1-4 columnas).
 
 ## Hoja de ruta
 - [ ] Siguiente: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
@@ -65,6 +65,5 @@ cuentas (crédito/débito/rendimientos), categorías, multidivisa, login y perso
 
 ## Reglas
 - Mantener este documento actualizado y con menos de 70 líneas.
-- Git: cada funcionalidad en su rama (`feat/<nombre>`, `fix/<nombre>`) creada desde `main`, con
-  commits descriptivos (Conventional Commits, en español) por pieza; al terminar y verificar
-  (tests + tipos + E2E), fusionar en `main` con `git merge --no-ff` y borrar la rama.
+- Git: rama `feat/<x>` o `fix/<x>` desde `main`, commits por pieza (Conventional Commits en español);
+  tras verificar (tests + tipos + E2E), `git merge --no-ff` a `main` y borrar la rama. Push: lo decide él.

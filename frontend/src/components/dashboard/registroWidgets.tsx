@@ -9,9 +9,12 @@ import { Link } from "react-router-dom";
 import type {
   Categoria,
   FlujoMensual,
+  GastoDiario,
   GastoPorCategoria,
   Meta,
+  MesAnio,
   ProgresoPresupuesto,
+  PuntoPatrimonio,
   ResumenMes,
   TamanoWidget,
   Transaccion,
@@ -23,8 +26,10 @@ import { Vacio } from "../ui/Estados";
 import { BarraMeta } from "../metas/BarraMeta";
 import { Tarjeta } from "../ui/Tarjeta";
 import { BarraPresupuesto } from "./BarraPresupuesto";
+import { CalendarioGastos } from "./CalendarioGastos";
 import { GraficoCategorias } from "./GraficoCategorias";
 import { GraficoFlujo } from "./GraficoFlujo";
+import { GraficoPatrimonio } from "./GraficoPatrimonio";
 import { TarjetaMetrica } from "./TarjetaMetrica";
 import { ListaPagos } from "./widgets/ListaPagos";
 import { ListaSaldos } from "./widgets/ListaSaldos";
@@ -32,6 +37,8 @@ import { ListaUltimas } from "./widgets/ListaUltimas";
 
 /** Todo lo que el dashboard carga una vez y reparte entre los widgets. */
 export interface DatosPanel {
+  /** El mes que se está viendo (el calendario lo necesita para pintar sus días). */
+  mes: MesAnio;
   resumen: ResumenMes;
   flujo: FlujoMensual[];
   gastos: GastoPorCategoria[];
@@ -41,6 +48,8 @@ export interface DatosPanel {
   ultimas: Transaccion[];
   categorias: Categoria[];
   metas: Meta[];
+  patrimonio: PuntoPatrimonio[];
+  diarios: GastoDiario[];
 }
 
 interface DefinicionWidget {
@@ -57,37 +66,67 @@ const enlace = (ruta: string, texto: string) => (
 export const WIDGETS = {
   balance: {
     titulo: "Balance global",
-    tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen }) => (
-      <TarjetaMetrica titulo="Balance global" valor={formatearDinero(resumen.balance_global)} icono={Wallet} detalle="Todas tus cuentas" destacada />
+    tamanoPorDefecto: "mediano",
+    pintar: ({ resumen, patrimonio }) => (
+      <TarjetaMetrica
+        titulo="Balance global"
+        valor={formatearDinero(resumen.balance_global)}
+        icono={Wallet}
+        detalle="Todas tus cuentas"
+        destacada
+        serie={patrimonio.map((p) => Number(p.total))}
+      />
     ),
   },
   ingresos: {
     titulo: "Ingresos del mes",
     tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen }) => (
-      <TarjetaMetrica titulo="Ingresos del mes" valor={formatearDinero(resumen.ingresos)} icono={ArrowUpRight} tono="positivo" />
+    pintar: ({ resumen, flujo }) => (
+      <TarjetaMetrica
+        titulo="Ingresos"
+        valor={formatearDinero(resumen.ingresos)}
+        icono={ArrowUpRight}
+        tono="positivo"
+        serie={flujo.map((m) => Number(m.ingresos))}
+      />
     ),
   },
   gastos: {
     titulo: "Gastos del mes",
     tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen }) => (
-      <TarjetaMetrica titulo="Gastos del mes" valor={formatearDinero(resumen.gastos)} icono={ArrowDownRight} tono="negativo" />
+    pintar: ({ resumen, flujo }) => (
+      <TarjetaMetrica
+        titulo="Gastos"
+        valor={formatearDinero(resumen.gastos)}
+        icono={ArrowDownRight}
+        tono="negativo"
+        serie={flujo.map((m) => Number(m.gastos))}
+        subirEsMalo
+      />
+    ),
+  },
+  patrimonio: {
+    titulo: "Evolución del patrimonio",
+    tamanoPorDefecto: "ancho",
+    pintar: ({ patrimonio }) => (
+      <Tarjeta titulo="Evolución del patrimonio" className="flex h-full flex-col">
+        <GraficoPatrimonio datos={patrimonio} />
+      </Tarjeta>
     ),
   },
   flujo_neto: {
     titulo: "Flujo neto",
     tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen }) => {
-      const flujo = Number(resumen.flujo_neto);
+    pintar: ({ resumen, flujo }) => {
+      const neto = Number(resumen.flujo_neto);
       return (
         <TarjetaMetrica
           titulo="Flujo neto"
-          valor={formatearDinero(flujo)}
+          valor={formatearDinero(neto)}
           icono={Scale}
-          tono={flujo >= 0 ? "positivo" : "negativo"}
-          detalle={flujo >= 0 ? "Has ahorrado este mes" : "Has gastado más de lo que ingresaste"}
+          tono={neto >= 0 ? "positivo" : "negativo"}
+          detalle={neto >= 0 ? "Has ahorrado este mes" : "Gastaste más de lo que entró"}
+          serie={flujo.map((m) => Number(m.flujo_neto))}
         />
       );
     },
@@ -98,6 +137,15 @@ export const WIDGETS = {
     pintar: ({ flujo }) => (
       <Tarjeta titulo="Ingresos vs. gastos (últimos 6 meses)" className="h-full">
         <GraficoFlujo datos={flujo} />
+      </Tarjeta>
+    ),
+  },
+  calendario: {
+    titulo: "Calendario de gastos",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ mes, diarios }) => (
+      <Tarjeta titulo="Calendario de gastos" className="h-full">
+        <CalendarioGastos mes={mes} datos={diarios} />
       </Tarjeta>
     ),
   },
