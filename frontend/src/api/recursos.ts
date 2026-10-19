@@ -7,6 +7,7 @@ import type {
   Cuenta,
   DatosNuevos,
   MesAnio,
+  PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
   Suscripcion,
@@ -37,6 +38,12 @@ export interface FiltrosTransacciones {
   tipo?: TipoMovimiento;
   cuenta_id?: number;
   categoria_id?: number;
+  /** Busca en notas y nombre de categoría (sin importar mayúsculas ni tildes). */
+  texto?: string;
+  /** Sobre el importe tal como se escribió, en su moneda. */
+  monto_min?: string;
+  monto_max?: string;
+  offset?: number;
   limit?: number;
 }
 
@@ -47,7 +54,12 @@ export const cuentasApi = {
 };
 
 export const categoriasApi = crearRecurso<Categoria, { tipo?: TipoMovimiento }>("/categorias");
-export const transaccionesApi = crearRecurso<Transaccion, FiltrosTransacciones>("/transacciones");
+export const transaccionesApi = {
+  ...crearRecurso<Transaccion, FiltrosTransacciones>("/transacciones"),
+  /** Una página de resultados con el total de coincidencias y sus sumas. */
+  buscar: (filtros: FiltrosTransacciones) =>
+    http.get<PaginaTransacciones>("/transacciones/buscar", filtros as Record<string, string>),
+};
 export const transferenciasApi = crearRecurso<Transferencia, { cuenta_id?: number; limit?: number }>("/transferencias");
 export const presupuestosApi = crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos");
 
