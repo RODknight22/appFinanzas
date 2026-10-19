@@ -19,16 +19,16 @@ interface SelectorMesProps {
 export function SelectorMes({ mes, onCambiar }: SelectorMesProps) {
   const rango = textoRangoMes(mes);
   const claseFlecha =
-    "rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100";
+    "rounded-full p-1.5 text-tenue hover:bg-realce hover:text-texto";
   return (
-    <div className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-1 py-1 dark:border-slate-800 dark:bg-slate-900">
+    <div className="inline-flex items-center gap-1 rounded-full bg-superficie-2 px-1 py-1 ring-1 ring-linea">
       <button type="button" className={claseFlecha} onClick={() => onCambiar(desplazarMes(mes, -1))} aria-label="Mes anterior">
         <ChevronLeft size={18} />
       </button>
       <span className="min-w-36 text-center">
         <span className="block text-sm font-medium">{formatearMes(mes)}</span>
         {/* Con un mes financiero (p. ej. del 15 al 14) mostramos las fechas reales */}
-        {rango && <span className="block text-[11px] leading-tight text-slate-500">{rango}</span>}
+        {rango && <span className="block text-[11px] leading-tight text-tenue">{rango}</span>}
       </span>
       <button type="button" className={claseFlecha} onClick={() => onCambiar(desplazarMes(mes, 1))} aria-label="Mes siguiente">
         <ChevronRight size={18} />

@@ -27,7 +27,7 @@ function ControlFoto() {
       <div className="flex flex-wrap gap-2">
         {/* Un <label> que envuelve un input de archivo oculto: así el botón lleva el estilo de la app */}
         <label
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-within:outline-2 focus-within:outline-acento-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 ${
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-linea-fuerte bg-superficie px-3 py-1.5 text-xs font-medium text-suave hover:bg-realce focus-within:outline-2 focus-within:outline-acento-500 ${
             enviando ? "pointer-events-none opacity-50" : ""
           }`}
         >
@@ -62,7 +62,7 @@ export function SeccionPerfil() {
 
   const claseOpcion = (activa: boolean) =>
     `flex h-10 w-10 items-center justify-center rounded-full text-xl transition ${
-      activa ? "bg-acento-100 ring-2 ring-acento-500 dark:bg-acento-950" : "hover:bg-slate-100 dark:hover:bg-slate-800"
+      activa ? "bg-acento-100 ring-2 ring-acento-500 dark:bg-acento-950" : "hover:bg-realce"
     }`;
 
   return (
@@ -81,8 +81,8 @@ export function SeccionPerfil() {
         <ControlFoto />
 
         <fieldset>
-          <legend className="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
-            Avatar {urlFoto && <span className="font-normal text-slate-500">(se usa si quitas la foto)</span>}
+          <legend className="mb-1.5 text-sm font-medium text-suave">
+            Avatar {urlFoto && <span className="font-normal text-tenue">(se usa si quitas la foto)</span>}
           </legend>
           <div className="flex flex-wrap gap-1.5">
             <button type="button" onClick={() => setAvatar(null)} aria-pressed={avatar === null} className={`${claseOpcion(avatar === null)} text-sm font-semibold`} title="Usar la inicial">

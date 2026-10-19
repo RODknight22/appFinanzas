@@ -13,12 +13,12 @@ export function BarraMeta({ meta, conNombre = false }: { meta: Meta; conNombre?:
           <span className="truncate">{meta.nombre}</span>
         </span>
         {/* ml-auto: sin el nombre visible, el importe sigue a la derecha */}
-        <span className="ml-auto shrink-0 tabular-nums text-slate-500">
+        <span className="ml-auto shrink-0 tabular-nums text-tenue">
           {formatearDinero(meta.ahorrado, meta.moneda)} / {formatearDinero(meta.monto_objetivo, meta.moneda)}
         </span>
       </div>
       <div
-        className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+        className="h-2.5 overflow-hidden rounded-full bg-superficie-2"
         role="progressbar"
         aria-valuenow={meta.porcentaje}
         aria-valuemin={0}

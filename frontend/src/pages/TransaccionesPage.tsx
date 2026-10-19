@@ -57,7 +57,7 @@ export function TransaccionesPage() {
                 <div className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                   <span>Ingresos: <strong className="text-emerald-600 tabular-nums">{formatearDinero(pagina.total_ingresos)}</strong></span>
                   <span>Gastos: <strong className="text-rose-600 tabular-nums">{formatearDinero(pagina.total_gastos)}</strong></span>
-                  <span className="text-slate-500">{pagina.total} movimiento{pagina.total === 1 ? "" : "s"}</span>
+                  <span className="text-tenue">{pagina.total} movimiento{pagina.total === 1 ? "" : "s"}</span>
                 </div>
               )}
 
@@ -75,7 +75,7 @@ export function TransaccionesPage() {
                   // Mientras llegan resultados nuevos se atenúan los anteriores en vez de
                   // mostrar "Cargando…": así la lista no parpadea al escribir.
                   <div className={`transition-opacity ${resultados.cargando ? "opacity-50" : ""}`}>
-                    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <ul className="divide-y divide-linea">
                       {pagina.items.map((transaccion) => (
                         <FilaTransaccion
                           key={transaccion.id}

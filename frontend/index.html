@@ -9,7 +9,8 @@
       // Aplica tema y color de acento antes de pintar, para evitar un destello.
       try {
         const guardado = localStorage.getItem("tema");
-        const oscuro = guardado ? guardado === "oscuro" : matchMedia("(prefers-color-scheme: dark)").matches;
+        // Sin elección guardada, oscuro: es el estilo principal de la app.
+        const oscuro = guardado ? guardado === "oscuro" : true;
         document.documentElement.classList.toggle("dark", oscuro);
         const acento = localStorage.getItem("acento");
         if (acento) document.documentElement.dataset.acento = acento;

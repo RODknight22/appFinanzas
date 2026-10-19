@@ -40,7 +40,7 @@ export function CategoriaRapida({ tipo, onCreada, onCancelar }: CategoriaRapidaP
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-700">
+    <div className="space-y-2 rounded-lg border border-dashed border-linea-fuerte p-3">
       <div className="flex gap-2">
         <input
           className={`${CLASE_ENTRADA_BASE} min-w-0 flex-1`}

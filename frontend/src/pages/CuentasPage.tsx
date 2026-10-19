@@ -78,7 +78,7 @@ export function CuentasPage() {
                 {cuentas.length === 0 ? (
                   <Vacio mensaje="Crea tu primera cuenta para empezar a registrar movimientos" />
                 ) : (
-                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <ul className="divide-y divide-linea">
                     {cuentas.map((cuenta) => {
                       const saldo = saldos.get(cuenta.id) ?? Number(cuenta.balance_inicial);
                       return (

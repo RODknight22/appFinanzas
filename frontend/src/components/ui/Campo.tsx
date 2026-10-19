@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
  * La base no fija el ancho: así se puede añadir w-full o w-auto sin que choquen.
  */
 export const CLASE_ENTRADA_BASE =
-  "rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-acento-500 focus:ring-2 focus:ring-acento-500/20 dark:border-slate-700 dark:bg-slate-800";
+  "rounded-xl border border-transparent bg-superficie-2 px-3 py-2 text-sm outline-none transition placeholder:text-tenue-2 hover:border-linea-fuerte focus:border-acento-500 focus:ring-2 focus:ring-acento-500/20";
 export const CLASE_ENTRADA = `${CLASE_ENTRADA_BASE} w-full`;
 
 interface CampoProps {
@@ -23,10 +23,10 @@ export function Campo({ etiqueta, children, ayuda }: CampoProps) {
   return (
     <div className="space-y-1">
       <label className="block space-y-1.5">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{etiqueta}</span>
+        <span className="text-sm font-medium text-suave">{etiqueta}</span>
         {children}
       </label>
-      {ayuda && <p className="text-xs text-slate-500">{ayuda}</p>}
+      {ayuda && <p className="text-xs text-tenue">{ayuda}</p>}
     </div>
   );
 }

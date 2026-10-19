@@ -50,7 +50,7 @@ export function BarraFiltros({ filtros, cuentas, categorias, onCambiar, onLimpia
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative min-w-48 flex-1">
           <span className="sr-only">Buscar</span>
-          <Search size={16} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-tenue-2" />
           <input
             type="search"
             className={`${CLASE_ENTRADA} pl-9`}
@@ -95,7 +95,7 @@ export function BarraFiltros({ filtros, cuentas, categorias, onCambiar, onLimpia
       </div>
 
       {abierto && (
-        <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="grid gap-3 rounded-3xl bg-superficie p-4 ring-1 ring-linea sm:grid-cols-2 lg:grid-cols-4">
           <Campo etiqueta="Cuenta">
             <select className={CLASE_ENTRADA} value={filtros.cuenta} onChange={(e) => onCambiar({ cuenta: e.target.value })}>
               <option value="">Todas</option>

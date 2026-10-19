@@ -28,10 +28,10 @@ export function SeccionMonedas() {
 
   return (
     <Tarjeta titulo="Monedas">
-      <p className="mb-4 text-sm text-slate-500">
+      <p className="mb-4 text-sm text-tenue">
         Las monedas activas aparecen en los formularios. La principal es en la que se suman los totales.
       </p>
-      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+      <ul className="divide-y divide-linea">
         {TODAS.map((codigo) => {
           const activa = monedasActivas.includes(codigo);
           const esPrincipal = codigo === moneda;
@@ -47,7 +47,7 @@ export function SeccionMonedas() {
                   onChange={() => alternarActiva(codigo)}
                 />
                 <span className="w-12 font-mono text-sm font-semibold">{codigo}</span>
-                <span className="text-sm text-slate-600 dark:text-slate-400">{MONEDAS[codigo].nombre}</span>
+                <span className="text-sm text-suave">{MONEDAS[codigo].nombre}</span>
               </label>
               {esPrincipal ? (
                 <span className="rounded-full bg-acento-100 px-2.5 py-0.5 text-xs font-medium text-acento-700 dark:bg-acento-950 dark:text-acento-300">

@@ -5,7 +5,7 @@ import { Boton } from "./Boton";
 
 export function Cargando() {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-500">
+    <div className="flex items-center justify-center gap-2 py-10 text-sm text-tenue">
       <Loader2 size={18} className="animate-spin" /> Cargando…
     </div>
   );
@@ -27,8 +27,8 @@ export function MensajeError({ mensaje, onReintentar }: { mensaje: string; onRei
 
 export function Vacio({ mensaje, accion }: { mensaje: string; accion?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-slate-500">
-      <Inbox size={28} className="text-slate-400" />
+    <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-tenue">
+      <Inbox size={28} className="text-tenue-2" />
       <p>{mensaje}</p>
       {accion}
     </div>

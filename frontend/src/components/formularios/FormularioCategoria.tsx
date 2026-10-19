@@ -46,7 +46,7 @@ export function FormularioCategoria({ inicial, tipoInicial = "gasto", onGuardado
 
       {/* Selectores visuales: un <fieldset> agrupa botones que actúan como opciones */}
       <fieldset>
-        <legend className="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">Icono</legend>
+        <legend className="mb-1.5 text-sm font-medium text-suave">Icono</legend>
         <div className="grid grid-cols-8 gap-1.5">
           {Object.entries(ICONOS).map(([nombreIcono, Icono]) => (
             <button
@@ -58,7 +58,7 @@ export function FormularioCategoria({ inicial, tipoInicial = "gasto", onGuardado
               className={`flex h-9 items-center justify-center rounded-lg border transition ${
                 icono === nombreIcono
                   ? "border-transparent text-white"
-                  : "border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                  : "border-linea text-tenue hover:bg-realce"
               }`}
               style={icono === nombreIcono ? { backgroundColor: color } : undefined}
             >
@@ -69,7 +69,7 @@ export function FormularioCategoria({ inicial, tipoInicial = "gasto", onGuardado
       </fieldset>
 
       <fieldset>
-        <legend className="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">Color</legend>
+        <legend className="mb-1.5 text-sm font-medium text-suave">Color</legend>
         <div className="flex flex-wrap gap-2">
           {COLORES.map((opcion) => (
             <button
@@ -78,8 +78,8 @@ export function FormularioCategoria({ inicial, tipoInicial = "gasto", onGuardado
               onClick={() => setColor(opcion)}
               aria-label={`Color ${opcion}`}
               aria-pressed={color === opcion}
-              className={`h-8 w-8 rounded-full ring-offset-2 ring-offset-white transition dark:ring-offset-slate-900 ${
-                color === opcion ? "ring-2 ring-slate-900 dark:ring-white" : ""
+              className={`h-8 w-8 rounded-full ring-offset-2 ring-offset-superficie transition ${
+                color === opcion ? "ring-2 ring-texto " : ""
               }`}
               style={{ backgroundColor: opcion }}
             />

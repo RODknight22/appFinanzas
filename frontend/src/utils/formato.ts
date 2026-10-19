@@ -17,7 +17,9 @@ const formateadores = new Map<Moneda, Intl.NumberFormat>();
 function formateador(moneda: Moneda): Intl.NumberFormat {
   let existente = formateadores.get(moneda);
   if (!existente) {
-    existente = new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda });
+    // useGrouping "always": en español Intl no separa los miles en números de 4 cifras
+    // ("9835,05 €"); en una app de dinero se lee mejor "9.835,05 €".
+    existente = new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda, useGrouping: "always" });
     formateadores.set(moneda, existente);
   }
   return existente;

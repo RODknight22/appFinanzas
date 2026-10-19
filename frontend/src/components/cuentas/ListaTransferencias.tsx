@@ -20,7 +20,7 @@ export function ListaTransferencias({ transferencias, cuentas, onEditar, onElimi
   const cuentaPorId = new Map(cuentas.map((c) => [c.id, c]));
 
   return (
-    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+    <ul className="divide-y divide-linea">
       {transferencias.map((t) => {
         const origen = cuentaPorId.get(t.cuenta_origen_id);
         const destino = cuentaPorId.get(t.cuenta_destino_id);
@@ -34,10 +34,10 @@ export function ListaTransferencias({ transferencias, cuentas, onEditar, onElimi
             <div className="min-w-0 flex-1 break-words">
               <p className="font-medium">
                 {origen?.nombre}
-                <ArrowRight size={14} className="mx-1 inline text-slate-400" aria-label="a" />
+                <ArrowRight size={14} className="mx-1 inline text-tenue-2" aria-label="a" />
                 {destino?.nombre}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-tenue">
                 {formatearFecha(t.fecha)}
                 {t.comision && origen && ` · comisión ${formatearDinero(t.comision, origen.moneda)}`}
                 {t.notas && ` · ${t.notas}`}
@@ -46,7 +46,7 @@ export function ListaTransferencias({ transferencias, cuentas, onEditar, onElimi
             <span className="text-right tabular-nums">
               <span className="block font-semibold">{origen && formatearDinero(t.monto_origen, origen.moneda)}</span>
               {cambioDeMoneda && t.monto_destino && (
-                <span className="block text-xs text-slate-500">→ {formatearDinero(t.monto_destino, destino.moneda)}</span>
+                <span className="block text-xs text-tenue">→ {formatearDinero(t.monto_destino, destino.moneda)}</span>
               )}
             </span>
             <AccionesFila onEditar={() => onEditar(t)} onEliminar={() => onEliminar(t)} />

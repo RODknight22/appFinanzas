@@ -65,12 +65,12 @@ function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar }: Widge
             {...attributes}
             {...listeners}
             aria-label={`Mover ${definicion.titulo}`}
-            className="cursor-grab touch-none rounded p-1 text-slate-500 hover:bg-white active:cursor-grabbing dark:hover:bg-slate-800"
+            className="cursor-grab touch-none rounded p-1 text-tenue hover:bg-realce active:cursor-grabbing"
           >
             <GripVertical size={16} />
           </button>
           <span className="flex-1 truncate font-medium text-acento-700 dark:text-acento-300">{definicion.titulo}</span>
-          <div className="flex rounded-md bg-white p-0.5 dark:bg-slate-900" role="group" aria-label="Tamaño">
+          <div className="flex rounded-md bg-superficie p-0.5" role="group" aria-label="Tamaño">
             {TAMANOS.map(({ valor, etiqueta, nombre }) => (
               <button
                 key={valor}
@@ -80,20 +80,20 @@ function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar }: Widge
                 title={nombre}
                 aria-label={`${nombre}: ${definicion.titulo}`}
                 className={`h-6 w-6 rounded font-semibold ${
-                  widget.tamano === valor ? "bg-acento-600 text-white" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  widget.tamano === valor ? "bg-acento-600 text-white" : "text-tenue hover:bg-realce"
                 }`}
               >
                 {etiqueta}
               </button>
             ))}
           </div>
-          <button type="button" onClick={onOcultar} aria-label={`Ocultar ${definicion.titulo}`} title="Ocultar" className="rounded p-1 text-slate-500 hover:bg-white hover:text-rose-600 dark:hover:bg-slate-800">
+          <button type="button" onClick={onOcultar} aria-label={`Ocultar ${definicion.titulo}`} title="Ocultar" className="rounded p-1 text-tenue hover:bg-realce hover:text-rose-600">
             <EyeOff size={16} />
           </button>
         </div>
       )}
       {/* En edición, el contenido no reacciona a clics (evita abrir enlaces al arrastrar). */}
-      <div className={editando ? "pointer-events-none select-none rounded-2xl outline-2 outline-offset-2 outline-dashed outline-acento-300" : "h-full"}>
+      <div className={editando ? "pointer-events-none select-none rounded-3xl outline-2 outline-offset-2 outline-dashed outline-acento-300" : "h-full"}>
         {definicion.pintar(datos)}
       </div>
     </div>
@@ -130,14 +130,14 @@ export function PanelWidgets({ disposicion, datos, editando, onCambiar }: PanelW
   return (
     <div className="space-y-4">
       {editando && ocultos.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-sm dark:border-slate-700">
-          <span className="text-slate-500">Widgets ocultos:</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-linea-fuerte p-3 text-sm">
+          <span className="text-tenue">Widgets ocultos:</span>
           {ocultos.map((w) => (
             <button
               key={w.id}
               type="button"
               onClick={() => cambiarWidget(w.id, { visible: true })}
-              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium hover:bg-acento-100 hover:text-acento-700 dark:bg-slate-800 dark:hover:bg-acento-950"
+              className="inline-flex items-center gap-1 rounded-full bg-superficie-2 px-3 py-1 text-xs font-medium hover:bg-acento-100 hover:text-acento-700 dark:hover:bg-acento-950"
             >
               <Plus size={12} /> {esIdWidget(w.id) && WIDGETS[w.id].titulo}
             </button>
@@ -163,7 +163,7 @@ export function PanelWidgets({ disposicion, datos, editando, onCambiar }: PanelW
       </DndContext>
 
       {visibles.length === 0 && (
-        <p className="py-10 text-center text-sm text-slate-500">Todos los widgets están ocultos. Pulsa “Personalizar” para mostrar alguno.</p>
+        <p className="py-10 text-center text-sm text-tenue">Todos los widgets están ocultos. Pulsa “Personalizar” para mostrar alguno.</p>
       )}
     </div>
   );

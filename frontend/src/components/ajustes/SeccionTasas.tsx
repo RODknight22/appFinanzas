@@ -43,7 +43,7 @@ function FilaTasa({ codigo }: { codigo: Moneda }) {
       {valor !== "" && valor !== original && (
         <Boton className="px-2.5 py-1 text-xs" onClick={guardar}>Guardar</Boton>
       )}
-      <span className="flex-1 text-xs text-slate-500">
+      <span className="flex-1 text-xs text-tenue">
         {tasa ? `${formatearFecha(tasa.fecha)} · ${tasa.origen === "manual" ? "manual" : "internet"}` : "Sin tasa"}
       </span>
     </li>
@@ -70,21 +70,21 @@ export function SeccionTasas() {
         </Boton>
       }
     >
-      <p className="mb-2 text-sm text-slate-500">
+      <p className="mb-2 text-sm text-tenue">
         Cuánto vale cada moneda en tu moneda principal ({principal}). Se descargan solas una vez al día; si
         escribes una a mano, se usará la tuya.
       </p>
       {otras.length === 0 ? (
-        <p className="py-4 text-sm text-slate-500">Solo tienes activa tu moneda principal: no hace falta ninguna tasa.</p>
+        <p className="py-4 text-sm text-tenue">Solo tienes activa tu moneda principal: no hace falta ninguna tasa.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+        <ul className="divide-y divide-linea">
           {otras.map((codigo) => (
             // La key incluye la tasa: al recargarlas, la fila se reinicia con el valor nuevo.
             <FilaTasa key={`${codigo}-${principal}-${tasas.find((t) => t.moneda === codigo)?.en_principal}`} codigo={codigo} />
           ))}
         </ul>
       )}
-      <p className="mt-4 text-xs text-slate-400">
+      <p className="mt-4 text-xs text-tenue-2">
         <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer" className="hover:underline">
           Tasas por ExchangeRate-API
         </a>

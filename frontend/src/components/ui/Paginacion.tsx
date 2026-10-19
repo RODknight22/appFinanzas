@@ -14,10 +14,10 @@ export function Paginacion({ pagina, porPagina, total, onCambiar }: PaginacionPr
   const desde = (pagina - 1) * porPagina + 1;
   const hasta = Math.min(pagina * porPagina, total);
   const claseFlecha =
-    "rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800 dark:hover:text-slate-100";
+    "rounded-lg p-1.5 text-tenue hover:bg-realce hover:text-texto disabled:opacity-30 disabled:hover:bg-transparent";
 
   return (
-    <nav className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm text-slate-500 dark:border-slate-800" aria-label="Paginación">
+    <nav className="flex items-center justify-between gap-3 border-t border-linea pt-3 text-sm text-tenue" aria-label="Paginación">
       <span className="tabular-nums">{desde}–{hasta} de {total}</span>
       <div className="flex items-center gap-1">
         <button type="button" className={claseFlecha} onClick={() => onCambiar(pagina - 1)} disabled={pagina <= 1} aria-label="Página anterior">

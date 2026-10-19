@@ -87,7 +87,7 @@ export function FormularioCuenta({ inicial, onGuardado, onCancelar }: Formulario
       </Campo>
 
       <fieldset>
-        <legend className="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">Tipo de cuenta</legend>
+        <legend className="mb-1.5 text-sm font-medium text-suave">Tipo de cuenta</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {Object.entries(TIPOS_CUENTA).map(([valor, { etiqueta, icono: Icono }]) => (
             <button
@@ -98,7 +98,7 @@ export function FormularioCuenta({ inicial, onGuardado, onCancelar }: Formulario
               className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition ${
                 tipo === valor
                   ? "border-acento-500 bg-acento-50 text-acento-700 dark:bg-acento-950/50 dark:text-acento-300"
-                  : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                  : "border-linea text-suave hover:bg-realce"
               }`}
             >
               <Icono size={20} />

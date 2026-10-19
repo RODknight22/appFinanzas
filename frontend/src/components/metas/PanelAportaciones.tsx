@@ -45,14 +45,14 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
   return (
     <div className="space-y-5">
       <form onSubmit={enviar} className="space-y-3">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-superficie-2 p-1">
           {(["aportar", "retirar"] as const).map((opcion) => (
             <button
               key={opcion}
               type="button"
               onClick={() => setSentido(opcion)}
               className={`rounded-lg py-2 text-sm font-medium transition ${
-                sentido === opcion ? "bg-white shadow-sm dark:bg-slate-700" : "text-slate-500"
+                sentido === opcion ? "bg-superficie shadow-sm" : "text-tenue"
               }`}
             >
               {opcion === "aportar" ? "Aportar" : "Retirar"}
@@ -77,18 +77,18 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
       </form>
 
       <div>
-        <h3 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Historial</h3>
+        <h3 className="mb-2 text-sm font-medium text-suave">Historial</h3>
         <Contenido {...historial} onReintentar={historial.recargar}>
           {(aportaciones) =>
             aportaciones.length === 0 ? (
-              <p className="text-sm text-slate-500">Aún no hay aportaciones.</p>
+              <p className="text-sm text-tenue">Aún no hay aportaciones.</p>
             ) : (
-              <ul className="max-h-60 divide-y divide-slate-100 overflow-y-auto text-sm dark:divide-slate-800">
+              <ul className="max-h-60 divide-y divide-linea overflow-y-auto text-sm">
                 {aportaciones.map((a) => {
                   const negativa = Number(a.monto) < 0;
                   return (
                     <li key={a.id} className="flex items-center gap-3 py-2">
-                      <span className="min-w-0 flex-1 truncate text-slate-500">
+                      <span className="min-w-0 flex-1 truncate text-tenue">
                         {formatearFecha(a.fecha)}{a.notas && ` · ${a.notas}`}
                       </span>
                       <span className={`tabular-nums font-medium ${negativa ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
@@ -97,7 +97,7 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
                       <button
                         type="button"
                         aria-label="Eliminar aportación"
-                        className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800"
+                        className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-rose-600"
                         onClick={() => confirmarYEliminar("¿Eliminar esta aportación?", () => metasApi.eliminarAportacion(meta.id, a.id), despuesDeCambiar)}
                       >
                         <Trash2 size={14} />

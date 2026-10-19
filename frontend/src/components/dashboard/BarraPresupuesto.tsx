@@ -21,12 +21,12 @@ export function BarraPresupuesto({ progreso }: { progreso: ProgresoPresupuesto }
           <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: progreso.color }} />
           {progreso.nombre}
         </span>
-        <span className="tabular-nums text-slate-500">
+        <span className="tabular-nums text-tenue">
           {formatearDinero(progreso.gastado)} / {formatearDinero(progreso.monto_limite)}
         </span>
       </div>
       <div
-        className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+        className="h-2.5 overflow-hidden rounded-full bg-superficie-2"
         role="progressbar"
         aria-valuenow={progreso.porcentaje}
         aria-valuemin={0}
@@ -35,7 +35,7 @@ export function BarraPresupuesto({ progreso }: { progreso: ProgresoPresupuesto }
       >
         <div className={`h-full rounded-full transition-all ${colorBarra(progreso.porcentaje)}`} style={{ width: `${ancho}%` }} />
       </div>
-      <p className={`mt-1 text-xs ${progreso.excedido ? "text-rose-600 dark:text-rose-400" : "text-slate-500"}`}>
+      <p className={`mt-1 text-xs ${progreso.excedido ? "text-rose-600 dark:text-rose-400" : "text-tenue"}`}>
         {progreso.excedido
           ? `Excedido en ${formatearDinero(-restante)} (${progreso.porcentaje}%)`
           : `Quedan ${formatearDinero(restante)} (${progreso.porcentaje}% usado)`}

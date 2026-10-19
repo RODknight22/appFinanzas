@@ -63,9 +63,9 @@ export function PresupuestosPage() {
           return (
             <>
               {progresos.length > 0 && (
-                <p className="mb-4 text-sm text-slate-500">
-                  Total: <strong className="text-slate-900 tabular-nums dark:text-slate-100">{formatearDinero(totalGastado)}</strong> gastado de{" "}
-                  <strong className="text-slate-900 tabular-nums dark:text-slate-100">{formatearDinero(totalLimite)}</strong> presupuestado
+                <p className="mb-4 text-sm text-tenue">
+                  Total: <strong className="text-texto tabular-nums">{formatearDinero(totalGastado)}</strong> gastado de{" "}
+                  <strong className="text-texto tabular-nums">{formatearDinero(totalLimite)}</strong> presupuestado
                 </p>
               )}
 

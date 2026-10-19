@@ -9,7 +9,7 @@ function TooltipCategoria({ active, payload }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
   const gasto = payload[0].payload as GastoPorCategoria;
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-800">
+    <div className="rounded-xl bg-superficie-2 px-3 py-2 text-xs shadow-lg ring-1 ring-linea">
       <p className="font-semibold">{gasto.nombre}</p>
       <p className="tabular-nums">
         {formatearDinero(gasto.total)} · {gasto.porcentaje}%
@@ -45,7 +45,7 @@ export function GraficoCategorias({ datos }: { datos: GastoPorCategoria[] }) {
           <li key={gasto.categoria_id} className="flex items-center gap-3 text-sm">
             <IconoCategoria icono={gasto.icono} color={gasto.color} tamano="sm" />
             <span className="flex-1 truncate">{gasto.nombre}</span>
-            <span className="text-xs text-slate-500">{gasto.porcentaje}%</span>
+            <span className="text-xs text-tenue">{gasto.porcentaje}%</span>
             <span className="font-medium tabular-nums">{formatearDinero(gasto.total)}</span>
           </li>
         ))}

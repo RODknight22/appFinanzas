@@ -4,9 +4,86 @@
    para que el usuario pueda elegirlo con un botón. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ---------------------------------------------------------------------------
+   Colores con nombre (tokens). Los componentes nunca usan grises fijos
+   (bg-white, text-slate-500…) sino estos nombres: bg-superficie, text-tenue…
+   Cada estilo visual solo tiene que decir cuánto vale cada nombre.
+   --------------------------------------------------------------------------- */
+@theme {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-fondo: var(--fondo); /* detrás de todo */
+  --color-superficie: var(--superficie); /* tarjetas, modales, menús */
+  --color-superficie-2: var(--superficie-2); /* campos, pestañas, barras vacías */
+  --color-realce: var(--realce); /* fondo al pasar el ratón */
+  --color-linea: var(--linea); /* bordes y separadores suaves */
+  --color-linea-fuerte: var(--linea-fuerte); /* bordes de campos y botones */
+  --color-texto: var(--texto); /* texto principal */
+  --color-suave: var(--suave); /* texto secundario */
+  --color-tenue: var(--tenue); /* ayudas, fechas, etiquetas */
+  --color-tenue-2: var(--tenue-2); /* iconos y detalles casi apagados */
+
+  --animate-entrada: entrada 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  @keyframes entrada {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* --- Estilo "fintech" (el de por defecto) ---------------------------------
+   Para añadir otro estilo: copiar estos dos bloques como
+   :root[data-estilo="nombre"] y :root[data-estilo="nombre"].dark */
+:root {
+  --fondo: oklch(97.2% 0.004 275);
+  --superficie: oklch(100% 0 0);
+  --superficie-2: oklch(95.6% 0.005 275);
+  --realce: oklch(93.8% 0.007 275);
+  --linea: oklch(92.5% 0.005 275);
+  --linea-fuerte: oklch(86% 0.008 275);
+  --texto: oklch(21% 0.012 275);
+  --suave: oklch(40% 0.014 275);
+  --tenue: oklch(54% 0.014 275);
+  --tenue-2: oklch(68% 0.012 275);
+  /* Sombra de las tarjetas: suave en claro, sin sombra en oscuro (no se vería). */
+  --sombra: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -12px oklch(0% 0 0 / 0.08);
+}
+
+:root.dark {
+  /* Casi negro con un toque azulado, como las apps de banca móvil. */
+  --fondo: oklch(14.5% 0.008 275);
+  --superficie: oklch(19.5% 0.01 275);
+  --superficie-2: oklch(24% 0.012 275);
+  --realce: oklch(27% 0.014 275);
+  --linea: oklch(100% 0 0 / 0.07);
+  --linea-fuerte: oklch(100% 0 0 / 0.13);
+  --texto: oklch(97% 0.004 275);
+  --suave: oklch(84% 0.01 275);
+  --tenue: oklch(67% 0.014 275);
+  --tenue-2: oklch(52% 0.014 275);
+  --sombra: none;
+  color-scheme: dark; /* barras de desplazamiento y controles nativos oscuros */
+}
+
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+    @apply bg-fondo font-sans text-texto antialiased;
+    /* Los números con el mismo ancho: las cifras no "bailan" al cambiar. */
+    font-feature-settings: "tnum" 1;
+  }
+  ::selection {
+    @apply bg-acento-500/30;
+  }
+}
+
+/* Quien pide menos movimiento en su sistema no ve animaciones. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

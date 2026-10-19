@@ -35,7 +35,7 @@ export function FormularioPagoSuscripcion({ suscripcion, cuentas, categoriasGast
 
   if (cuentas.length === 0 || categoriasGasto.length === 0) {
     return (
-      <p className="text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-sm text-suave">
         Necesitas al menos una <Link to="/cuentas" className="font-medium text-acento-600 hover:underline">cuenta</Link> y una{" "}
         <Link to="/categorias" className="font-medium text-acento-600 hover:underline">categoría de gasto</Link>.
       </p>
@@ -44,7 +44,7 @@ export function FormularioPagoSuscripcion({ suscripcion, cuentas, categoriasGast
 
   return (
     <form onSubmit={enviar} className="space-y-4">
-      <p className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800">
+      <p className="rounded-lg bg-superficie-2 p-3 text-sm">
         Se registrará un gasto de <strong>{formatearDinero(suscripcion.monto, suscripcion.moneda)}</strong> con fecha{" "}
         <strong>{formatearFecha(suscripcion.fecha_proximo_pago)}</strong> y el próximo cobro se moverá al siguiente periodo.
       </p>
