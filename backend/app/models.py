@@ -6,11 +6,11 @@ Cada entidad tiene dos clases:
 """
 
 import re
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from enum import Enum
 
-from pydantic import field_validator
+from pydantic import NaiveDatetime, field_validator
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
 
@@ -365,5 +365,7 @@ class Sesion(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     # Hash del token de la cookie: si alguien leyera la BD, no podría usarlo.
     token_hash: str = Field(index=True, unique=True)
-    creada: datetime
-    expira: datetime
+    # UTC "sin zona" (SQLite no guarda zonas): NaiveDatetime se lo dice a SQLModel,
+    # que desde la 0.0.4x exige fechas con zona salvo que se indique así.
+    creada: NaiveDatetime
+    expira: NaiveDatetime

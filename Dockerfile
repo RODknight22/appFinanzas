@@ -20,8 +20,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DATA_DIR=/data \
     FRONTEND_DIR=/app/web
 WORKDIR /app
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements.txt backend/constraints.txt ./
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt -c constraints.txt
 COPY backend/app ./app
 COPY --from=web /web/dist ./web
 
