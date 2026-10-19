@@ -35,6 +35,11 @@ export function formatearDinero(valor: Dinero | number, moneda: Moneda = monedaP
   return formateador(moneda).format(Number(valor));
 }
 
+/** Número sin moneda con el formato regional de la app (p. ej. un tipo de cambio). */
+export function formatearNumero(valor: number, maxDecimales = 4): string {
+  return valor.toLocaleString(localeActual, { maximumFractionDigits: maxDecimales });
+}
+
 /**
  * Las fechas ISO ("2026-10-18") se interpretan en UTC por defecto, lo que puede
  * mostrar el día anterior según la zona horaria. Las construimos en hora local.

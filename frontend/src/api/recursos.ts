@@ -12,6 +12,7 @@ import type {
   Suscripcion,
   TipoMovimiento,
   Transaccion,
+  Transferencia,
 } from "../types";
 import { http } from "./cliente";
 
@@ -47,6 +48,7 @@ export const cuentasApi = {
 
 export const categoriasApi = crearRecurso<Categoria, { tipo?: TipoMovimiento }>("/categorias");
 export const transaccionesApi = crearRecurso<Transaccion, FiltrosTransacciones>("/transacciones");
+export const transferenciasApi = crearRecurso<Transferencia, { cuenta_id?: number; limit?: number }>("/transferencias");
 export const presupuestosApi = crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos");
 
 export const suscripcionesApi = {

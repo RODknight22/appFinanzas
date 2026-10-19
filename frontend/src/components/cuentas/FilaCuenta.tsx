@@ -1,4 +1,4 @@
-import { CalendarClock, Sparkles } from "lucide-react";
+import { CalendarClock, CreditCard, Sparkles } from "lucide-react";
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
@@ -13,6 +13,8 @@ interface FilaCuentaProps {
   onEditar: () => void;
   onEliminar: () => void;
   onRegistrarRendimientos: () => void;
+  /** Abre una transferencia hacia la tarjeta con la deuda ya escrita. */
+  onPagar: () => void;
 }
 
 /** Fecha de corte/pago con aviso de cuánto falta: "15 oct 2026 · En 3 días". */
@@ -26,7 +28,7 @@ function FechaTarjeta({ etiqueta, dia }: { etiqueta: string; dia: number }) {
   );
 }
 
-function DetalleCredito({ cuenta, saldo }: { cuenta: Cuenta; saldo: number }) {
+function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: number; onPagar: () => void }) {
   const deuda = Math.max(-saldo, 0); // en una tarjeta, saldo negativo = deuda
   const limite = cuenta.limite_credito ? Number(cuenta.limite_credito) : null;
   const usado = limite ? Math.min((deuda / limite) * 100, 100) : 0;
@@ -50,6 +52,11 @@ function DetalleCredito({ cuenta, saldo }: { cuenta: Cuenta; saldo: number }) {
             Disponible {formatearDinero(Math.max(limite - deuda, 0), cuenta.moneda)} de {formatearDinero(limite, cuenta.moneda)} ({Math.round(usado)}% usado)
           </p>
         </div>
+      )}
+      {deuda > 0 && (
+        <Boton variante="secundario" className="px-2.5 py-1 text-xs" onClick={onPagar}>
+          <CreditCard size={14} /> Pagar tarjeta
+        </Boton>
       )}
     </div>
   );
@@ -78,7 +85,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
 }
 
 /** Una cuenta de la lista, con la información propia de su tipo. */
-export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos }: FilaCuentaProps) {
+export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar }: FilaCuentaProps) {
   const { etiqueta, icono: Icono } = TIPOS_CUENTA[cuenta.tipo];
   const esCredito = cuenta.tipo === "credito";
 
@@ -103,7 +110,7 @@ export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRen
       {/* Detalles debajo y alineados con el nombre (pl-14 = ancho del icono + hueco):
           así en móvil usan todo el ancho en vez de una columna estrecha. */}
       <div className="sm:pl-14">
-        {esCredito && <DetalleCredito cuenta={cuenta} saldo={saldo} />}
+        {esCredito && <DetalleCredito cuenta={cuenta} saldo={saldo} onPagar={onPagar} />}
         {cuenta.tipo === "rendimientos" && (
           <DetalleRendimientos cuenta={cuenta} saldo={saldo} onRegistrar={onRegistrarRendimientos} />
         )}
