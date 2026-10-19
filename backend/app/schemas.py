@@ -260,6 +260,18 @@ class ResumenMes(SQLModel):
     cuentas: list[SaldoCuenta]
 
 
+class PuntoPatrimonio(SQLModel):
+    """Dinero total (todas las cuentas, en la moneda principal) al cierre de un mes."""
+
+    mes_anio: str
+    total: Decimal
+
+
+class GastoDiario(SQLModel):
+    fecha: date
+    total: Decimal  # en la moneda principal
+
+
 class FlujoMensual(SQLModel):
     mes_anio: str
     ingresos: Decimal

@@ -5,7 +5,14 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 
 from app.database import SessionDep
-from app.schemas import FlujoMensual, GastoPorCategoria, ProgresoPresupuesto, ResumenMes
+from app.schemas import (
+    FlujoMensual,
+    GastoDiario,
+    GastoPorCategoria,
+    ProgresoPresupuesto,
+    PuntoPatrimonio,
+    ResumenMes,
+)
 from app.services import dashboard as servicio
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -40,3 +47,19 @@ def gastos_por_categoria(session: SessionDep, mes_anio: MesParam = None):
 def progreso_presupuestos(session: SessionDep, mes_anio: MesParam = None):
     """Consumo de cada presupuesto del mes: gastado, restante y porcentaje."""
     return servicio.progreso_presupuestos(session, mes_anio or servicio.mes_actual(session))
+
+
+@router.get("/patrimonio", response_model=list[PuntoPatrimonio])
+def patrimonio(
+    session: SessionDep,
+    hasta_mes: MesParam = None,
+    meses: Annotated[int, Query(ge=1, le=36)] = 12,
+):
+    """Dinero total al cierre de cada mes (para la gráfica de evolución)."""
+    return servicio.patrimonio(session, hasta_mes or servicio.mes_actual(session), meses)
+
+
+@router.get("/gastos-diarios", response_model=list[GastoDiario])
+def gastos_diarios(session: SessionDep, mes_anio: MesParam = None):
+    """Gasto de cada día del mes (para el calendario de gastos)."""
+    return servicio.gastos_diarios(session, mes_anio or servicio.mes_actual(session))

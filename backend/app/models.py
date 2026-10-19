@@ -78,6 +78,7 @@ class PaginaInicio(str, Enum):
 class TamanoWidget(str, Enum):
     PEQUENO = "pequeno"  # 1 columna
     MEDIANO = "mediano"  # 2 columnas
+    ANCHO = "ancho"  # 3 columnas
     GRANDE = "grande"  # ancho completo
 
 

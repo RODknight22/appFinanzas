@@ -4,6 +4,7 @@ saldo = balance inicial + ingresos − gastos − transferencias que salen + tra
 """
 
 from collections import defaultdict
+from datetime import date
 from decimal import Decimal
 from typing import Any
 
@@ -26,27 +27,38 @@ def a_decimal(valor: Any) -> Decimal:
     return Decimal(str(valor or 0)).quantize(CENTIMOS)
 
 
-def _sumas_por_cuenta(session: Session, cuenta: Any, importe: Any, cuenta_id: int | None) -> list[tuple[int, Any]]:
-    """SUM(importe) agrupado por la columna `cuenta` (opcionalmente de una sola cuenta)."""
+def _sumas_por_cuenta(
+    session: Session, cuenta: Any, importe: Any, fecha: Any, cuenta_id: int | None, antes_de: date | None
+) -> list[tuple[int, Any]]:
+    """SUM(importe) agrupado por la columna `cuenta` (opcionalmente de una cuenta o hasta una fecha)."""
     consulta = select(cuenta, func.sum(importe)).group_by(cuenta)
     if cuenta_id is not None:
         consulta = consulta.where(cuenta == cuenta_id)
+    if antes_de is not None:
+        consulta = consulta.where(fecha < antes_de)
     return list(session.exec(consulta).all())
 
 
-def movimientos_por_cuenta(session: Session, cuenta_id: int | None = None) -> dict[int, Decimal]:
+def movimientos_por_cuenta(
+    session: Session, cuenta_id: int | None = None, antes_de: date | None = None
+) -> dict[int, Decimal]:
     """Cuánto ha cambiado el saldo de cada cuenta desde su balance inicial.
+
+    Con `antes_de`, solo cuenta los movimientos anteriores a esa fecha (saldos del pasado).
 
     Son tres sumas en SQL (transacciones, salidas y llegadas de transferencias)
     en vez de cargar todos los movimientos en memoria.
     """
+    # (columna de la cuenta, importe, columna de fecha, signo)
+    fuentes = [
+        (col(Transaccion.cuenta_id), IMPORTE_CON_SIGNO, col(Transaccion.fecha), 1),
+        (col(Transferencia.cuenta_origen_id), col(Transferencia.monto_origen), col(Transferencia.fecha), -1),
+        (col(Transferencia.cuenta_destino_id), col(Transferencia.monto_destino), col(Transferencia.fecha), 1),
+    ]
     totales: defaultdict[int, Decimal] = defaultdict(Decimal)
-    for id_, suma in _sumas_por_cuenta(session, col(Transaccion.cuenta_id), IMPORTE_CON_SIGNO, cuenta_id):
-        totales[id_] += a_decimal(suma)
-    for id_, suma in _sumas_por_cuenta(session, col(Transferencia.cuenta_origen_id), col(Transferencia.monto_origen), cuenta_id):
-        totales[id_] -= a_decimal(suma)
-    for id_, suma in _sumas_por_cuenta(session, col(Transferencia.cuenta_destino_id), col(Transferencia.monto_destino), cuenta_id):
-        totales[id_] += a_decimal(suma)
+    for cuenta, importe, fecha, signo in fuentes:
+        for id_, suma in _sumas_por_cuenta(session, cuenta, importe, fecha, cuenta_id, antes_de):
+            totales[id_] += signo * a_decimal(suma)
     return totales
 
 

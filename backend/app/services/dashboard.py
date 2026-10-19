@@ -4,7 +4,7 @@ Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en m
 siempre sobre `monto_principal`: así se suman importes de distintas monedas.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from sqlalchemy import func
@@ -13,8 +13,10 @@ from sqlmodel import Session, col, select
 from app.models import Categoria, Cuenta, Presupuesto, TipoMovimiento, Transaccion
 from app.schemas import (
     FlujoMensual,
+    GastoDiario,
     GastoPorCategoria,
     ProgresoPresupuesto,
+    PuntoPatrimonio,
     ResumenMes,
     SaldoCuenta,
 )
@@ -204,3 +206,49 @@ def progreso_presupuestos(session: Session, mes_anio: str) -> list[ProgresoPresu
             )
         )
     return resultado
+
+
+def patrimonio(session: Session, hasta_mes: str, meses: int, hoy: date | None = None) -> list[PuntoPatrimonio]:
+    """Cuánto dinero tenías en total al cierre de cada mes (el mes en curso, hasta hoy).
+
+    Cada saldo se convierte con la tasa de ese día: así se ve lo que valía
+    entonces, también el efecto del tipo de cambio en las cuentas en otra moneda.
+    """
+    hoy = hoy or date.today()
+    principal = configuracion.moneda_principal(session)
+    cuentas = session.exec(select(Cuenta)).all()
+    if any(cuenta.moneda != principal for cuenta in cuentas):
+        divisas.asegurar_tasas_del_dia(session)
+
+    puntos: list[PuntoPatrimonio] = []
+    for mes in _meses_anteriores(hasta_mes, meses):
+        _, fin = _rango_mes(session, mes)
+        corte = min(fin, hoy + timedelta(days=1))  # [inicio, corte): el mes en curso solo hasta hoy
+        movimientos = movimientos_por_cuenta(session, antes_de=corte)
+        total = sum(
+            (
+                divisas.convertir(
+                    session,
+                    cuenta.balance_inicial + movimientos.get(cuenta.id, Decimal(0)),
+                    cuenta.moneda or principal,
+                    principal,
+                    corte - timedelta(days=1),
+                )
+                for cuenta in cuentas
+            ),
+            Decimal("0.00"),
+        )
+        puntos.append(PuntoPatrimonio(mes_anio=mes, total=total))
+    return puntos
+
+
+def gastos_diarios(session: Session, mes_anio: str) -> list[GastoDiario]:
+    """Total gastado cada día del mes financiero (solo los días con gastos)."""
+    inicio, fin = _rango_mes(session, mes_anio)
+    consulta = (
+        select(Transaccion.fecha, func.sum(Transaccion.monto_principal))
+        .where(Transaccion.tipo == TipoMovimiento.GASTO, Transaccion.fecha >= inicio, Transaccion.fecha < fin)
+        .group_by(col(Transaccion.fecha))
+        .order_by(col(Transaccion.fecha))
+    )
+    return [GastoDiario(fecha=fecha, total=a_decimal(suma)) for fecha, suma in session.exec(consulta).all()]
