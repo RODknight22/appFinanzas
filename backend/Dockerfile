@@ -10,8 +10,8 @@ WORKDIR /app
 
 # Copiamos primero solo requirements.txt: si no cambia, Docker reutiliza la capa
 # con las dependencias ya instaladas y los rebuilds son mucho más rápidos.
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt constraints.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
 
 COPY app ./app
 

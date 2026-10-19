@@ -50,6 +50,24 @@ def test_vinculada_a_una_cuenta_sigue_su_saldo(client: TestClient, cuenta: dict)
     assert client.delete(f"/cuentas/{cuenta['id']}").status_code == 409
 
 
+def test_listar_varias_metas_vinculadas_calcula_cada_saldo(
+    client: TestClient, cuenta: dict, categoria_gasto: dict
+) -> None:
+    otra = client.post("/cuentas", json={"nombre": "Otra", "tipo": "debito", "balance_inicial": "500"}).json()
+    client.post("/transacciones", json={
+        "monto": "200", "tipo": "gasto", "fecha": "2026-10-01",
+        "categoria_id": categoria_gasto["id"], "cuenta_id": cuenta["id"],
+    })
+    _meta(client, nombre="A", monto_objetivo="4000", cuenta_id=cuenta["id"])
+    _meta(client, nombre="B", monto_objetivo="1000", cuenta_id=otra["id"])
+    _meta(client, nombre="C")
+    _aportar(client, _meta(client, nombre="D"), "75")
+
+    ahorrado = {m["nombre"]: m["ahorrado"] for m in client.get("/metas").json()}
+
+    assert ahorrado == {"A": "800.00", "B": "500.00", "C": "0.00", "D": "75.00"}
+
+
 def test_cuenta_en_otra_moneda_se_convierte(client: TestClient, tasas: None) -> None:
     revolut = client.post(
         "/cuentas", json={"nombre": "Revolut", "tipo": "debito", "moneda": "EUR", "balance_inicial": "90"}

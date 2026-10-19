@@ -9,10 +9,12 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 from sqlmodel import Session
 
 from app.models import Moneda
 from app.services import divisas
+from app.services.errores import ReglaDeNegocioError
 
 
 @pytest.fixture
@@ -197,3 +199,108 @@ def test_tasa_manual_en_la_principal_y_no_la_pisa_la_descarga(client: TestClient
     # El dólar también se puede fijar; la principal no tiene tasa propia
     assert Decimal(_por_moneda(client.put("/tasas/USD", json={"en_principal": "20"}).json())["USD"]["en_principal"]) == 20
     assert client.put("/tasas/MXN", json={"en_principal": "2"}).status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Descarga robusta, tasas manuales acotadas, caché y recálculo en lote
+# ---------------------------------------------------------------------------
+_BUENAS = {"result": "success", "rates": {"MXN": 19, "EUR": 0.95, "GTQ": 7.6, "HNL": 25}}
+_RESPUESTAS_BASURA = [
+    pytest.param([1, 2, 3], id="lista"),
+    pytest.param({"result": "success"}, id="sin-rates"),
+    pytest.param({"result": "success", "rates": {"MXN": 19}}, id="falta-moneda"),
+    pytest.param({"result": "success", "rates": {**_BUENAS["rates"], "EUR": 0}}, id="cero"),
+    pytest.param({"result": "success", "rates": {**_BUENAS["rates"], "EUR": -1}}, id="negativa"),
+    pytest.param({"result": "success", "rates": {**_BUENAS["rates"], "EUR": float("nan")}}, id="nan"),
+    pytest.param({"result": "success", "rates": {**_BUENAS["rates"], "EUR": 5_000_000}}, id="enorme"),
+    pytest.param({"result": "success", "rates": {**_BUENAS["rates"], "EUR": "0.9"}}, id="texto"),
+]
+
+
+@pytest.fixture(autouse=True)
+def _sin_espera_previa() -> None:
+    divisas._ultimo_fallo = None  # el estado global no debe pasar de un test a otro
+
+
+@pytest.mark.parametrize("basura", _RESPUESTAS_BASURA)
+def test_respuesta_basura_no_rompe_nada(
+    client: TestClient, session: Session, monkeypatch: pytest.MonkeyPatch, basura: object
+) -> None:
+    monkeypatch.setattr(divisas, "_pedir_json", lambda: basura)
+    monkeypatch.setenv("TASAS_AUTOMATICAS", "true")
+
+    divisas.asegurar_tasas_del_dia(session)  # no lanza
+    assert divisas._ultimo_fallo is not None  # queda en espera para no reintentar en cada petición
+
+    divisas._ultimo_fallo = None
+    respuesta = client.post("/tasas/actualizar")
+    assert respuesta.status_code == 503
+    detalle = respuesta.json()["detail"]
+    assert "tasas de cambio" in detalle
+    for pista in ("KeyError", "ValueError", "nan", "rates", "Traceback"):
+        assert pista not in detalle
+
+
+def test_error_de_red_no_filtra_el_detalle(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def sin_red() -> object:
+        raise OSError("getaddrinfo failed secreto.interno")
+
+    monkeypatch.setattr(divisas, "_pedir_json", sin_red)
+    respuesta = client.post("/tasas/actualizar")
+    assert respuesta.status_code == 503
+    assert "secreto" not in respuesta.json()["detail"]
+
+
+def test_respuesta_buena_se_acepta(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(divisas, "_pedir_json", lambda: _BUENAS)
+    assert divisas.descargar_tasas()[Moneda.EUR] == Decimal("0.95")
+
+
+def test_tasa_manual_fuera_de_rango(client: TestClient, session: Session) -> None:
+    assert client.put("/tasas/EUR", json={"en_principal": "0"}).status_code == 422
+    assert client.put("/tasas/EUR", json={"en_principal": "2000000"}).status_code == 422
+    # Una tasa que al redondear queda en 0 también se rechaza en el servicio
+    with pytest.raises(ReglaDeNegocioError, match="fuera de rango"):
+        divisas.fijar_tasa_manual(session, Moneda.EUR, Decimal("0.0000001"))
+
+
+@pytest.mark.usefixtures("tasas")
+def test_cache_de_tasas_en_la_sesion(session: Session) -> None:
+    consultas: list[str] = []
+
+    def contar(conn, cursor, statement, *args) -> None:  # noqa: ANN001
+        consultas.append(statement)
+
+    event.listen(session.get_bind(), "before_cursor_execute", contar)
+    try:
+        hoy = date.today()
+        antes = divisas.tasa_por_usd(session, Moneda.EUR, hoy)
+        n = len(consultas)
+        assert divisas.tasa_por_usd(session, Moneda.EUR, hoy) == antes
+        assert len(consultas) == n  # la segunda vez no toca la BD
+
+        divisas.fijar_tasa_manual(session, Moneda.EUR, Decimal("0.5"))
+        assert divisas.tasa_por_usd(session, Moneda.EUR, hoy) == Decimal("0.5")  # caché invalidada
+    finally:
+        event.remove(session.get_bind(), "before_cursor_execute", contar)
+
+
+@pytest.mark.usefixtures("tasas")
+def test_guardar_tasa_existente_actualiza_en_vez_de_duplicar(session: Session) -> None:
+    divisas.fijar_tasa_manual(session, Moneda.EUR, Decimal("0.8"))
+    divisas.fijar_tasa_manual(session, Moneda.EUR, Decimal("0.7"))  # mismo día y moneda
+    assert divisas.tasa_por_usd(session, Moneda.EUR, date.today()) == Decimal("0.7")
+
+
+@pytest.mark.usefixtures("tasas")
+def test_recalcular_montos_en_lote(
+    client: TestClient, session: Session, cuenta_mxn: dict, categoria_gasto: dict
+) -> None:
+    _gasto(client, cuenta_mxn, categoria_gasto, "2000")  # 2000 MXN
+    _gasto(client, cuenta_mxn, categoria_gasto, "100", moneda="EUR")  # 100 EUR = 2000 MXN
+
+    divisas.recalcular_montos_principales(session, Moneda.EUR)
+    session.commit()
+
+    montos = sorted(t["monto_principal"] for t in client.get("/transacciones").json())
+    assert montos == ["100.00", "100.00"]

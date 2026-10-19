@@ -8,7 +8,9 @@ el código. Hablarle en español, explicar el diseño antes de cambios grandes, 
 ## Tech Stack
 - Backend: Python 3.12, FastAPI, SQLModel, Pydantic, Uvicorn. BD: SQLite en `data/finance.db`.
 - Frontend: React 18 + Vite + TypeScript, Tailwind v4 (tokens), Recharts, Lucide, @dnd-kit, Manrope.
-- Docker Compose: servicios `backend` (:8000) y `frontend` (:5173, proxy `/api` → backend).
+- Desarrollo: Docker Compose `backend` (:8000) y `frontend` (:5173, proxy `/api` → backend).
+- Producción: `app/servidor.py` (API en `/api` + web compilada, `ProteccionLocal`), `lanzador.py`
+  (ejecutable PyInstaller, empaquetado/) y Dockerfile raíz. Release: tag `v*` → .github/workflows.
 
 ## Funcionalidades actuales
 Transacciones (búsqueda sin tildes, filtros en URL, paginación), transferencias (comisión, pago de
@@ -36,6 +38,7 @@ dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login y p
   `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
 - Búsqueda: `_filtrar()` en services/transacciones.py; texto con `sin_acentos()` (database.py).
 - Mes financiero: services/mes_financiero.py según `dia_inicio_mes` de la configuración.
+- Dependencias: versiones en requirements.txt + constraints.txt; pip-audit y npm audit en CI.
 - Acceso: un usuario (scrypt) + cookie HttpOnly `sesion`; `requiere_sesion` en main.py. Tests:
   `client` simula sesión, `cliente_sin_sesion` no. Olvido: `python -m app.restablecer_contrasena`.
 
@@ -49,10 +52,11 @@ dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login y p
 - Widgets en dashboard/registroWidgets.tsx (`DatosPanel`; tamaños S/M/L/XL = 1-4 columnas).
 
 ## Hoja de ruta
+- [x] v1.0.0: ejecutables Windows/Linux + Docker. Versión: `app/version.py` + package.json.
 - [ ] Siguiente: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
-  seguridad/exportar; después, publicar la app. Mejoras: importes en céntimos enteros, E2E en el
-  repo + CI, notificaciones en vez de alert/confirm, quitar CORS sin uso, revisar tipos
-  ahorro/inversión, Alembic si hay cambios no aditivos, más estilos visuales.
+  seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el repo, notificaciones en
+  vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no aditivos, react-router 7,
+  firma de ejecutables, más estilos visuales.
 
 ## Comandos
 - `docker compose up --build` / `docker compose down` (conserva la BD).

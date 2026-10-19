@@ -17,3 +17,6 @@ dist/
 .env
 .vscode/
 .idea/
+
+# Copias de trabajo temporales de Claude Code (agentes)
+.claude/

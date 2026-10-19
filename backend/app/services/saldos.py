@@ -12,6 +12,7 @@ from sqlalchemy import case, func
 from sqlmodel import Session, col, select
 
 from app.models import Cuenta, TipoMovimiento, Transaccion, Transferencia
+from app.services import mes_financiero
 
 CENTIMOS = Decimal("0.01")
 
@@ -39,6 +40,14 @@ def _sumas_por_cuenta(
     return list(session.exec(consulta).all())
 
 
+# (columna de la cuenta, importe, columna de fecha, signo)
+_FUENTES = [
+    (col(Transaccion.cuenta_id), IMPORTE_CON_SIGNO, col(Transaccion.fecha), 1),
+    (col(Transferencia.cuenta_origen_id), col(Transferencia.monto_origen), col(Transferencia.fecha), -1),
+    (col(Transferencia.cuenta_destino_id), col(Transferencia.monto_destino), col(Transferencia.fecha), 1),
+]
+
+
 def movimientos_por_cuenta(
     session: Session, cuenta_id: int | None = None, antes_de: date | None = None
 ) -> dict[int, Decimal]:
@@ -49,16 +58,31 @@ def movimientos_por_cuenta(
     Son tres sumas en SQL (transacciones, salidas y llegadas de transferencias)
     en vez de cargar todos los movimientos en memoria.
     """
-    # (columna de la cuenta, importe, columna de fecha, signo)
-    fuentes = [
-        (col(Transaccion.cuenta_id), IMPORTE_CON_SIGNO, col(Transaccion.fecha), 1),
-        (col(Transferencia.cuenta_origen_id), col(Transferencia.monto_origen), col(Transferencia.fecha), -1),
-        (col(Transferencia.cuenta_destino_id), col(Transferencia.monto_destino), col(Transferencia.fecha), 1),
-    ]
     totales: defaultdict[int, Decimal] = defaultdict(Decimal)
-    for cuenta, importe, fecha, signo in fuentes:
+    for cuenta, importe, fecha, signo in _FUENTES:
         for id_, suma in _sumas_por_cuenta(session, cuenta, importe, fecha, cuenta_id, antes_de):
             totales[id_] += signo * a_decimal(suma)
+    return totales
+
+
+def movimientos_por_cuenta_y_mes(
+    session: Session, dia_inicio: int, desde: date, hasta: date
+) -> dict[tuple[int, str], Decimal]:
+    """Como `movimientos_por_cuenta`, pero desglosado por (cuenta, mes financiero "YYYY-MM").
+
+    Solo cuenta los movimientos de [desde, hasta). Con tres sumas en total sirve para
+    reconstruir el saldo de muchos meses, en vez de repetir las tres por cada mes.
+    """
+    totales: defaultdict[tuple[int, str], Decimal] = defaultdict(Decimal)
+    for cuenta, importe, fecha, signo in _FUENTES:
+        mes = mes_financiero.expresion_mes_sql(fecha, dia_inicio)
+        consulta = (
+            select(cuenta, mes, func.sum(importe))
+            .where(fecha >= desde, fecha < hasta)
+            .group_by(cuenta, mes)
+        )
+        for id_, mes_anio, suma in session.exec(consulta).all():
+            totales[(id_, mes_anio)] += signo * a_decimal(suma)
     return totales
 
 

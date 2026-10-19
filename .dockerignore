@@ -1,0 +1,9 @@
+# Lo que no debe entrar en la imagen (ni tus datos, ni dependencias del host).
+data/
+**/node_modules/
+**/dist/
+**/__pycache__/
+**/.pytest_cache/
+.git/
+.github/
+*.md

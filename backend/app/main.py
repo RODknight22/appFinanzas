@@ -1,10 +1,10 @@
 """Punto de entrada de la API: crea la app, registra routers y manejadores de error."""
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.database import init_db
@@ -22,6 +22,7 @@ from app.routers import (
     transferencias,
 )
 from app.services.errores import ErrorDeDominio
+from app.version import VERSION
 
 
 @asynccontextmanager
@@ -31,19 +32,19 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
+# En producción (ejecutable o Docker) no se publica la documentación interactiva:
+# el usuario no la necesita y revela toda la API. En desarrollo sigue en /docs.
+PRODUCCION = os.getenv("APP_MODO") == "produccion"
+
+# Sin CORS: la web siempre llega por el mismo origen (proxy de Vite en desarrollo,
+# el propio servidor en producción), así que el navegador nunca lo necesita.
 app = FastAPI(
     title="Finanzas Personales API",
-    version="0.1.0",
+    version=VERSION,
     lifespan=lifespan,
-)
-
-# El frontend (Vite, puerto 5173) vive en otro origen; sin CORS el navegador
-# bloquearía sus peticiones a esta API.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    docs_url=None if PRODUCCION else "/docs",
+    redoc_url=None if PRODUCCION else "/redoc",
+    openapi_url=None if PRODUCCION else "/openapi.json",
 )
 
 
@@ -67,11 +68,13 @@ for modulo in (
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    """Comprobación rápida de que la API está viva (útil para Docker)."""
-    return {"status": "ok"}
+    """Comprobación rápida de que la API está viva (Docker y el lanzador la usan)."""
+    return {"status": "ok", "app": "appfinanzas", "version": VERSION}
 
 
-@app.get("/", include_in_schema=False)
-def raiz() -> RedirectResponse:
-    """La raíz no tiene contenido propio: redirigimos a la documentación interactiva."""
-    return RedirectResponse(url="/docs")
+if not PRODUCCION:
+
+    @app.get("/", include_in_schema=False)
+    def raiz() -> RedirectResponse:
+        """En desarrollo la raíz no tiene contenido propio: lleva a la documentación."""
+        return RedirectResponse(url="/docs")

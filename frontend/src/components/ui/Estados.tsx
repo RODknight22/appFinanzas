@@ -41,15 +41,18 @@ interface ContenidoProps<T> {
   datos: T | undefined;
   onReintentar: () => void;
   children: (datos: T) => ReactNode;
+  /** Qué mostrar en la primera carga (por defecto, un spinner). Un esqueleto con la
+   *  forma de la página evita que todo "salte" al llegar los datos. */
+  esqueleto?: ReactNode;
 }
 
 /**
  * Muestra "cargando", el error o el contenido según el estado de useDatos.
  * Evita repetir los mismos `if` en cada página.
  */
-export function Contenido<T>({ cargando, error, datos, onReintentar, children }: ContenidoProps<T>) {
+export function Contenido<T>({ cargando, error, datos, onReintentar, children, esqueleto }: ContenidoProps<T>) {
   if (error) return <MensajeError mensaje={error} onReintentar={onReintentar} />;
-  if (cargando && datos === undefined) return <Cargando />;
+  if (cargando && datos === undefined) return <>{esqueleto ?? <Cargando />}</>;
   if (datos === undefined) return null;
   return <>{children(datos)}</>;
 }

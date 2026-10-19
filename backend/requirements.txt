@@ -1,3 +1,7 @@
-fastapi==0.115.6
-sqlmodel==0.0.22
-uvicorn[standard]==0.34.0
+# Dependencias directas. Las versiones exactas de TODAS (también las indirectas)
+# están en constraints.txt: así cada instalación es idéntica a la probada.
+# Actualizar: cambiar aquí, regenerar constraints.txt y pasar pip-audit (ver CI).
+fastapi==0.147.0
+starlette==1.9.0
+sqlmodel==0.0.48
+uvicorn[standard]==0.54.0

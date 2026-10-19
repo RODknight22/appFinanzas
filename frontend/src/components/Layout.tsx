@@ -12,12 +12,14 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+import { Suspense } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { useTema } from "../hooks/useTema";
 import { Avatar } from "./ui/Avatar";
+import { Cargando } from "./ui/Estados";
 
 interface ItemMenu {
   ruta: string;
@@ -133,7 +135,10 @@ export function Layout() {
 
       {/* key: al cambiar de página se vuelve a montar y se repite la animación de entrada */}
       <main key={location.pathname} className="mx-auto w-full max-w-6xl flex-1 animate-entrada px-4 pt-6 pb-24 md:px-8 md:py-8">
-        <Outlet />
+        {/* Mientras se descarga una página (se cargan al visitarlas por primera vez) */}
+        <Suspense fallback={<Cargando />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       {/* Barra inferior en móvil */}
