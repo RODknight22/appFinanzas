@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   titulo: string;
@@ -19,7 +20,9 @@ export function Modal({ titulo, abierto, onCerrar, children }: ModalProps) {
 
   if (!abierto) return null;
 
-  return (
+  // Portal: se pinta en <body>, fuera de la página. Así ningún transform o
+  // animación de un contenedor puede descolocar el position: fixed.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
       onMouseDown={onCerrar}
@@ -45,6 +48,7 @@ export function Modal({ titulo, abierto, onCerrar, children }: ModalProps) {
         </header>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

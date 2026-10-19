@@ -42,7 +42,7 @@ cuentas (crédito/débito/rendimientos), categorías, multidivisa, login y perso
 ## Convenciones del Frontend (`frontend/src/`)
 - `api/cliente.ts` es el único que usa `fetch`. `types/` refleja schemas.py (importes = `string`).
 - Páginas: `useDatos` + `<Contenido>`; formularios: `useEnvio` + `PieFormulario`; modales con estado
-  único (`null | "nueva" | entidad`) y `key` para reiniciar. Inputs con `CLASE_ENTRADA(_BASE)`.
+  único (`null | "nueva" | entidad`), `key` para reiniciar y portal a <body>. Inputs: `CLASE_ENTRADA`.
 - `useConfiguracion()` da config, tasas y `convertir`; formatear con `formatearDinero(valor, moneda)`.
 - Colores: nunca grises fijos (slate/white); tokens de index.css (`bg-superficie`, `text-tenue`,
   `border-linea`…) que cada estilo define (fintech por defecto, oscuro primero). Acento: `*-acento-*`.
