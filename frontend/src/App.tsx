@@ -7,6 +7,7 @@ import { AjustesPage } from "./pages/AjustesPage";
 import { CategoriasPage } from "./pages/CategoriasPage";
 import { CuentasPage } from "./pages/CuentasPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { MetasPage } from "./pages/MetasPage";
 import { PresupuestosPage } from "./pages/PresupuestosPage";
 import { SuscripcionesPage } from "./pages/SuscripcionesPage";
 import { TransaccionesPage } from "./pages/TransaccionesPage";
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="presupuestos" element={<PresupuestosPage />} />
         <Route path="suscripciones" element={<SuscripcionesPage />} />
         <Route path="cuentas" element={<CuentasPage />} />
+        <Route path="metas" element={<MetasPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
         <Route path="ajustes" element={<AjustesPage />} />
         {/* Cualquier otra URL vuelve a la página de inicio */}

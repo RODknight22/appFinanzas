@@ -30,6 +30,7 @@ export const PAGINAS_INICIO: Record<PaginaInicio, { nombre: string; ruta: string
   presupuestos: { nombre: "Presupuestos", ruta: "/presupuestos" },
   suscripciones: { nombre: "Suscripciones", ruta: "/suscripciones" },
   cuentas: { nombre: "Cuentas", ruta: "/cuentas" },
+  metas: { nombre: "Metas", ruta: "/metas" },
 };
 
 export const AVATARES = ["🦊", "🐼", "🐯", "🦁", "🐨", "🐸", "🐙", "🦉", "🌵", "🌻", "🚀", "⚡", "💰", "💎", "🎯", "☕"];

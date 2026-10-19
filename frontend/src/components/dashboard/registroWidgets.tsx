@@ -10,6 +10,7 @@ import type {
   Categoria,
   FlujoMensual,
   GastoPorCategoria,
+  Meta,
   ProgresoPresupuesto,
   ResumenMes,
   TamanoWidget,
@@ -19,6 +20,7 @@ import type {
 import type { PagoProximo } from "../../utils/cuentas";
 import { formatearDinero } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
+import { BarraMeta } from "../metas/BarraMeta";
 import { Tarjeta } from "../ui/Tarjeta";
 import { BarraPresupuesto } from "./BarraPresupuesto";
 import { GraficoCategorias } from "./GraficoCategorias";
@@ -38,6 +40,7 @@ export interface DatosPanel {
   diasProximos: number;
   ultimas: Transaccion[];
   categorias: Categoria[];
+  metas: Meta[];
 }
 
 interface DefinicionWidget {
@@ -141,6 +144,34 @@ export const WIDGETS = {
         <ListaPagos pagos={pagos} />
       </Tarjeta>
     ),
+  },
+  metas: {
+    titulo: "Metas de ahorro",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ metas }) => {
+      // Solo las activas, como mucho 4: el detalle está en la página de Metas.
+      const activas = metas.filter((m) => !m.cumplida).slice(0, 4);
+      return (
+        <Tarjeta titulo="Metas de ahorro" accion={enlace("/metas", "Ver todas")} className="h-full">
+          {activas.length === 0 ? (
+            <Vacio mensaje={metas.length ? "Has cumplido todas tus metas" : "Aún no tienes metas de ahorro"} />
+          ) : (
+            <div className="space-y-5">
+              {activas.map((meta) => (
+                <div key={meta.id}>
+                  <BarraMeta meta={meta} conNombre />
+                  {meta.ahorro_mensual && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Ahorra {formatearDinero(meta.ahorro_mensual, meta.moneda)} al mes para llegar a tiempo
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Tarjeta>
+      );
+    },
   },
   ultimas_transacciones: {
     titulo: "Últimas transacciones",
