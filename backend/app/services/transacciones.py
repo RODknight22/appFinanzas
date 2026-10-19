@@ -1,46 +1,95 @@
 """Lógica de negocio de las transacciones."""
 
+from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 
-from sqlmodel import Session, col, select
+from sqlalchemy import Select, func
+from sqlmodel import Session, col, or_, select
 
+from app.database import normalizar_texto
 from app.models import Categoria, Cuenta, TipoMovimiento, Transaccion
-from app.schemas import TransaccionCreate, TransaccionUpdate
+from app.schemas import PaginaTransacciones, TransaccionCreate, TransaccionUpdate
 from app.services import configuracion, divisas
 from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ConflictoError, ReglaDeNegocioError
+from app.services.saldos import a_decimal
 
 
-def listar(
-    session: Session,
-    *,
-    desde: date | None = None,
-    hasta: date | None = None,
-    tipo: TipoMovimiento | None = None,
-    cuenta_id: int | None = None,
-    categoria_id: int | None = None,
-    offset: int = 0,
-    limit: int = 100,
-) -> list[Transaccion]:
-    """Lista transacciones (las más recientes primero) aplicando solo los filtros dados."""
-    consulta = select(Transaccion)
-    if desde is not None:
-        consulta = consulta.where(Transaccion.fecha >= desde)
-    if hasta is not None:
-        consulta = consulta.where(Transaccion.fecha <= hasta)
-    if tipo is not None:
-        consulta = consulta.where(Transaccion.tipo == tipo)
-    if cuenta_id is not None:
-        consulta = consulta.where(Transaccion.cuenta_id == cuenta_id)
-    if categoria_id is not None:
-        consulta = consulta.where(Transaccion.categoria_id == categoria_id)
+@dataclass(frozen=True)
+class FiltrosTransacciones:
+    """Criterios de búsqueda; los que valen None no filtran."""
 
+    desde: date | None = None
+    hasta: date | None = None
+    tipo: TipoMovimiento | None = None
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
+    # Busca en las notas y en el nombre de la categoría, sin importar mayúsculas ni tildes.
+    texto: str | None = None
+    # Sobre el importe tal como se escribió (en su moneda), para encontrar "el de 399".
+    monto_min: Decimal | None = None
+    monto_max: Decimal | None = None
+
+
+def _filtrar(consulta: Select, filtros: FiltrosTransacciones) -> Select:
+    """Añade a `consulta` un WHERE por cada filtro indicado."""
+    condiciones = []
+    if filtros.desde is not None:
+        condiciones.append(Transaccion.fecha >= filtros.desde)
+    if filtros.hasta is not None:
+        condiciones.append(Transaccion.fecha <= filtros.hasta)
+    if filtros.tipo is not None:
+        condiciones.append(Transaccion.tipo == filtros.tipo)
+    if filtros.cuenta_id is not None:
+        condiciones.append(Transaccion.cuenta_id == filtros.cuenta_id)
+    if filtros.categoria_id is not None:
+        condiciones.append(Transaccion.categoria_id == filtros.categoria_id)
+    if filtros.monto_min is not None:
+        condiciones.append(Transaccion.monto >= filtros.monto_min)
+    if filtros.monto_max is not None:
+        condiciones.append(Transaccion.monto <= filtros.monto_max)
+    texto = normalizar_texto((filtros.texto or "").strip())
+    if texto:
+        # % y _ son comodines en LIKE: los escapamos para que "50%" busque "50%" literal.
+        escapado = texto.replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        patron = f"%{escapado}%"
+        # La categoría se consulta con una subconsulta para no tener que hacer JOIN.
+        categorias = select(Categoria.id).where(func.sin_acentos(Categoria.nombre).like(patron, escape="\\"))
+        condiciones.append(
+            or_(func.sin_acentos(Transaccion.notas).like(patron, escape="\\"), col(Transaccion.categoria_id).in_(categorias))
+        )
+    return consulta.where(*condiciones)
+
+
+def listar(session: Session, filtros: FiltrosTransacciones, *, offset: int = 0, limit: int = 100) -> list[Transaccion]:
+    """Transacciones que cumplen los filtros, las más recientes primero."""
     consulta = (
-        consulta.order_by(col(Transaccion.fecha).desc(), col(Transaccion.id).desc())
+        _filtrar(select(Transaccion), filtros)
+        .order_by(col(Transaccion.fecha).desc(), col(Transaccion.id).desc())
         .offset(offset)
         .limit(limit)
     )
     return list(session.exec(consulta).all())
+
+
+def buscar(session: Session, filtros: FiltrosTransacciones, *, offset: int = 0, limit: int = 50) -> PaginaTransacciones:
+    """Una página de resultados más los totales de *todas* las coincidencias.
+
+    Los totales se calculan en SQL: si se sumaran solo los de la página, al
+    pasar a la siguiente cambiarían.
+    """
+    consulta = _filtrar(
+        select(Transaccion.tipo, func.count(), func.sum(Transaccion.monto_principal)), filtros
+    ).group_by(col(Transaccion.tipo))
+    por_tipo = {tipo: (cantidad, a_decimal(suma)) for tipo, cantidad, suma in session.exec(consulta).all()}
+    cero = (0, Decimal("0.00"))
+    return PaginaTransacciones(
+        items=listar(session, filtros, offset=offset, limit=limit),
+        total=sum(cantidad for cantidad, _ in por_tipo.values()),
+        total_ingresos=por_tipo.get(TipoMovimiento.INGRESO, cero)[1],
+        total_gastos=por_tipo.get(TipoMovimiento.GASTO, cero)[1],
+    )
 
 
 def obtener(session: Session, transaccion_id: int) -> Transaccion:
