@@ -55,6 +55,23 @@ export interface Transaccion {
   notas: string | null;
   categoria_id: number;
   cuenta_id: number;
+  /** Solo en la comisión de una transferencia: se gestiona desde la transferencia. */
+  readonly transferencia_id: number | null;
+}
+
+/** Dinero que pasa de una cuenta a otra (no es ingreso ni gasto). */
+export interface Transferencia {
+  id: number;
+  cuenta_origen_id: number;
+  cuenta_destino_id: number;
+  /** Lo que sale, en la moneda de la cuenta de origen. */
+  monto_origen: Dinero;
+  /** Lo que llega, en la moneda de destino. Al crear: null = estimarlo con la tasa de la fecha. */
+  monto_destino: Dinero | null;
+  /** Comisión en la moneda de origen (se anota como gasto). */
+  comision: Dinero | null;
+  fecha: FechaISO;
+  notas: string | null;
 }
 
 export interface Presupuesto {
@@ -76,7 +93,7 @@ export interface Suscripcion {
 /** Datos para crear una entidad: sin `id` (lo genera la BD) ni campos que gestiona el backend. */
 export type DatosNuevos<T extends { id: number }> = Omit<
   T,
-  "id" | "fecha_ultimo_rendimiento" | "monto_cuenta" | "monto_principal"
+  "id" | "fecha_ultimo_rendimiento" | "monto_cuenta" | "monto_principal" | "transferencia_id"
 >;
 
 export interface PagoSuscripcion {

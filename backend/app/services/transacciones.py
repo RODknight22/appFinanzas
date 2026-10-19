@@ -8,7 +8,7 @@ from app.models import Categoria, Cuenta, TipoMovimiento, Transaccion
 from app.schemas import TransaccionCreate, TransaccionUpdate
 from app.services import configuracion, divisas
 from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
-from app.services.errores import ReglaDeNegocioError
+from app.services.errores import ConflictoError, ReglaDeNegocioError
 
 
 def listar(
@@ -82,6 +82,12 @@ def completar_montos(session: Session, transaccion: Transaccion, cuenta: Cuenta)
     )
 
 
+def _comprobar_editable(transaccion: Transaccion) -> None:
+    """La comisión de una transferencia se gestiona desde la transferencia, para que no se descuadren."""
+    if transaccion.transferencia_id is not None:
+        raise ConflictoError("Esta comisión pertenece a una transferencia: edítala o bórrala desde Cuentas")
+
+
 def crear(session: Session, datos: TransaccionCreate) -> Transaccion:
     cuenta = validar_relaciones(session, datos.cuenta_id, datos.categoria_id, datos.tipo)
     if datos.moneda is not None:
@@ -93,6 +99,7 @@ def crear(session: Session, datos: TransaccionCreate) -> Transaccion:
 
 def actualizar(session: Session, transaccion_id: int, cambios: TransaccionUpdate) -> Transaccion:
     transaccion = obtener(session, transaccion_id)
+    _comprobar_editable(transaccion)
     datos = cambios_parciales(cambios, anulables=frozenset({"notas"}))
 
     # Validamos la combinación final (valores nuevos + los que no cambian),
@@ -113,5 +120,6 @@ def actualizar(session: Session, transaccion_id: int, cambios: TransaccionUpdate
 
 def eliminar(session: Session, transaccion_id: int) -> None:
     transaccion = obtener(session, transaccion_id)
+    _comprobar_editable(transaccion)
     session.delete(transaccion)
     session.commit()

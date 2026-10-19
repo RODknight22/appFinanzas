@@ -16,6 +16,7 @@ import {
   PawPrint,
   PiggyBank,
   Plane,
+  Receipt,
   Repeat,
   Shirt,
   ShoppingCart,
@@ -58,6 +59,7 @@ export const ICONOS: Record<string, LucideIcon> = {
   wrench: Wrench,
   briefcase: Briefcase,
   banknote: Banknote,
+  receipt: Receipt,
   "trending-up": TrendingUp,
   "piggy-bank": PiggyBank,
 };

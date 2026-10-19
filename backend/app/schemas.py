@@ -28,6 +28,7 @@ from app.models import (
     TipoCuenta,
     TipoMovimiento,
     TransaccionBase,
+    TransferenciaBase,
     validar_color,
     validar_mes_anio,
 )
@@ -90,6 +91,7 @@ class TransaccionRead(TransaccionBase):
     id: int
     monto_cuenta: Decimal
     monto_principal: Decimal
+    transferencia_id: int | None = None
 
 
 class TransaccionUpdate(SQLModel):
@@ -102,6 +104,32 @@ class TransaccionUpdate(SQLModel):
     notas: str | None = Field(default=None, max_length=500)
     categoria_id: int | None = None
     cuenta_id: int | None = None
+
+
+# --- Transferencias --------------------------------------------------------
+class TransferenciaCreate(TransferenciaBase):
+    pass
+
+
+class TransferenciaRead(TransferenciaBase):
+    id: int
+    monto_destino: Decimal  # siempre relleno al guardar
+
+
+class TransferenciaUpdate(SQLModel):
+    cuenta_origen_id: int | None = None
+    cuenta_destino_id: int | None = None
+    monto_origen: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    monto_destino: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    comision: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    fecha: date | None = None
+    notas: str | None = Field(default=None, max_length=500)
 
 
 # --- Presupuestos ----------------------------------------------------------

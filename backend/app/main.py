@@ -18,6 +18,7 @@ from app.routers import (
     presupuestos,
     suscripciones,
     transacciones,
+    transferencias,
 )
 from app.services.errores import ErrorDeDominio
 
@@ -56,7 +57,9 @@ app.include_router(acceso.router)
 
 # Protegido: todos los datos exigen una sesión válida (si no, 401).
 # Añadir la dependencia aquí evita olvidarla en algún endpoint concreto.
-for modulo in (cuentas, categorias, transacciones, presupuestos, suscripciones, dashboard, configuracion):
+for modulo in (
+    cuentas, categorias, transacciones, transferencias, presupuestos, suscripciones, dashboard, configuracion,
+):
     app.include_router(modulo.router, dependencies=[Depends(requiere_sesion)])
 
 

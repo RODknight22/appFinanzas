@@ -19,7 +19,7 @@ from app.schemas import (
     SaldoCuenta,
 )
 from app.services import configuracion, divisas, mes_financiero
-from app.services.saldos import IMPORTE_CON_SIGNO, a_decimal
+from app.services.saldos import a_decimal, movimientos_por_cuenta
 
 
 # ---------------------------------------------------------------------------
@@ -59,21 +59,16 @@ def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
     """
     principal = configuracion.moneda_principal(session)
     hoy = date.today()
-    # outerjoin: incluye también las cuentas sin transacciones (movimiento = 0).
-    consulta = (
-        select(Cuenta, func.sum(IMPORTE_CON_SIGNO))
-        .outerjoin(Transaccion, col(Transaccion.cuenta_id) == col(Cuenta.id))
-        .group_by(col(Cuenta.id))
-        .order_by(col(Cuenta.nombre))
-    )
-    filas = session.exec(consulta).all()
-    if any(cuenta.moneda != principal for cuenta, _ in filas):
+    cuentas = session.exec(select(Cuenta).order_by(col(Cuenta.nombre))).all()
+    movimientos = movimientos_por_cuenta(session)
+    if any(cuenta.moneda != principal for cuenta in cuentas):
         divisas.asegurar_tasas_del_dia(session)
 
     saldos = []
-    for cuenta, movimiento in filas:
+    for cuenta in cuentas:
         moneda = cuenta.moneda or principal
-        saldo = a_decimal(cuenta.balance_inicial + a_decimal(movimiento))
+        # .get(): una cuenta sin movimientos no aparece en el diccionario.
+        saldo = a_decimal(cuenta.balance_inicial + movimientos.get(cuenta.id, Decimal(0)))
         saldos.append(
             SaldoCuenta(
                 cuenta_id=cuenta.id,

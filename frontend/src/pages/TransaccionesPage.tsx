@@ -1,5 +1,6 @@
-import { Plus } from "lucide-react";
+import { ArrowRightLeft, Plus } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
@@ -109,12 +110,24 @@ export function TransaccionesPage() {
                               </span>
                             )}
                           </span>
-                          <AccionesFila
-                            onEditar={() => setModal(transaccion)}
-                            onEliminar={() =>
-                              confirmarYEliminar("¿Eliminar esta transacción?", () => transaccionesApi.eliminar(transaccion.id), estado.recargar)
-                            }
-                          />
+                          {transaccion.transferencia_id === null ? (
+                            <AccionesFila
+                              onEditar={() => setModal(transaccion)}
+                              onEliminar={() =>
+                                confirmarYEliminar("¿Eliminar esta transacción?", () => transaccionesApi.eliminar(transaccion.id), estado.recargar)
+                              }
+                            />
+                          ) : (
+                            // La comisión de una transferencia se cambia desde la transferencia.
+                            <Link
+                              to="/cuentas"
+                              title="Comisión de una transferencia: se edita desde Cuentas"
+                              aria-label="Editar desde Cuentas"
+                              className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                            >
+                              <ArrowRightLeft size={16} />
+                            </Link>
+                          )}
                         </li>
                       );
                     })}
