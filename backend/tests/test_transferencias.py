@@ -1,7 +1,12 @@
 """Transferencias: mueven saldos entre cuentas sin contar como ingreso ni gasto."""
 
+from decimal import Decimal
+from itertools import permutations
+
 import pytest
 from fastapi.testclient import TestClient
+
+from tests.conftest import TASAS_EJEMPLO
 
 
 def _saldos(client: TestClient) -> dict[str, str]:
@@ -110,3 +115,49 @@ def test_filtrar_por_cuenta(client: TestClient, cuenta: dict, ahorro: dict) -> N
 
     assert len(client.get("/transferencias", params={"cuenta_id": cuenta["id"]}).json()) == 2
     assert len(client.get("/transferencias", params={"cuenta_id": ahorro["id"]}).json()) == 1
+
+
+# --- Todas las divisas --------------------------------------------------------
+# Unidades por 1 USD de las tasas de ejemplo (el USD no se guarda: vale 1).
+_POR_USD = {"USD": Decimal(1), **{m.value: Decimal(v) for m, v in TASAS_EJEMPLO.items()}}
+_MONEDAS = list(_POR_USD)
+
+
+def _esperado(monto: str, de: str, a: str) -> str:
+    return str((Decimal(monto) / _POR_USD[de] * _POR_USD[a]).quantize(Decimal("0.01")))
+
+
+@pytest.mark.parametrize("principal", _MONEDAS)
+@pytest.mark.parametrize(("de", "a"), list(permutations(_MONEDAS, 2)))
+def test_cualquier_par_de_monedas_con_cualquier_principal(
+    client: TestClient, tasas: None, principal: str, de: str, a: str
+) -> None:
+    assert client.patch("/configuracion", json={"moneda": principal}).status_code == 200
+    origen = client.post("/cuentas", json={"nombre": "Origen", "tipo": "debito", "moneda": de, "balance_inicial": "1000"}).json()
+    destino = client.post("/cuentas", json={"nombre": "Destino", "tipo": "debito", "moneda": a}).json()
+
+    # Sin indicar lo que llega: se estima con la tasa de la fecha.
+    transferencia = _transferir(client, origen, destino, monto_origen="100", comision="2")
+    assert transferencia["monto_destino"] == _esperado("100", de, a)
+
+    resumen = client.get("/dashboard/resumen", params={"mes_anio": "2026-10"}).json()
+    saldos = {c["nombre"]: c for c in resumen["cuentas"]}
+    assert saldos["Origen"]["saldo"] == "898.00"  # 1000 − 100 − 2 de comisión
+    assert saldos["Destino"]["saldo"] == _esperado("100", de, a)
+    # Solo la comisión es gasto, convertida a la moneda principal.
+    assert resumen["gastos"] == _esperado("2", de, principal)
+    assert resumen["ingresos"] == "0.00"
+
+    # Con lo que llegó de verdad, el saldo de destino usa ese importe exacto.
+    client.patch(f"/transferencias/{transferencia['id']}", json={"monto_destino": "12.34"})
+    assert _saldos(client)["Destino"] == "12.34"
+
+
+def test_cambiar_la_principal_reconvierte_la_comision(client: TestClient, tasas: None, cuenta: dict) -> None:
+    revolut = client.post("/cuentas", json={"nombre": "Revolut", "tipo": "debito", "moneda": "EUR"}).json()
+    _transferir(client, cuenta, revolut, comision="18")  # 18 MXN = 1 USD = 0.90 EUR
+
+    client.patch("/configuracion", json={"moneda": "EUR"})
+
+    resumen = client.get("/dashboard/resumen", params={"mes_anio": "2026-10"}).json()
+    assert resumen["gastos"] == "0.90"
