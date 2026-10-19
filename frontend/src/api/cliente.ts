@@ -85,5 +85,5 @@ export const http = {
   post: <T>(ruta: string, cuerpo: unknown) => peticion<T>("POST", ruta, cuerpo),
   patch: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PATCH", ruta, cuerpo),
   put: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PUT", ruta, cuerpo),
-  delete: (ruta: string) => peticion<void>("DELETE", ruta),
+  delete: <T = void>(ruta: string) => peticion<T>("DELETE", ruta),
 };

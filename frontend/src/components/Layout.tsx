@@ -51,7 +51,7 @@ function claseEnlace({ isActive }: { isActive: boolean }): string {
 export function Layout() {
   const { tema, alternar } = useTema();
   const { usuario, cerrarSesion } = useAcceso();
-  const { configuracion } = useConfiguracion();
+  const { configuracion, urlFoto } = useConfiguracion();
   // El nombre de Ajustes si lo hay; si no, el de usuario del login.
   const nombre = configuracion.nombre ?? usuario;
   const IconoTema = tema === "oscuro" ? Sun : Moon;
@@ -61,7 +61,7 @@ export function Layout() {
       {/* Menú lateral: solo en pantallas medianas o más grandes */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex dark:border-slate-800 dark:bg-slate-900">
         <Link to="/ajustes" className="mb-8 flex items-center gap-3 rounded-lg px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800" title="Editar perfil">
-          <Avatar avatar={configuracion.avatar} nombre={nombre} />
+          <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
           <span className="min-w-0">
             <span className="block text-xs text-slate-500">Mis Finanzas</span>
             <span className="block truncate font-semibold">Hola, {nombre}</span>
@@ -106,7 +106,7 @@ export function Layout() {
       {/* Cabecera móvil con ajustes y botón de tema */}
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-900">
         <span className="flex min-w-0 items-center gap-2">
-          <Avatar avatar={configuracion.avatar} nombre={nombre} />
+          <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
           <span className="truncate font-semibold">Hola, {nombre}</span>
         </span>
         <div className="flex items-center gap-1">

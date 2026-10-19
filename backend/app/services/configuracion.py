@@ -1,6 +1,10 @@
 """Preferencias de la app: monedas y personalización."""
 
+import base64
+import binascii
+import hashlib
 import json
+from collections.abc import Callable
 
 from sqlmodel import Session
 
@@ -53,6 +57,7 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         pagina_inicio=configuracion.pagina_inicio or PaginaInicio.DASHBOARD,
         dia_inicio_mes=configuracion.dia_inicio_mes or 1,
         widgets=widgets,
+        foto_version=hashlib.sha256(configuracion.foto).hexdigest()[:12] if configuracion.foto else None,
     )
 
 
@@ -101,4 +106,51 @@ def actualizar(session: Session, cambios: ConfiguracionUpdate) -> ConfiguracionR
             json.dumps([w.model_dump(mode="json") for w in cambios.widgets]) if cambios.widgets else None
         )
 
+    return _a_lectura(guardar(session, configuracion))
+
+
+# ---------------------------------------------------------------------------
+# Foto de perfil
+# ---------------------------------------------------------------------------
+_MAX_BYTES_FOTO = 300 * 1024
+# Los primeros bytes de un archivo delatan su formato real ("números mágicos"):
+# así no nos fiamos solo de lo que diga el texto "data:image/...".
+_FIRMAS: dict[str, Callable[[bytes], bool]] = {
+    "image/jpeg": lambda d: d.startswith(b"\xff\xd8\xff"),
+    "image/png": lambda d: d.startswith(b"\x89PNG\r\n\x1a\n"),
+    # WebP: "RIFF" + tamaño (4 bytes) + "WEBP" (un WAV también empieza por RIFF).
+    "image/webp": lambda d: d[:4] == b"RIFF" and d[8:12] == b"WEBP",
+}
+
+
+def guardar_foto(session: Session, data_url: str) -> ConfiguracionRead:
+    """Guarda una foto enviada como data URL ("data:image/jpeg;base64,...")."""
+    cabecera, separador, contenido = data_url.partition(",")
+    tipo = cabecera.removeprefix("data:").removesuffix(";base64")
+    if not separador or not cabecera.endswith(";base64") or tipo not in _FIRMAS:
+        raise ReglaDeNegocioError("La foto debe ser una imagen JPEG, PNG o WebP")
+    try:
+        datos = base64.b64decode(contenido, validate=True)
+    except (binascii.Error, ValueError) as e:
+        raise ReglaDeNegocioError("La imagen está dañada") from e
+    if len(datos) > _MAX_BYTES_FOTO:
+        raise ReglaDeNegocioError("La foto es demasiado grande (máximo 300 KB)")
+    if not _FIRMAS[tipo](datos):
+        raise ReglaDeNegocioError("El contenido no coincide con el tipo de imagen indicado")
+
+    configuracion = _obtener_fila(session)
+    configuracion.foto, configuracion.foto_tipo = datos, tipo
+    return _a_lectura(guardar(session, configuracion))
+
+
+def obtener_foto(session: Session) -> tuple[bytes, str] | None:
+    configuracion = _obtener_fila(session)
+    if configuracion.foto is None or configuracion.foto_tipo is None:
+        return None
+    return configuracion.foto, configuracion.foto_tipo
+
+
+def borrar_foto(session: Session) -> ConfiguracionRead:
+    configuracion = _obtener_fila(session)
+    configuracion.foto = configuracion.foto_tipo = None
     return _a_lectura(guardar(session, configuracion))

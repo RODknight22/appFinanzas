@@ -12,7 +12,7 @@ El objetivo del desarrollador es aprender a programar mientras supervisa la cons
 
 ## Funcionalidades
 Transacciones, suscripciones, presupuestos, dashboard de widgets, cuentas (crédito/débito/rendimientos),
-categorías, multidivisa con tasas históricas, login y personalización (acento, perfil, mes financiero).
+categorías, multidivisa con tasas históricas, login y personalización (acento, perfil con foto, mes financiero).
 
 ## Coding Principles & Developer Mentorship
 - **Legibilidad ante todo**: Escribe código autodocumentado, modular y con tipado estricto (Type hints en Python, TypeScript o JSDoc claro en React).

@@ -4,6 +4,10 @@ import { http } from "./cliente";
 export const configuracionApi = {
   obtener: () => http.get<Configuracion>("/configuracion"),
   actualizar: (cambios: Partial<Configuracion>) => http.patch<Configuracion>("/configuracion", cambios),
+  subirFoto: (imagen: string) => http.put<Configuracion>("/configuracion/foto", { imagen }),
+  borrarFoto: () => http.delete<Configuracion>("/configuracion/foto"),
+  /** URL para <img>. La versión en la URL evita que el navegador muestre una foto antigua. */
+  urlFoto: (version: string) => `/api/configuracion/foto?v=${version}`,
 };
 
 export const tasasApi = {

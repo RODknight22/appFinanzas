@@ -66,3 +66,33 @@ def test_dashboard_con_mes_que_empieza_el_15(
 
     flujo = client.get("/dashboard/flujo-mensual", params={"hasta_mes": "2026-10", "meses": 2}).json()
     assert [(m["mes_anio"], m["gastos"]) for m in flujo] == [("2026-09", "100.00"), ("2026-10", "35.00")]
+
+
+# Un PNG válido de 1×1 píxel, en base64.
+PNG_1X1 = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+)
+
+
+def test_foto_de_perfil(client: TestClient) -> None:
+    assert client.get("/configuracion/foto").status_code == 404
+    configuracion = client.put("/configuracion/foto", json={"imagen": f"data:image/png;base64,{PNG_1X1}"}).json()
+    assert configuracion["foto_version"]
+
+    foto = client.get("/configuracion/foto")
+    assert foto.status_code == 200
+    assert foto.headers["content-type"] == "image/png"
+    assert foto.content.startswith(b"\x89PNG")
+
+    assert client.delete("/configuracion/foto").json()["foto_version"] is None
+    assert client.get("/configuracion/foto").status_code == 404
+
+
+def test_foto_no_valida(client: TestClient) -> None:
+    def subir(imagen: str) -> int:
+        return client.put("/configuracion/foto", json={"imagen": imagen}).status_code
+
+    assert subir("hola") == 400  # no es un data URL
+    assert subir(f"data:image/gif;base64,{PNG_1X1}") == 400  # tipo no admitido
+    assert subir(f"data:image/jpeg;base64,{PNG_1X1}") == 400  # dice JPEG pero es PNG
+    assert subir("data:image/png;base64,@@@") == 400  # base64 roto

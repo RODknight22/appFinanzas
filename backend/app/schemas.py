@@ -226,6 +226,8 @@ class ConfiguracionRead(SQLModel):
     dia_inicio_mes: int
     # null = el frontend usa su disposición por defecto
     widgets: list[WidgetDisposicion] | None
+    # Huella de la foto (cambia al subir otra): sirve para que el navegador no use una copia vieja.
+    foto_version: str | None
 
 
 class ConfiguracionUpdate(SQLModel):
@@ -239,6 +241,12 @@ class ConfiguracionUpdate(SQLModel):
     pagina_inicio: PaginaInicio | None = None
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)
+
+
+class FotoPerfil(SQLModel):
+    """Imagen como "data URL": data:image/jpeg;base64,/9j/4AAQ…"""
+
+    imagen: str = Field(max_length=700_000)
 
 
 class TasaRead(SQLModel):

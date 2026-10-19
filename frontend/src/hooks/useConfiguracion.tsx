@@ -16,6 +16,10 @@ interface ContextoConfiguracion {
   /** Tasas vigentes, para mostrar conversiones aproximadas. */
   tasas: Tasa[];
   actualizarConfiguracion: (cambios: Partial<Configuracion>) => Promise<void>;
+  /** Sube una foto ya preparada (data URL) o la borra con null. */
+  cambiarFoto: (imagen: string | null) => Promise<void>;
+  /** URL de la foto de perfil, o null si no hay. */
+  urlFoto: string | null;
   recargarTasas: () => Promise<void>;
   /** Convierte con las tasas vigentes; undefined si falta alguna tasa. */
   convertir: (monto: number, de: Moneda, a?: Moneda) => number | undefined;
@@ -36,6 +40,7 @@ const CONFIGURACION_INICIAL: Configuracion = {
   pagina_inicio: "dashboard",
   dia_inicio_mes: 1,
   widgets: null,
+  foto_version: null,
 };
 
 /** Pone el color de acento en <html> (lo leen las variables CSS de index.css). */
@@ -91,6 +96,10 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function cambiarFoto(imagen: string | null) {
+    aplicar(imagen ? await configuracionApi.subirFoto(imagen) : await configuracionApi.borrarFoto());
+  }
+
   // No pintamos nada hasta conocer la moneda, para no mostrar importes
   // con un formato y cambiarlos un instante después.
   if (!lista) return null;
@@ -102,6 +111,8 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
     tasas,
     actualizarConfiguracion,
     recargarTasas,
+    cambiarFoto,
+    urlFoto: configuracion.foto_version ? configuracionApi.urlFoto(configuracion.foto_version) : null,
     convertir: (monto, de, a = configuracion.moneda) => convertir(monto, de, a, configuracion.moneda, tasas),
   };
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

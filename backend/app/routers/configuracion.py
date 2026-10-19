@@ -1,12 +1,13 @@
 """Endpoints de las preferencias de la app y de las tasas de cambio."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from app.database import SessionDep
 from app.models import Moneda
-from app.schemas import ConfiguracionRead, ConfiguracionUpdate, TasaManual, TasaRead
+from app.schemas import ConfiguracionRead, ConfiguracionUpdate, FotoPerfil, TasaManual, TasaRead
 from app.services import configuracion as servicio
 from app.services import divisas
+from app.services.errores import NoEncontradoError
 
 router = APIRouter(tags=["Configuración"])
 
@@ -24,6 +25,29 @@ def actualizar_configuracion(cambios: ConfiguracionUpdate, session: SessionDep):
     con la tasa histórica de su fecha.
     """
     return servicio.actualizar(session, cambios)
+
+
+@router.put("/configuracion/foto", response_model=ConfiguracionRead)
+def subir_foto(datos: FotoPerfil, session: SessionDep):
+    """Sube la foto de perfil (el navegador ya la recortó a 256×256 y la comprimió)."""
+    return servicio.guardar_foto(session, datos.imagen)
+
+
+@router.get("/configuracion/foto", response_class=Response)
+def ver_foto(session: SessionDep) -> Response:
+    """La imagen tal cual, para usarla en <img src=...>."""
+    foto = servicio.obtener_foto(session)
+    if foto is None:
+        raise NoEncontradoError("No hay foto de perfil")
+    contenido, tipo = foto
+    # "private": solo la guarda este navegador. La URL lleva la versión (?v=…),
+    # así que al cambiar de foto cambia la URL y no se ve la antigua.
+    return Response(content=contenido, media_type=tipo, headers={"Cache-Control": "private, max-age=31536000"})
+
+
+@router.delete("/configuracion/foto", response_model=ConfiguracionRead)
+def borrar_foto(session: SessionDep):
+    return servicio.borrar_foto(session)
 
 
 @router.get("/tasas", response_model=list[TasaRead])

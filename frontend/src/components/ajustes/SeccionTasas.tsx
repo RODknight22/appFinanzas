@@ -10,8 +10,8 @@ import { CLASE_ENTRADA_BASE } from "../ui/Campo";
 import { Tarjeta } from "../ui/Tarjeta";
 import { avisarError } from "./avisarError";
 
-/** Muestra hasta 4 decimales sin ceros sobrantes: 20.7612, 0.05, 19. */
-const legible = (valor: string) => String(Number(Number(valor).toFixed(4)));
+/** 6 cifras significativas sin ceros sobrantes: 20.7182, 0.0327201, 19 (las tasas pequeñas no pierden precisión). */
+const legible = (valor: string) => String(Number(Number(valor).toPrecision(6)));
 
 /** Una fila editable: "1 EUR = [20.7612] MXN" (siempre respecto a la moneda principal). */
 function FilaTasa({ codigo }: { codigo: Moneda }) {

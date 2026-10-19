@@ -158,6 +158,8 @@ export interface Configuracion {
   dia_inicio_mes: number;
   /** null = disposición por defecto del panel. */
   widgets: WidgetDisposicion[] | null;
+  /** Cambia cada vez que se sube otra foto; null = sin foto. */
+  foto_version: string | null;
 }
 
 export interface Tasa {

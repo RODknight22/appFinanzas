@@ -241,6 +241,9 @@ class Configuracion(SQLModel, table=True):
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     # Disposición del panel en JSON: [{"id": ..., "tamano": ..., "visible": ...}, ...]
     widgets: str | None = None
+    # Foto de perfil (ya recortada y comprimida por el navegador) y su tipo MIME.
+    foto: bytes | None = None
+    foto_tipo: str | None = None
 
 
 # ---------------------------------------------------------------------------
