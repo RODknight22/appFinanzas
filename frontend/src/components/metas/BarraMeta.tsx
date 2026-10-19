@@ -26,9 +26,19 @@ export function BarraMeta({ meta, conNombre = false }: { meta: Meta; conNombre?:
         aria-label={`Progreso de ${meta.nombre}`}
       >
         <div
-          className={`h-full rounded-full transition-all ${meta.cumplida ? "bg-emerald-500" : "bg-acento-500"}`}
+          className={`h-full rounded-full transition-all duration-700 ${meta.cumplida ? "bg-emerald-500" : "bg-acento-500"}`}
           style={{ width: `${ancho}%` }}
         />
+      </div>
+      {/* Marcas de los hitos (25/50/75 %): se ve cuánto falta para la próxima celebración */}
+      <div className="relative -mt-2.5 h-2.5" aria-hidden>
+        {[25, 50, 75].map((hito) => (
+          <span
+            key={hito}
+            className={`absolute top-0 h-2.5 w-0.5 -translate-x-1/2 rounded-full ${meta.porcentaje >= hito ? "bg-white/60" : "bg-tenue-2/50"}`}
+            style={{ left: `${hito}%` }}
+          />
+        ))}
       </div>
     </div>
   );

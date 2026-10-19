@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { cuentasApi, metasApi } from "../api/recursos";
 import { FormularioMeta } from "../components/formularios/FormularioMeta";
+import { CelebracionHito } from "../components/metas/CelebracionHito";
 import { PanelAportaciones } from "../components/metas/PanelAportaciones";
 import { TarjetaMeta } from "../components/metas/TarjetaMeta";
 import { avisarError } from "../components/ajustes/avisarError";
@@ -13,6 +14,7 @@ import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
+import { useHitosMetas } from "../hooks/useHitosMetas";
 import type { Cuenta, Meta } from "../types";
 
 type EstadoModal = null | "nueva" | Meta;
@@ -22,6 +24,7 @@ export function MetasPage() {
   // La meta cuyas aportaciones se están viendo (modal aparte del de editar).
   const [aportando, setAportando] = useState<Meta | null>(null);
   const estado = useDatos(() => Promise.all([metasApi.listar(), cuentasApi.listar()]), []);
+  const { celebracion, cerrar } = useHitosMetas(estado.datos?.[0]);
 
   function alGuardar() {
     setModal(null);
@@ -104,6 +107,8 @@ export function MetasPage() {
       <Modal titulo={aportando ? `${aportando.icono} ${aportando.nombre}` : ""} abierto={aportando !== null} onCerrar={() => setAportando(null)}>
         {aportando && <PanelAportaciones key={aportando.id} meta={aportando} onCambio={estado.recargar} />}
       </Modal>
+
+      {celebracion && <CelebracionHito celebracion={celebracion} onCerrar={cerrar} />}
     </>
   );
 }

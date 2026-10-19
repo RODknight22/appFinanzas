@@ -5,6 +5,7 @@ import { dashboardApi } from "../api/dashboard";
 import { categoriasApi, cuentasApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
 import { avisarError } from "../components/ajustes/avisarError";
 import { PanelWidgets } from "../components/dashboard/PanelWidgets";
+import { CelebracionHito } from "../components/metas/CelebracionHito";
 import { DISPOSICION_POR_DEFECTO, reconciliar, type DatosPanel } from "../components/dashboard/registroWidgets";
 import { Boton } from "../components/ui/Boton";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
@@ -12,6 +13,7 @@ import { Contenido } from "../components/ui/Estados";
 import { SelectorMes } from "../components/ui/SelectorMes";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { useDatos } from "../hooks/useDatos";
+import { useHitosMetas } from "../hooks/useHitosMetas";
 import type { WidgetDisposicion } from "../types";
 import { proximosPagos } from "../utils/cuentas";
 import { mesActual } from "../utils/formato";
@@ -45,6 +47,8 @@ export function DashboardPage() {
       ]),
     [mes],
   );
+  // Las metas también se celebran aquí: al abrir la app ves si alguna cruzó un hito.
+  const { celebracion, cerrar } = useHitosMetas(estado.datos?.[8]);
 
   async function guardar() {
     try {
@@ -100,6 +104,7 @@ export function DashboardPage() {
           return <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />;
         }}
       </Contenido>
+      {celebracion && <CelebracionHito celebracion={celebracion} onCerrar={cerrar} />}
     </>
   );
 }

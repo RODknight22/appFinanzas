@@ -5,6 +5,7 @@ import { metasApi } from "../../api/recursos";
 import { useDatos } from "../../hooks/useDatos";
 import { confirmarYEliminar, useEnvio } from "../../hooks/useEnvio";
 import type { Meta } from "../../types";
+import { lanzarConfeti } from "../../utils/confeti";
 import { formatearDinero, formatearFecha, hoyISO } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
@@ -36,6 +37,16 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
     const importe = sentido === "retirar" ? `-${monto}` : String(monto);
     const ok = await ejecutar(() => metasApi.aportar(meta.id, { monto: importe, fecha, notas: notas.trim() || null }));
     if (ok) {
+      if (sentido === "aportar") {
+        // Un pequeño chorro de confeti desde el botón: cada aportación cuenta.
+        const boton = (evento.nativeEvent as SubmitEvent).submitter?.getBoundingClientRect();
+        lanzarConfeti({
+          x: boton ? (boton.left + boton.width / 2) / window.innerWidth : 0.5,
+          y: boton ? boton.top / window.innerHeight : 0.5,
+          cantidad: 45,
+          dispersion: 60,
+        });
+      }
       setMonto("");
       setNotas("");
       despuesDeCambiar();
