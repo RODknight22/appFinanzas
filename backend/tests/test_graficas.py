@@ -42,6 +42,47 @@ def test_las_transferencias_no_cambian_el_patrimonio(client: TestClient, session
     assert {str(p.total) for p in puntos} == {"1000.00"}
 
 
+def test_patrimonio_acumula_mes_a_mes_con_transferencia_y_futuro(
+    client: TestClient, session: Session, cuenta: dict, categoria_gasto: dict, categoria_ingreso: dict
+) -> None:
+    ahorro = client.post("/cuentas", json={"nombre": "Ahorro", "tipo": "debito"}).json()
+    _anotar(client, cuenta, categoria_gasto, "10", "2026-06-01")  # antes de la ventana
+    _anotar(client, cuenta, categoria_gasto, "100", "2026-08-20")
+    _anotar(client, cuenta, categoria_ingreso, "200", "2026-09-03")
+    client.post("/transferencias", json={
+        "cuenta_origen_id": cuenta["id"], "cuenta_destino_id": ahorro["id"],
+        "monto_origen": "400", "fecha": "2026-09-15",
+    })
+    _anotar(client, cuenta, categoria_ingreso, "50", "2026-10-05")
+    _anotar(client, cuenta, categoria_gasto, "30", "2026-10-25")  # futuro: no cuenta
+
+    puntos = servicio.patrimonio(session, "2026-10", 3, hoy=date(2026, 10, 19))
+
+    assert [(p.mes_anio, str(p.total)) for p in puntos] == [
+        ("2026-08", "890.00"),   # 1000 - 10 - 100
+        ("2026-09", "1090.00"),  # + 200 (la transferencia no cambia el total)
+        ("2026-10", "1140.00"),  # + 50
+    ]
+
+
+def test_patrimonio_respeta_el_dia_de_inicio_de_mes(
+    client: TestClient, session: Session, cuenta: dict, categoria_gasto: dict, categoria_ingreso: dict
+) -> None:
+    client.patch("/configuracion", json={"dia_inicio_mes": 15})
+    _anotar(client, cuenta, categoria_gasto, "100", "2026-09-14")  # aún mes financiero 2026-08
+    _anotar(client, cuenta, categoria_ingreso, "50", "2026-09-15")  # 2026-09
+    _anotar(client, cuenta, categoria_gasto, "20", "2026-10-14")  # 2026-09
+    _anotar(client, cuenta, categoria_ingreso, "7", "2026-10-15")  # 2026-10
+
+    puntos = servicio.patrimonio(session, "2026-10", 3, hoy=date(2026, 10, 19))
+
+    assert [(p.mes_anio, str(p.total)) for p in puntos] == [
+        ("2026-08", "900.00"),
+        ("2026-09", "930.00"),
+        ("2026-10", "937.00"),
+    ]
+
+
 def test_patrimonio_convierte_otras_monedas(client: TestClient, session: Session, tasas: None) -> None:
     client.post("/cuentas", json={"nombre": "Revolut", "tipo": "debito", "moneda": "EUR", "balance_inicial": "90"})
     # 90 EUR = 100 USD = 1800 MXN con las tasas de ejemplo.

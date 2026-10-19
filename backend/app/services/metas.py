@@ -12,7 +12,7 @@ from app.schemas import AportacionMetaCreate, MetaCreate, MetaRead, MetaUpdate
 from app.services import configuracion, divisas
 from app.services.comun import cambios_parciales, existe, obtener_o_404, obtener_referencia
 from app.services.errores import ConflictoError, ReglaDeNegocioError
-from app.services.saldos import CENTIMOS, a_decimal, saldo_actual
+from app.services.saldos import CENTIMOS, a_decimal, movimientos_por_cuenta, saldo_actual
 
 # Duración media de un mes (365.25 / 12): para pasar días a meses sin calendario.
 _DIAS_POR_MES = 30.4375
@@ -21,24 +21,35 @@ _DIAS_POR_MES = 30.4375
 # ---------------------------------------------------------------------------
 # Progreso
 # ---------------------------------------------------------------------------
-def _ahorrado(session: Session, meta: Meta, hoy: date) -> Decimal:
-    """Con cuenta: su saldo (convertido a la moneda de la meta). Sin cuenta: sus aportaciones."""
+def _ahorrado(
+    session: Session, meta: Meta, hoy: date, movimientos: dict[int, Decimal] | None = None
+) -> Decimal:
+    """Con cuenta: su saldo (convertido a la moneda de la meta). Sin cuenta: sus aportaciones.
+
+    `movimientos` (de `movimientos_por_cuenta`) evita recalcular los saldos meta a meta.
+    """
     if meta.cuenta_id is not None:
         cuenta = session.get(Cuenta, meta.cuenta_id)
         if cuenta.moneda != meta.moneda:
             divisas.asegurar_tasas_del_dia(session)
+        if movimientos is None:
+            saldo = saldo_actual(session, cuenta)
+        else:
+            saldo = a_decimal(cuenta.balance_inicial + movimientos.get(cuenta.id, Decimal(0)))
         # Un saldo es dinero de hoy: se convierte con la tasa de hoy.
-        return divisas.convertir(session, saldo_actual(session, cuenta), cuenta.moneda, meta.moneda, hoy)
+        return divisas.convertir(session, saldo, cuenta.moneda, meta.moneda, hoy)
     suma = session.exec(select(func.sum(AportacionMeta.monto)).where(AportacionMeta.meta_id == meta.id)).one()
     return a_decimal(suma)
 
 
-def _con_progreso(session: Session, meta: Meta, hoy: date) -> MetaRead:
+def _con_progreso(
+    session: Session, meta: Meta, hoy: date, movimientos: dict[int, Decimal] | None = None
+) -> MetaRead:
     """Calcula el progreso y, si se acaba de alcanzar el objetivo, anota el día.
 
     Modifica `meta.fecha_cumplida` sin hacer commit: lo hace quien llama.
     """
-    ahorrado = _ahorrado(session, meta, hoy)
+    ahorrado = _ahorrado(session, meta, hoy, movimientos)
     if ahorrado >= meta.monto_objetivo and meta.fecha_cumplida is None:
         meta.fecha_cumplida = hoy
         session.add(meta)
@@ -88,8 +99,10 @@ def listar(session: Session, hoy: date | None = None) -> list[MetaRead]:
     """Activas primero (las de fecha más cercana arriba) y después las cumplidas."""
     hoy = hoy or date.today()
     metas = session.exec(select(Meta).order_by(col(Meta.nombre))).all()
-    leidas = [_con_progreso(session, meta, hoy) for meta in metas]
-    session.commit()  # guarda las fechas de cumplimiento que se acaben de anotar
+    movimientos = movimientos_por_cuenta(session)  # una sola vez para todas las metas
+    leidas = [_con_progreso(session, meta, hoy, movimientos) for meta in metas]
+    if session.dirty:  # solo si se anotó alguna fecha de cumplimiento: un GET normal no escribe
+        session.commit()
     return sorted(leidas, key=lambda m: (m.cumplida, m.fecha_limite or date.max))
 
 

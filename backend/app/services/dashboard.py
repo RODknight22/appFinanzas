@@ -4,6 +4,7 @@ Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en m
 siempre sobre `monto_principal`: así se suman importes de distintas monedas.
 """
 
+from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -21,7 +22,7 @@ from app.schemas import (
     SaldoCuenta,
 )
 from app.services import configuracion, divisas, mes_financiero
-from app.services.saldos import a_decimal, movimientos_por_cuenta
+from app.services.saldos import a_decimal, movimientos_por_cuenta, movimientos_por_cuenta_y_mes
 
 
 # ---------------------------------------------------------------------------
@@ -220,16 +221,27 @@ def patrimonio(session: Session, hasta_mes: str, meses: int, hoy: date | None = 
     if any(cuenta.moneda != principal for cuenta in cuentas):
         divisas.asegurar_tasas_del_dia(session)
 
+    dia_inicio = configuracion.dia_inicio_mes(session)
+    lista_meses = _meses_anteriores(hasta_mes, meses)
+    manana = hoy + timedelta(days=1)  # nada posterior a hoy cuenta en el patrimonio
+    inicio = min(mes_financiero.rango_mes(lista_meses[0], dia_inicio)[0], manana)
+    ultimo_corte = min(mes_financiero.rango_mes(lista_meses[-1], dia_inicio)[1], manana)
+
+    # Dos lecturas en vez de tres por mes: lo anterior a la ventana y el desglose por mes dentro.
+    acumulado = defaultdict(Decimal, movimientos_por_cuenta(session, antes_de=inicio))
+    por_mes = movimientos_por_cuenta_y_mes(session, dia_inicio, inicio, ultimo_corte)
+
     puntos: list[PuntoPatrimonio] = []
-    for mes in _meses_anteriores(hasta_mes, meses):
-        _, fin = _rango_mes(session, mes)
-        corte = min(fin, hoy + timedelta(days=1))  # [inicio, corte): el mes en curso solo hasta hoy
-        movimientos = movimientos_por_cuenta(session, antes_de=corte)
+    for mes in lista_meses:
+        for cuenta in cuentas:
+            acumulado[cuenta.id] += por_mes.get((cuenta.id, mes), Decimal(0))
+        _, fin = mes_financiero.rango_mes(mes, dia_inicio)
+        corte = min(fin, manana)  # [inicio, corte): el mes en curso solo hasta hoy
         total = sum(
             (
                 divisas.convertir(
                     session,
-                    cuenta.balance_inicial + movimientos.get(cuenta.id, Decimal(0)),
+                    cuenta.balance_inicial + acumulado[cuenta.id],
                     cuenta.moneda or principal,
                     principal,
                     corte - timedelta(days=1),
