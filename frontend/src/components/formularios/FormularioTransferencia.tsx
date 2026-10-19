@@ -1,4 +1,4 @@
-import { ArrowDown } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { transferenciasApi } from "../../api/recursos";
@@ -77,6 +77,16 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
   const entreMonedas = Boolean(origen && destino && origen.moneda !== destino.moneda);
   const estimado = entreMonedas && montoOrigen ? convertir(Number(montoOrigen), origen!.moneda, destino!.moneda) : undefined;
 
+  function invertir() {
+    setOrigenId(destinoId);
+    setDestinoId(origenId);
+    // Entre monedas distintas, lo que llegaba pasa a ser lo que sale (y al revés).
+    if (entreMonedas) {
+      setMontoOrigen(montoDestino);
+      setMontoDestino(montoOrigen);
+    }
+  }
+
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
     const datos = {
@@ -112,7 +122,16 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
             {opciones(destinoId)}
           </select>
         </Campo>
-        <ArrowDown size={16} className="mx-auto text-slate-400" aria-hidden />
+        {/* Invierte el sentido: lo que era origen pasa a destino y al revés */}
+        <button
+          type="button"
+          onClick={invertir}
+          title="Invertir el sentido"
+          aria-label="Invertir el sentido de la transferencia"
+          className="mx-auto flex rounded-full border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:rotate-180 hover:border-acento-400 hover:text-acento-600 dark:border-slate-700 dark:bg-slate-800"
+        >
+          <ArrowUpDown size={16} />
+        </button>
         <Campo etiqueta="Hacia">
           <select className={CLASE_ENTRADA} value={destinoId} onChange={(e) => setDestinoId(Number(e.target.value))}>
             {opciones(origenId)}
