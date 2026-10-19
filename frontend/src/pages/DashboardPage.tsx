@@ -40,6 +40,8 @@ export function DashboardPage() {
         transaccionesApi.listar({ limit: 5 }),
         categoriasApi.listar(),
         metasApi.listar(),
+        dashboardApi.patrimonio(mes, 12),
+        dashboardApi.gastosDiarios(mes),
       ]),
     [mes],
   );
@@ -79,7 +81,7 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
-        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
             resumen,
@@ -91,6 +93,9 @@ export function DashboardPage() {
             ultimas,
             categorias,
             metas,
+            patrimonio,
+            diarios,
+            mes,
           };
           return <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />;
         }}

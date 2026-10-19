@@ -24,13 +24,19 @@ export function GraficoCategorias({ datos }: { datos: GastoPorCategoria[] }) {
 
   // Recharts lee `valor` como número para calcular el tamaño de cada porción.
   const porciones = datos.map((gasto) => ({ ...gasto, valor: Number(gasto.total) }));
+  const total = porciones.reduce((suma, p) => suma + p.valor, 0);
 
   return (
     <div>
-      <div className="h-44">
+      {/* relative: el total se superpone en el hueco del anillo */}
+      <div className="relative h-48">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-xs text-tenue">Total</span>
+          <span className="text-lg font-bold tabular-nums">{formatearDinero(total)}</span>
+        </div>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={porciones} dataKey="valor" nameKey="nombre" innerRadius="62%" outerRadius="100%" paddingAngle={2} stroke="none">
+            <Pie data={porciones} dataKey="valor" nameKey="nombre" innerRadius="72%" outerRadius="100%" paddingAngle={3} cornerRadius={6} stroke="none">
               {porciones.map((gasto) => (
                 <Cell key={gasto.categoria_id} fill={gasto.color} />
               ))}

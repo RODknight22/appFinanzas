@@ -1,8 +1,10 @@
 import type {
   FlujoMensual,
+  GastoDiario,
   GastoPorCategoria,
   MesAnio,
   ProgresoPresupuesto,
+  PuntoPatrimonio,
   ResumenMes,
 } from "../types";
 import { http } from "./cliente";
@@ -15,4 +17,7 @@ export const dashboardApi = {
     http.get<GastoPorCategoria[]>("/dashboard/gastos-por-categoria", { mes_anio }),
   presupuestos: (mes_anio: MesAnio) =>
     http.get<ProgresoPresupuesto[]>("/dashboard/presupuestos", { mes_anio }),
+  patrimonio: (hasta_mes: MesAnio, meses = 12) =>
+    http.get<PuntoPatrimonio[]>("/dashboard/patrimonio", { hasta_mes, meses }),
+  gastosDiarios: (mes_anio: MesAnio) => http.get<GastoDiario[]>("/dashboard/gastos-diarios", { mes_anio }),
 };
