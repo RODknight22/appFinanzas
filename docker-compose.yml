@@ -2,7 +2,9 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      # 127.0.0.1: solo este ordenador. Sin él, cualquiera de tu red (p. ej. la Wi-Fi)
+      # podría abrir la app.
+      - "127.0.0.1:8000:8000"
     environment:
       DATA_DIR: /data
     volumes:
@@ -16,7 +18,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     environment:
       # Dentro de la red de Docker, el backend se llama por el nombre del servicio.
       API_URL: http://backend:8000

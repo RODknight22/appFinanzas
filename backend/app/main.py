@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.database import init_db
+from app.version import VERSION
 from app.dependencias import requiere_sesion
 from app.routers import (
     acceso,
@@ -33,7 +34,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title="Finanzas Personales API",
-    version="0.1.0",
+    version=VERSION,
     lifespan=lifespan,
 )
 
@@ -67,8 +68,8 @@ for modulo in (
 
 @app.get("/health", tags=["Sistema"])
 def health() -> dict[str, str]:
-    """Comprobación rápida de que la API está viva (útil para Docker)."""
-    return {"status": "ok"}
+    """Comprobación rápida de que la API está viva (Docker y el lanzador la usan)."""
+    return {"status": "ok", "app": "appfinanzas", "version": VERSION}
 
 
 @app.get("/", include_in_schema=False)
