@@ -34,7 +34,7 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
   const usado = limite ? Math.min((deuda / limite) * 100, 100) : 0;
 
   return (
-    <div className="mt-2 space-y-2 text-xs text-slate-500">
+    <div className="mt-2 space-y-2 text-xs text-tenue">
       <p className="flex flex-wrap gap-x-4 gap-y-1">
         <CalendarClock size={14} className="shrink-0" />
         {cuenta.dia_corte && <FechaTarjeta etiqueta="Corte" dia={cuenta.dia_corte} />}
@@ -42,7 +42,7 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
       </p>
       {limite && (
         <div className="max-w-sm">
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="h-1.5 overflow-hidden rounded-full bg-superficie-2">
             <div
               className={`h-full rounded-full ${usado >= 80 ? "bg-rose-500" : "bg-sky-500"}`}
               style={{ width: `${usado}%` }}
@@ -68,7 +68,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
   const pendiente = rendimientoEstimado(saldo, tasa, diasPendientes);
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
+    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-tenue">
       <span>
         {tasa}% anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1), cuenta.moneda)} al día · ≈{" "}
         {formatearDinero(rendimientoEstimado(saldo, tasa, 30), cuenta.moneda)} al mes
@@ -92,15 +92,15 @@ export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRen
   return (
     <li className="py-4">
       <div className="flex items-start gap-4">
-        <span className="rounded-xl bg-slate-100 p-2.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+        <span className="rounded-xl bg-superficie-2 p-2.5 text-suave">
           <Icono size={20} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{cuenta.nombre}</p>
-          <p className="text-xs text-slate-500">{etiqueta}</p>
+          <p className="text-xs text-tenue">{etiqueta}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-slate-500">{esCredito ? "Deuda" : "Saldo actual"}</p>
+          <p className="text-xs text-tenue">{esCredito ? "Deuda" : "Saldo actual"}</p>
           <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
             {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo, cuenta.moneda)}
           </p>

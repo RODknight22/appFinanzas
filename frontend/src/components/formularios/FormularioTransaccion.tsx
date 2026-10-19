@@ -25,7 +25,7 @@ function VistaPreviaConversion({ monto, de, a }: VistaPreviaProps) {
   if (!a || a === de || !monto) return null;
   const convertido = convertir(monto, de, a);
   return (
-    <p className="text-xs text-slate-500">
+    <p className="text-xs text-tenue">
       {convertido === undefined
         ? `Falta la tasa de ${de} o ${a}: añádela en Ajustes.`
         : `≈ ${formatearDinero(convertido, a)} en la cuenta (se guardará con la tasa de su fecha)`}
@@ -103,7 +103,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
 
   if (cuentas.length === 0) {
     return (
-      <p className="text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-sm text-suave">
         Primero necesitas una cuenta.{" "}
         <Link to="/cuentas" className="font-medium text-acento-600 hover:underline">Crear cuenta</Link>
       </p>
@@ -113,7 +113,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
   return (
     <form onSubmit={enviar} className="space-y-4">
       {/* Interruptor gasto/ingreso: lo primero que se decide al anotar un movimiento */}
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-superficie-2 p-1">
         {(["gasto", "ingreso"] as const).map((opcion) => (
           <button
             key={opcion}
@@ -122,7 +122,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
             className={`rounded-lg py-2 text-sm font-medium capitalize transition ${
               tipo === opcion
                 ? opcion === "gasto" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
-                : "text-slate-500"
+                : "text-tenue"
             }`}
           >
             {opcion}

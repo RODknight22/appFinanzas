@@ -64,10 +64,10 @@ export function SuscripcionesPage() {
           return (
             <>
               {suscripciones.length > 0 && (
-                <p className="mb-4 text-sm text-slate-500">
+                <p className="mb-4 text-sm text-tenue">
                   Coste mensual estimado:{" "}
-                  <strong className="text-slate-900 tabular-nums dark:text-slate-100">{formatearDinero(costeMensual)}</strong>
-                  {" · "}al año: <strong className="text-slate-900 tabular-nums dark:text-slate-100">{formatearDinero(costeMensual * 12)}</strong>
+                  <strong className="text-texto tabular-nums">{formatearDinero(costeMensual)}</strong>
+                  {" · "}al año: <strong className="text-texto tabular-nums">{formatearDinero(costeMensual * 12)}</strong>
                 </p>
               )}
 
@@ -78,20 +78,20 @@ export function SuscripcionesPage() {
                     accion={<Boton variante="secundario" onClick={() => setModal({ modo: "nueva" })}>Añadir la primera</Boton>}
                   />
                 ) : (
-                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <ul className="divide-y divide-linea">
                     {suscripciones.map((suscripcion) => {
                       const dias = diasHasta(suscripcion.fecha_proximo_pago);
                       // Rojo si está atrasada, ámbar si vence en una semana.
-                      const colorFecha = dias < 0 ? "text-rose-600" : dias <= 7 ? "text-amber-600" : "text-slate-500";
+                      const colorFecha = dias < 0 ? "text-rose-600" : dias <= 7 ? "text-amber-600" : "text-tenue";
                       return (
                         <li key={suscripcion.id} className="flex flex-wrap items-center gap-3 py-3">
-                          <span className="rounded-lg bg-slate-100 p-2.5 text-slate-500 dark:bg-slate-800">
+                          <span className="rounded-lg bg-superficie-2 p-2.5 text-tenue">
                             <Repeat size={18} />
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="truncate font-medium">{suscripcion.nombre}</p>
                             <p className="text-xs">
-                              <span className="text-slate-500">{PERIODICIDADES[suscripcion.periodicidad]} · </span>
+                              <span className="text-tenue">{PERIODICIDADES[suscripcion.periodicidad]} · </span>
                               <span className={colorFecha}>
                                 {textoVencimiento(suscripcion.fecha_proximo_pago)} ({formatearFecha(suscripcion.fecha_proximo_pago)})
                               </span>

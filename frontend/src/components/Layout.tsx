@@ -12,7 +12,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
@@ -41,10 +41,11 @@ const MENU: ItemMenu[] = [
 
 /** Clases de un enlace del menú lateral según esté activo o no. */
 function claseEnlace({ isActive }: { isActive: boolean }): string {
-  return `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+  // Activa: una "píldora" de superficie con el icono en el color de acento.
+  return `flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-semibold transition-colors ${
     isActive
-      ? "bg-acento-50 text-acento-700 dark:bg-acento-950/60 dark:text-acento-300"
-      : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+      ? "bg-superficie text-texto shadow-[var(--sombra)] ring-1 ring-linea [&>svg]:text-acento-500"
+      : "text-tenue hover:bg-realce hover:text-texto"
   }`;
 }
 
@@ -59,15 +60,16 @@ export function Layout() {
   // El nombre de Ajustes si lo hay; si no, el de usuario del login.
   const nombre = configuracion.nombre ?? usuario;
   const IconoTema = tema === "oscuro" ? Sun : Moon;
+  const location = useLocation();
 
   return (
     <div className="min-h-screen md:flex">
       {/* Menú lateral: solo en pantallas medianas o más grandes */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex dark:border-slate-800 dark:bg-slate-900">
-        <Link to="/ajustes" className="mb-8 flex items-center gap-3 rounded-lg px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800" title="Editar perfil">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-1 p-5 md:flex">
+        <Link to="/ajustes" className="mb-8 flex items-center gap-3 rounded-full p-1.5 pr-3 transition-colors hover:bg-realce" title="Editar perfil">
           <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
           <span className="min-w-0">
-            <span className="block text-xs text-slate-500">Mis Finanzas</span>
+            <span className="block text-xs text-tenue">Mis Finanzas</span>
             <span className="block truncate font-semibold">Hola, {nombre}</span>
           </span>
         </Link>
@@ -92,7 +94,7 @@ export function Layout() {
         <button
           type="button"
           onClick={alternar}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+          className="flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-semibold text-tenue transition-colors hover:bg-realce hover:text-texto"
         >
           <IconoTema size={18} />
           {tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
@@ -100,7 +102,7 @@ export function Layout() {
         <button
           type="button"
           onClick={cerrarSesion}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+          className="flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-semibold text-tenue transition-colors hover:bg-realce hover:text-texto"
         >
           <LogOut size={18} />
           <span className="truncate">Salir ({usuario})</span>
@@ -108,33 +110,34 @@ export function Layout() {
       </aside>
 
       {/* Cabecera móvil con ajustes y botón de tema */}
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-900">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-linea bg-fondo/80 px-4 py-3 backdrop-blur-lg md:hidden">
         <span className="flex min-w-0 items-center gap-2">
           <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
           <span className="truncate font-semibold">Hola, {nombre}</span>
         </span>
         <div className="flex items-center gap-1">
-          <Link to="/categorias" aria-label="Categorías" className="rounded-lg p-2 text-slate-500">
+          <Link to="/categorias" aria-label="Categorías" className="rounded-lg p-2 text-tenue">
             <Tags size={18} />
           </Link>
-          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-slate-500">
+          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue">
             <Settings size={18} />
           </Link>
-          <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-slate-500">
+          <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-tenue">
             <IconoTema size={18} />
           </button>
-          <button type="button" onClick={cerrarSesion} aria-label="Cerrar sesión" className="rounded-lg p-2 text-slate-500">
+          <button type="button" onClick={cerrarSesion} aria-label="Cerrar sesión" className="rounded-lg p-2 text-tenue">
             <LogOut size={18} />
           </button>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-24 md:px-8 md:py-8">
+      {/* key: al cambiar de página se vuelve a montar y se repite la animación de entrada */}
+      <main key={location.pathname} className="mx-auto w-full max-w-6xl flex-1 animate-entrada px-4 pt-6 pb-24 md:px-8 md:py-8">
         <Outlet />
       </main>
 
       {/* Barra inferior en móvil */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white md:hidden dark:border-slate-800 dark:bg-slate-900">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-linea bg-superficie/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden">
         {MENU.filter((item) => !item.soloEscritorio).map(({ ruta, etiqueta, corta, icono: Icono }) => (
           <NavLink
             key={ruta}
@@ -142,7 +145,7 @@ export function Layout() {
             aria-label={etiqueta}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 py-2 text-[10px] ${
-                isActive ? "text-acento-600 dark:text-acento-400" : "text-slate-500"
+                isActive ? "text-acento-600 dark:text-acento-400" : "text-tenue"
               }`
             }
           >

@@ -10,12 +10,12 @@ export function ListaPagos({ pagos }: { pagos: PagoProximo[] }) {
     <ul className="space-y-3">
       {pagos.map((pago) => (
         <li key={pago.clave} className="flex items-center gap-3 text-sm">
-          <span className="rounded-lg bg-slate-100 p-2 text-slate-500 dark:bg-slate-800">
+          <span className="rounded-lg bg-superficie-2 p-2 text-tenue">
             {pago.origen === "tarjeta" ? <CreditCard size={16} /> : <CalendarClock size={16} />}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate font-medium">{pago.nombre}</span>
-            <span className={`text-xs ${diasHasta(pago.fecha) < 0 ? "text-rose-600" : "text-slate-500"}`}>
+            <span className={`text-xs ${diasHasta(pago.fecha) < 0 ? "text-rose-600" : "text-tenue"}`}>
               {textoVencimiento(pago.fecha)} · {formatearFecha(pago.fecha)}
             </span>
           </span>

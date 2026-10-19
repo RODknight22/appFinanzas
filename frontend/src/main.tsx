@@ -5,6 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AccesoProvider } from "./hooks/useAcceso";
 import { ConfiguracionProvider } from "./hooks/useConfiguracion";
+// La fuente va incluida en la app (no se descarga de Google): funciona sin internet.
+import "@fontsource-variable/manrope";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(

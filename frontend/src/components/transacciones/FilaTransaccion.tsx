@@ -22,7 +22,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{categoria?.nombre ?? "Sin categoría"}</p>
         {/* En móvil hay poco ancho: hasta 2 líneas en vez de cortar en "Banc…" */}
-        <p className="line-clamp-2 text-xs text-slate-500 sm:truncate">
+        <p className="line-clamp-2 text-xs text-tenue sm:truncate">
           {formatearFecha(transaccion.fecha)} · {cuenta?.nombre}
           {transaccion.notas && ` · ${transaccion.notas}`}
         </p>
@@ -33,7 +33,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
         </span>
         {/* Pagado en otra divisa: lo que movió en la cuenta */}
         {cuenta && transaccion.moneda !== cuenta.moneda && (
-          <span className="block text-xs text-slate-500 tabular-nums">
+          <span className="block text-xs text-tenue tabular-nums">
             ≈ {formatearDinero(transaccion.monto_cuenta, cuenta.moneda)}
           </span>
         )}
@@ -46,7 +46,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
           to="/cuentas"
           title="Comisión de una transferencia: se edita desde Cuentas"
           aria-label="Editar desde Cuentas"
-          className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="shrink-0 rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
         >
           <ArrowRightLeft size={16} />
         </Link>

@@ -39,14 +39,14 @@ export function CategoriasPage() {
         acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva categoría</Boton>}
       />
 
-      <div className="mb-4 inline-flex rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
+      <div className="mb-4 inline-flex rounded-xl bg-superficie-2 p-1">
         {PESTANAS.map((pestana) => (
           <button
             key={pestana.tipo}
             type="button"
             onClick={() => setTipo(pestana.tipo)}
             className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
-              tipo === pestana.tipo ? "bg-white shadow-sm dark:bg-slate-800" : "text-slate-500"
+              tipo === pestana.tipo ? "bg-superficie shadow-sm" : "text-tenue"
             }`}
           >
             {pestana.etiqueta}
@@ -62,7 +62,7 @@ export function CategoriasPage() {
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {categorias.map((categoria) => (
-                  <li key={categoria.id} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 dark:border-slate-800">
+                  <li key={categoria.id} className="flex items-center gap-3 rounded-xl border border-linea p-3">
                     <IconoCategoria icono={categoria.icono} color={categoria.color} />
                     <span className="flex-1 truncate font-medium">{categoria.nombre}</span>
                     <AccionesFila

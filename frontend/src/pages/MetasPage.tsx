@@ -80,7 +80,7 @@ export function MetasPage() {
               )}
               {cumplidas.length > 0 && (
                 <section>
-                  <h2 className="mb-3 text-sm font-semibold text-slate-500">Cumplidas ({cumplidas.length})</h2>
+                  <h2 className="mb-3 text-sm font-semibold text-tenue">Cumplidas ({cumplidas.length})</h2>
                   {tarjetas(cumplidas, cuentas)}
                 </section>
               )}

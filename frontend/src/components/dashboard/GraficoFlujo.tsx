@@ -20,7 +20,7 @@ const COLOR_GASTOS = "#f43f5e";
 function TooltipFlujo({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-md dark:border-slate-700 dark:bg-slate-800">
+    <div className="rounded-xl bg-superficie-2 px-3 py-2 text-xs shadow-lg ring-1 ring-linea">
       <p className="mb-1 font-semibold">{formatearMes(String(label))}</p>
       {payload.map((serie) => (
         <p key={serie.dataKey} className="flex items-center gap-2">
@@ -45,8 +45,8 @@ export function GraficoFlujo({ datos }: { datos: FlujoMensual[] }) {
   }));
 
   return (
-    // text-slate-500 + "currentColor" hacen que ejes y rejilla sigan el tema.
-    <div className="h-72 text-slate-500">
+    // text-tenue + "currentColor" hacen que ejes y rejilla sigan el tema.
+    <div className="h-72 text-tenue">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={filas} barGap={4} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.15} />

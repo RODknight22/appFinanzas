@@ -21,14 +21,14 @@ export function Modal({ titulo, abierto, onCerrar, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
       onMouseDown={onCerrar}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"
+        className="max-h-[90vh] w-full max-w-md animate-entrada overflow-y-auto rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea"
         // Evita que un clic dentro del modal llegue al fondo y lo cierre.
         onMouseDown={(evento) => evento.stopPropagation()}
       >
@@ -38,7 +38,7 @@ export function Modal({ titulo, abierto, onCerrar, children }: ModalProps) {
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar"
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-texto"
           >
             <X size={20} />
           </button>

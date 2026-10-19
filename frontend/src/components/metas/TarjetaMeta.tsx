@@ -31,7 +31,7 @@ function Consejo({ meta }: { meta: Meta }) {
   if (meta.ahorro_mensual && meta.fecha_limite) {
     return (
       <p>
-        Faltan {dinero(meta.restante)}: ahorra <strong className="text-slate-900 dark:text-slate-100">{dinero(meta.ahorro_mensual)} al mes</strong>{" "}
+        Faltan {dinero(meta.restante)}: ahorra <strong className="text-texto">{dinero(meta.ahorro_mensual)} al mes</strong>{" "}
         hasta {formatearMes(meta.fecha_limite.slice(0, 7)).toLowerCase()}.
       </p>
     );
@@ -42,14 +42,14 @@ function Consejo({ meta }: { meta: Meta }) {
 export function TarjetaMeta({ meta, cuenta, onAportar, onEditar, onEliminar, onMarcarCumplida }: TarjetaMetaProps) {
   const conCuenta = meta.cuenta_id !== null;
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <article className="flex flex-col gap-3 rounded-3xl bg-superficie p-5 shadow-[var(--sombra)] ring-1 ring-linea">
       <header className="flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-acento-50 text-2xl dark:bg-acento-950" aria-hidden>
           {meta.icono}
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-semibold">{meta.nombre}</h2>
-          <p className="flex items-center gap-1 text-xs text-slate-500">
+          <p className="flex items-center gap-1 text-xs text-tenue">
             {conCuenta ? <Wallet size={12} /> : <PiggyBank size={12} />}
             {conCuenta ? `Saldo de ${cuenta?.nombre ?? "su cuenta"}` : "Con aportaciones"}
             {meta.fecha_limite && ` · hasta el ${formatearFecha(meta.fecha_limite)}`}
@@ -60,10 +60,10 @@ export function TarjetaMeta({ meta, cuenta, onAportar, onEditar, onEliminar, onM
 
       <div>
         <BarraMeta meta={meta} />
-        <p className="mt-1 text-right text-xs tabular-nums text-slate-500">{meta.porcentaje}%</p>
+        <p className="mt-1 text-right text-xs tabular-nums text-tenue">{meta.porcentaje}%</p>
       </div>
 
-      <div className="text-sm text-slate-600 dark:text-slate-300">
+      <div className="text-sm text-suave">
         <Consejo meta={meta} />
       </div>
 

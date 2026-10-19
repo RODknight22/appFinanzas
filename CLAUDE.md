@@ -7,7 +7,7 @@ Hablarle en español, explicar el diseño antes de cambios grandes y avanzar por
 
 ## Tech Stack
 - Backend: Python 3.12, FastAPI, SQLModel, Pydantic, Uvicorn. BD: SQLite en `data/finance.db` (volumen).
-- Frontend: React 18 + Vite + TypeScript, Tailwind v4 (modo oscuro), Recharts, Lucide, @dnd-kit.
+- Frontend: React 18 + Vite + TypeScript, Tailwind v4 (tokens + modo oscuro), Recharts, Lucide, @dnd-kit, Manrope.
 - Docker Compose: servicios `backend` (:8000) y `frontend` (:5173, proxy `/api` → backend).
 
 ## Funcionalidades actuales
@@ -44,7 +44,8 @@ cuentas (crédito/débito/rendimientos), categorías, multidivisa, login y perso
 - Páginas: `useDatos` + `<Contenido>`; formularios: `useEnvio` + `PieFormulario`; modales con estado
   único (`null | "nueva" | entidad`) y `key` para reiniciar. Inputs con `CLASE_ENTRADA(_BASE)`.
 - `useConfiguracion()` da config, tasas y `convertir`; formatear con `formatearDinero(valor, moneda)`.
-- Color de la app: clases `*-acento-*`; emerald/rose solo para ingreso/gasto o éxito/error.
+- Colores: nunca grises fijos (slate/white); tokens de index.css (`bg-superficie`, `text-tenue`,
+  `border-linea`…) que cada estilo define (fintech por defecto, oscuro primero). Acento: `*-acento-*`.
 - Widgets en dashboard/registroWidgets.tsx (pintan con `DatosPanel`). Ajustes: components/ajustes/.
 
 ## Hoja de ruta

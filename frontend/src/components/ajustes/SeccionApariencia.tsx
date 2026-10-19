@@ -17,7 +17,7 @@ export function SeccionApariencia() {
   return (
     <Tarjeta titulo="Apariencia">
       <fieldset>
-        <legend className="mb-3 text-sm text-slate-500">
+        <legend className="mb-3 text-sm text-tenue">
           Color de acento de botones, menú y enlaces. El modo claro/oscuro está en el menú lateral.
         </legend>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -30,7 +30,7 @@ export function SeccionApariencia() {
                 onClick={() => elegir(valor as ColorAcento)}
                 aria-pressed={activo}
                 className={`flex flex-col items-center gap-1.5 rounded-xl border p-2.5 text-xs transition ${
-                  activo ? "border-slate-400 dark:border-slate-500" : "border-transparent hover:bg-slate-50 dark:hover:bg-slate-800"
+                  activo ? "border-linea-fuerte" : "border-transparent hover:bg-realce"
                 }`}
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full text-white" style={{ backgroundColor: muestra }}>

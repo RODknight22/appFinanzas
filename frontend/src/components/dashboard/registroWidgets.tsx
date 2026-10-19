@@ -59,7 +59,7 @@ export const WIDGETS = {
     titulo: "Balance global",
     tamanoPorDefecto: "pequeno",
     pintar: ({ resumen }) => (
-      <TarjetaMetrica titulo="Balance global" valor={formatearDinero(resumen.balance_global)} icono={Wallet} detalle="Todas tus cuentas" />
+      <TarjetaMetrica titulo="Balance global" valor={formatearDinero(resumen.balance_global)} icono={Wallet} detalle="Todas tus cuentas" destacada />
     ),
   },
   ingresos: {
@@ -161,7 +161,7 @@ export const WIDGETS = {
                 <div key={meta.id}>
                   <BarraMeta meta={meta} conNombre />
                   {meta.ahorro_mensual && (
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-tenue">
                       Ahorra {formatearDinero(meta.ahorro_mensual, meta.moneda)} al mes para llegar a tiempo
                     </p>
                   )}

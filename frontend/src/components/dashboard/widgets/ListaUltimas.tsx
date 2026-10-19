@@ -22,7 +22,7 @@ export function ListaUltimas({ transacciones, categorias }: ListaUltimasProps) {
             <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? "#64748b"} tamano="sm" />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium">{transaccion.notas || categoria?.nombre}</span>
-              <span className="text-xs text-slate-500">{formatearFecha(transaccion.fecha)}</span>
+              <span className="text-xs text-tenue">{formatearFecha(transaccion.fecha)}</span>
             </span>
             <span className={`font-medium tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
               {esGasto ? "−" : "+"}

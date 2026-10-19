@@ -34,7 +34,7 @@ function TipoDeCambioAplicado({ sale, llega, de, a }: { sale: number; llega: num
   // Positivo = te dieron menos de lo que marca la tasa de hoy (el coste oculto del cambio).
   const peor = mercado ? (1 - aplicado / mercado) * 100 : 0;
   return (
-    <p className="text-xs text-slate-500">
+    <p className="text-xs text-tenue">
       Tipo aplicado: {textoTipoDeCambio(aplicado, de, a)}
       {Math.abs(peor) >= 0.05 && (
         <span className={peor > 0 ? "text-amber-600 dark:text-amber-400" : ""}>
@@ -106,7 +106,7 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
   }
 
   if (cuentas.length < 2) {
-    return <p className="text-sm text-slate-600 dark:text-slate-300">Necesitas al menos dos cuentas para hacer una transferencia.</p>;
+    return <p className="text-sm text-suave">Necesitas al menos dos cuentas para hacer una transferencia.</p>;
   }
 
   const opciones = (excluir: number) =>
@@ -128,7 +128,7 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
           onClick={invertir}
           title="Invertir el sentido"
           aria-label="Invertir el sentido de la transferencia"
-          className="mx-auto flex rounded-full border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:rotate-180 hover:border-acento-400 hover:text-acento-600 dark:border-slate-700 dark:bg-slate-800"
+          className="mx-auto flex rounded-full border border-linea bg-superficie p-1.5 text-tenue transition hover:rotate-180 hover:border-acento-400 hover:text-acento-600"
         >
           <ArrowUpDown size={16} />
         </button>
@@ -164,7 +164,7 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
           (montoDestino ? (
             <TipoDeCambioAplicado sale={Number(montoOrigen)} llega={Number(montoDestino)} de={origen!.moneda} a={destino!.moneda} />
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-tenue">
               Escribe lo que te llegó de verdad para guardar el tipo de cambio real. Si lo dejas vacío, se estima con la tasa de la fecha.
             </p>
           ))}
@@ -179,7 +179,7 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
             <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0" value={comision} onChange={(e) => setComision(e.target.value)} placeholder="Opcional" />
           </Campo>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-tenue">
           {Number(comision) > 0 && origen
             ? `La comisión se anota como gasto en "Comisiones": en total salen ${formatearDinero(Number(montoOrigen) + Number(comision), origen.moneda)}.`
             : "La transferencia no cuenta como ingreso ni gasto; la comisión del banco, sí."}

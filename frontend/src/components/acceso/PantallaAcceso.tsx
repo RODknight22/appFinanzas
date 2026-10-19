@@ -34,14 +34,14 @@ export function PantallaAcceso({ primeraVez, onEntrar }: PantallaAccesoProps) {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="w-full max-w-sm animate-entrada rounded-3xl bg-superficie p-8 shadow-[var(--sombra)] ring-1 ring-linea">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-acento-600 text-white">
             <Wallet size={24} />
           </span>
           <div>
             <h1 className="text-xl font-bold">Mis Finanzas</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-tenue">
               {primeraVez ? "Crea tu usuario y contraseña para proteger tus datos" : "Inicia sesión para continuar"}
             </p>
           </div>
@@ -76,7 +76,7 @@ export function PantallaAcceso({ primeraVez, onEntrar }: PantallaAccesoProps) {
         </form>
 
         {primeraVez && (
-          <p className="mt-6 text-center text-xs text-slate-500">
+          <p className="mt-6 text-center text-xs text-tenue">
             Si algún día la olvidas, se puede restablecer desde el servidor sin perder tus datos.
           </p>
         )}

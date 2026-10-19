@@ -52,13 +52,13 @@ export function FormularioMeta({ inicial, cuentas, onGuardado, onCancelar }: For
 
   const claseOpcion = (activa: boolean) =>
     `flex h-9 w-9 items-center justify-center rounded-full text-lg transition ${
-      activa ? "bg-acento-100 ring-2 ring-acento-500 dark:bg-acento-950" : "hover:bg-slate-100 dark:hover:bg-slate-800"
+      activa ? "bg-acento-100 ring-2 ring-acento-500 dark:bg-acento-950" : "hover:bg-realce"
     }`;
   const claseModo = (activo: boolean) =>
     `rounded-lg border px-3 py-2 text-left text-sm transition ${
       activo
         ? "border-acento-500 bg-acento-50 dark:bg-acento-950/50"
-        : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+        : "border-linea hover:bg-realce"
     }`;
 
   return (
@@ -68,7 +68,7 @@ export function FormularioMeta({ inicial, cuentas, onGuardado, onCancelar }: For
       </Campo>
 
       <fieldset>
-        <legend className="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">Icono</legend>
+        <legend className="mb-1.5 text-sm font-medium text-suave">Icono</legend>
         <div className="flex flex-wrap gap-1">
           {ICONOS_META.map((emoji) => (
             <button key={emoji} type="button" onClick={() => setIcono(emoji)} aria-pressed={icono === emoji} aria-label={`Icono ${emoji}`} className={claseOpcion(icono === emoji)}>
@@ -93,15 +93,15 @@ export function FormularioMeta({ inicial, cuentas, onGuardado, onCancelar }: For
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">¿Cómo se mide el progreso?</legend>
+        <legend className="mb-1.5 text-sm font-medium text-suave">¿Cómo se mide el progreso?</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           <button type="button" className={claseModo(modo === "aportaciones")} onClick={() => setModo("aportaciones")} aria-pressed={modo === "aportaciones"}>
             <span className="block font-medium">Con aportaciones</span>
-            <span className="text-xs text-slate-500">Vas anotando lo que apartas. Varias metas pueden compartir cuenta.</span>
+            <span className="text-xs text-tenue">Vas anotando lo que apartas. Varias metas pueden compartir cuenta.</span>
           </button>
           <button type="button" className={claseModo(modo === "cuenta")} onClick={() => setModo("cuenta")} aria-pressed={modo === "cuenta"} disabled={cuentas.length === 0}>
             <span className="block font-medium">Saldo de una cuenta</span>
-            <span className="text-xs text-slate-500">Para una hucha o cajita dedicada: el progreso es su saldo.</span>
+            <span className="text-xs text-tenue">Para una hucha o cajita dedicada: el progreso es su saldo.</span>
           </button>
         </div>
         {modo === "cuenta" && (
