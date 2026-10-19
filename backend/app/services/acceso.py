@@ -21,11 +21,14 @@ from app.services.errores import (
 
 DURACION_SESION = timedelta(days=30)
 
-# Freno a la fuerza bruta: tras _MAX_FALLOS fallos seguidos, esperar _BLOQUEO.
-# En memoria (se reinicia con el servidor): suficiente para una app local.
+# Freno a la fuerza bruta: tras _MAX_FALLOS fallos seguidos, un bloqueo que se
+# duplica cada vez (1, 2, 4… minutos, hasta 15). En memoria (se reinicia con el
+# servidor): suficiente para una app que solo escucha en este ordenador.
 _MAX_FALLOS = 5
 _BLOQUEO_SEGUNDOS = 60
+_BLOQUEO_MAXIMO_SEGUNDOS = 15 * 60
 _fallos = 0
+_bloqueos = 0
 _bloqueado_hasta = 0.0
 
 
@@ -42,6 +45,8 @@ def _abrir_sesion(session: Session) -> str:
     """Crea una sesión y devuelve el token (en claro solo esta vez, para la cookie)."""
     token = nuevo_token()
     ahora = _ahora()
+    # Limpieza de paso: las sesiones caducadas que nadie volvió a usar.
+    session.exec(delete(Sesion).where(Sesion.expira < ahora))
     session.add(Sesion(token_hash=hash_token(token), creada=ahora, expira=ahora + DURACION_SESION))
     session.commit()
     return token
@@ -79,25 +84,38 @@ def registrar(session: Session, datos: DatosRegistro) -> str:
     return _abrir_sesion(session)
 
 
-def iniciar_sesion(session: Session, datos: DatosLogin) -> str:
-    global _fallos, _bloqueado_hasta
+def _comprobar_freno() -> None:
     espera = _bloqueado_hasta - time.monotonic()
     if espera > 0:
         raise DemasiadosIntentosError(f"Demasiados intentos. Espera {int(espera) + 1} s y vuelve a probar.")
 
+
+def _registrar_fallo() -> None:
+    global _fallos, _bloqueos, _bloqueado_hasta
+    _fallos += 1
+    if _fallos >= _MAX_FALLOS:
+        duracion = min(_BLOQUEO_SEGUNDOS * 2**_bloqueos, _BLOQUEO_MAXIMO_SEGUNDOS)
+        _fallos, _bloqueos, _bloqueado_hasta = 0, _bloqueos + 1, time.monotonic() + duracion
+
+
+def _registrar_acierto() -> None:
+    global _fallos, _bloqueos
+    _fallos, _bloqueos = 0, 0
+
+
+def iniciar_sesion(session: Session, datos: DatosLogin) -> str:
+    _comprobar_freno()
     usuario = _usuario(session)
-    # Se calcula siempre el hash (aunque el usuario no coincida) para que la
+    # Se calcula el hash aunque el nombre de usuario no coincida, para que la
     # respuesta tarde lo mismo y el tiempo no revele qué dato falló.
     contrasena_ok = usuario is not None and verificar_contrasena(datos.contrasena, usuario.password_hash)
     correcto = contrasena_ok and usuario is not None and usuario.usuario == datos.usuario.strip()
     if not correcto:
-        _fallos += 1
-        if _fallos >= _MAX_FALLOS:
-            _fallos, _bloqueado_hasta = 0, time.monotonic() + _BLOQUEO_SEGUNDOS
+        _registrar_fallo()
         # Mismo mensaje falle el usuario o la contraseña: no damos pistas.
         raise NoAutenticadoError("Usuario o contraseña incorrectos")
 
-    _fallos = 0
+    _registrar_acierto()
     return _abrir_sesion(session)
 
 
@@ -112,8 +130,13 @@ def cambiar_contrasena(session: Session, token: str, datos: CambioContrasena) ->
     usuario = usuario_de_token(session, token)
     if usuario is None:
         raise NoAutenticadoError("Inicia sesión para cambiar la contraseña")
+    # Mismo freno que el login: con una sesión robada no se podría probar
+    # contraseñas sin límite aquí.
+    _comprobar_freno()
     if not verificar_contrasena(datos.actual, usuario.password_hash):
+        _registrar_fallo()
         raise ReglaDeNegocioError("La contraseña actual no es correcta")
+    _registrar_acierto()
     usuario.password_hash = hash_contrasena(datos.nueva)
     session.add(usuario)
     session.exec(delete(Sesion).where(Sesion.token_hash != hash_token(token)))
@@ -122,5 +145,5 @@ def cambiar_contrasena(session: Session, token: str, datos: CambioContrasena) ->
 
 def reiniciar_freno_de_intentos() -> None:
     """Solo para tests: deja el contador de fallos a cero."""
-    global _fallos, _bloqueado_hasta
-    _fallos, _bloqueado_hasta = 0, 0.0
+    global _fallos, _bloqueos, _bloqueado_hasta
+    _fallos, _bloqueos, _bloqueado_hasta = 0, 0, 0.0

@@ -5,6 +5,7 @@ código solo pide una sesión mediante `SessionDep`.
 """
 
 import os
+import threading
 import unicodedata
 from collections.abc import Generator
 from pathlib import Path
@@ -29,6 +30,10 @@ DATABASE_URL = f"sqlite:///{(DATA_DIR / 'finance.db').as_posix()}"
 # por defecto, solo permite usar una conexión desde el hilo que la creó.
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
+# Solo en producción (lo activan el lanzador y la imagen Docker): WAL usa memoria
+# compartida que falla en carpetas montadas de Docker en Windows (el entorno de desarrollo).
+USAR_WAL = os.getenv("SQLITE_WAL") == "true"
+
 
 def normalizar_texto(texto: str | None) -> str | None:
     """Minúsculas y sin tildes: "Educación" → "educacion". Para buscar sin importar cómo se escriba.
@@ -51,6 +56,14 @@ def _preparar_conexion(dbapi_connection, _connection_record) -> None:
     # LOWER() de SQLite solo entiende ASCII ("É" no pasa a "é"): registramos
     # nuestra función de Python para usarla en las búsquedas como sin_acentos(columna).
     dbapi_connection.create_function("sin_acentos", 1, normalizar_texto, deterministic=True)
+    if USAR_WAL:
+        cursor = dbapi_connection.cursor()
+        # WAL: leer no espera a que termine una escritura (el dashboard lanza
+        # muchas lecturas a la vez) y cada guardado es más rápido. NORMAL con WAL
+        # nunca corrompe la BD; como mucho, un corte de luz pierde el último segundo.
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.close()
 
 
 def init_db() -> None:
@@ -60,14 +73,21 @@ def init_db() -> None:
     from app import models  # noqa: F401
     from app.datos_iniciales import crear_datos_iniciales
     from app.migraciones import aplicar_migraciones
-    from app.services import divisas
 
     SQLModel.metadata.create_all(engine)
     with engine.begin() as conexion:  # begin(): commit automático al salir
         aplicar_migraciones(conexion)
     with Session(engine) as session:
         crear_datos_iniciales(session)
-        # Tasas de cambio del día (si no hay internet, se usarán las últimas guardadas).
+    # Tasas del día en segundo plano: sin internet, la descarga tardaría segundos en
+    # fallar y la app no abriría hasta entonces. Mientras, se usan las últimas guardadas.
+    threading.Thread(target=_descargar_tasas, daemon=True).start()
+
+
+def _descargar_tasas() -> None:
+    from app.services import divisas
+
+    with Session(engine) as session:
         divisas.asegurar_tasas_del_dia(session)
 
 

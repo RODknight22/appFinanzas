@@ -15,6 +15,8 @@ RUN npm run build
 FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    APP_MODO=produccion \
+    SQLITE_WAL=true \
     DATA_DIR=/data \
     FRONTEND_DIR=/app/web
 WORKDIR /app

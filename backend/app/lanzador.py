@@ -79,12 +79,17 @@ def main() -> None:
         if hasattr(flujo, "reconfigure"):
             flujo.reconfigure(encoding="utf-8", errors="replace")
 
+    # Todo lo que la app cree (BD, puerto.txt) será legible solo por tu usuario.
+    if hasattr(os, "umask"):
+        os.umask(0o077)
     datos = carpeta_de_datos()
     # 0o700: en Linux/macOS, solo tu usuario puede entrar en la carpeta de tus finanzas.
     datos.mkdir(mode=0o700, parents=True, exist_ok=True)
     archivo_puerto = datos / "puerto.txt"
     # Antes de importar la app: database.py lee DATA_DIR al cargarse.
     os.environ.setdefault("DATA_DIR", str(datos))
+    os.environ.setdefault("APP_MODO", "produccion")
+    os.environ.setdefault("SQLITE_WAL", "true")
     os.environ.setdefault("FRONTEND_DIR", str(carpeta_web()))
 
     if "--restablecer-contrasena" in sys.argv:
@@ -116,7 +121,10 @@ def main() -> None:
     print(f"  Tus datos: {datos}")
     print("  Cierra esta ventana para detener la app.\n")
     threading.Thread(target=_abrir_navegador_cuando_este_lista, args=(url, puerto), daemon=True).start()
-    uvicorn.run(crear_aplicacion(), host=HOST, port=puerto, log_level="warning")
+    # Sin registro de accesos: no guardamos qué buscas ni qué páginas abres.
+    uvicorn.run(
+        crear_aplicacion(), host=HOST, port=puerto, log_level="warning", access_log=False, server_header=False
+    )
 
 
 if __name__ == "__main__":

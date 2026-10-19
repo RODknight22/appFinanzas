@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.middleware.gzip import GZipMiddleware
 from starlette.exceptions import HTTPException
 from starlette.responses import Response
 from starlette.staticfiles import StaticFiles
@@ -17,6 +16,7 @@ from starlette.types import Scope
 
 from app.main import app as api
 from app.main import lifespan
+from app.seguridad_http import ProteccionLocal
 
 # Carpeta con el resultado de `npm run build` (index.html + assets/).
 FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", Path(__file__).resolve().parents[2] / "frontend" / "dist"))
@@ -48,10 +48,9 @@ class WebDeUnaPagina(StaticFiles):
 
 def crear_aplicacion(frontend_dir: Path = FRONTEND_DIR) -> FastAPI:
     # Las apps montadas no ejecutan su propio lifespan: lo ejecuta esta.
-    # Sin documentación interactiva (/docs) en producción: no la necesita el usuario.
     web = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
-    # Comprime JSON, JS y CSS: menos datos que mover, carga más rápida.
-    web.add_middleware(GZipMiddleware, minimum_size=1024)
+    # Sin GZip: entre el navegador y 127.0.0.1 no hay red; comprimir solo gastaría CPU.
+    web.add_middleware(ProteccionLocal)
     web.mount("/api", api)
     if not (frontend_dir / "index.html").exists():
         raise RuntimeError(f"No se encontró la web compilada en {frontend_dir}. Ejecuta `npm run build`.")

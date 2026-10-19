@@ -46,7 +46,8 @@ def iniciar_sesion(datos: DatosLogin, respuesta: Response, session: SessionDep):
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def cerrar_sesion(respuesta: Response, session: SessionDep, token: TokenCookie = None) -> None:
     servicio.cerrar_sesion(session, token)
-    respuesta.delete_cookie(NOMBRE_COOKIE)
+    # Mismos atributos que al crearla: algunos navegadores no la borran si difieren.
+    respuesta.delete_cookie(NOMBRE_COOKIE, httponly=True, samesite="lax")
 
 
 @router.post("/cambiar-contrasena", status_code=status.HTTP_204_NO_CONTENT)
