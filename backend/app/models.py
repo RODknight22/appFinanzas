@@ -72,6 +72,7 @@ class PaginaInicio(str, Enum):
     PRESUPUESTOS = "presupuestos"
     SUSCRIPCIONES = "suscripciones"
     CUENTAS = "cuentas"
+    METAS = "metas"
 
 
 class TamanoWidget(str, Enum):
@@ -216,6 +217,55 @@ class TransferenciaBase(SQLModel):
 
 class Transferencia(TransferenciaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+
+
+# ---------------------------------------------------------------------------
+# Metas de ahorro
+# ---------------------------------------------------------------------------
+class MetaBase(SQLModel):
+    """Un objetivo de ahorro ("Viaje a México: 1 500 EUR").
+
+    El progreso se mide de una de dos formas:
+    - Con `cuenta_id`: es el saldo de esa cuenta (una hucha o cajita dedicada).
+    - Sin cuenta: es la suma de sus aportaciones, anotadas a mano. Así varias
+      metas pueden repartirse el dinero de una misma cuenta.
+    """
+
+    nombre: str = Field(min_length=1, max_length=100)
+    icono: str = Field(default="🎯", max_length=8)  # un emoji
+    monto_objetivo: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    # Si no se indica: la de la cuenta vinculada o, si no hay, la principal.
+    moneda: Moneda | None = None
+    fecha_limite: date | None = None
+    cuenta_id: int | None = Field(default=None, foreign_key="cuenta.id", index=True)
+
+
+class Meta(MetaBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    # Día en que se alcanzó el objetivo. Se guarda para que la meta siga
+    # "cumplida" aunque después se gaste parte del dinero.
+    fecha_cumplida: date | None = None
+
+
+class AportacionMetaBase(SQLModel):
+    # Positivo = aportas; negativo = retiras dinero de la meta.
+    monto: Decimal = Field(max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    fecha: date
+    notas: str | None = Field(default=None, max_length=500)
+
+    @field_validator("monto")
+    @classmethod
+    def comprobar_monto(cls, valor: Decimal) -> Decimal:
+        if valor == 0:
+            raise ValueError("La aportación no puede ser 0")
+        return valor
+
+
+class AportacionMeta(AportacionMetaBase, table=True):
+    """Dinero apartado para una meta sin cuenta vinculada, en la moneda de la meta."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    meta_id: int = Field(foreign_key="meta.id", index=True)
 
 
 # ---------------------------------------------------------------------------

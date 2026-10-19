@@ -15,6 +15,8 @@ from sqlmodel import Field, SQLModel
 from app.models import (
     DECIMALES,
     MAX_DIGITOS,
+    MetaBase,
+    AportacionMetaBase,
     CategoriaBase,
     ColorAcento,
     CuentaBase,
@@ -139,6 +141,49 @@ class TransferenciaUpdate(SQLModel):
     )
     fecha: date | None = None
     notas: str | None = Field(default=None, max_length=500)
+
+
+# --- Metas de ahorro -------------------------------------------------------
+class MetaCreate(MetaBase):
+    pass
+
+
+class MetaUpdate(SQLModel):
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    icono: str | None = Field(default=None, max_length=8)
+    monto_objetivo: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    moneda: Moneda | None = None
+    fecha_limite: date | None = None
+    cuenta_id: int | None = None
+    # Marcarla a mano como cumplida (p. ej. ya compraste lo que querías) o reabrirla.
+    cumplida: bool | None = None
+
+
+class MetaRead(MetaBase):
+    """La meta con su progreso calculado (en la moneda de la meta)."""
+
+    id: int
+    moneda: Moneda
+    fecha_cumplida: date | None
+    ahorrado: Decimal
+    restante: Decimal  # 0 si ya se alcanzó
+    porcentaje: float
+    cumplida: bool
+    # Con fecha límite y aún sin cumplir:
+    vencida: bool  # la fecha ya pasó
+    meses_restantes: int | None
+    ahorro_mensual: Decimal | None  # cuánto apartar al mes para llegar a tiempo
+
+
+class AportacionMetaCreate(AportacionMetaBase):
+    pass
+
+
+class AportacionMetaRead(AportacionMetaBase):
+    id: int
+    meta_id: int
 
 
 # --- Presupuestos ----------------------------------------------------------
