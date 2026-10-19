@@ -5,6 +5,7 @@ import { dashboardApi } from "../api/dashboard";
 import { categoriasApi, cuentasApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
 import { avisarError } from "../components/ajustes/avisarError";
 import { PanelWidgets } from "../components/dashboard/PanelWidgets";
+import { EsqueletoPanel } from "../components/dashboard/EsqueletoPanel";
 import { CelebracionHito } from "../components/metas/CelebracionHito";
 import { DISPOSICION_POR_DEFECTO, reconciliar, type DatosPanel } from "../components/dashboard/registroWidgets";
 import { Boton } from "../components/ui/Boton";
@@ -84,7 +85,7 @@ export function DashboardPage() {
         acciones={acciones}
       />
 
-      <Contenido {...estado} onReintentar={estado.recargar}>
+      <Contenido {...estado} onReintentar={estado.recargar} esqueleto={<EsqueletoPanel />}>
         {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
@@ -101,7 +102,12 @@ export function DashboardPage() {
             diarios,
             mes,
           };
-          return <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />;
+          return (
+            // Al cambiar de mes se ven los datos anteriores atenuados hasta que llegan los nuevos.
+            <div className={`transition-opacity ${estado.cargando ? "opacity-60" : ""}`}>
+              <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />
+            </div>
+          );
         }}
       </Contenido>
       {celebracion && <CelebracionHito celebracion={celebracion} onCerrar={cerrar} />}

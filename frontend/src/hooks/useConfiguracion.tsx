@@ -74,9 +74,10 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Si el backend no responde, seguimos con valores por defecto;
     // cada página mostrará su propio error al intentar cargar datos.
-    Promise.allSettled([configuracionApi.obtener().then(aplicar), recargarTasas()]).finally(() =>
-      setLista(true),
-    );
+    configuracionApi.obtener().then(aplicar).catch(() => {}).finally(() => setLista(true));
+    // Las tasas no bloquean la primera pantalla (pueden tardar si se están
+    // descargando): mientras llegan, `convertir` simplemente devuelve undefined.
+    recargarTasas().catch(() => {});
   }, [recargarTasas]);
 
   /**

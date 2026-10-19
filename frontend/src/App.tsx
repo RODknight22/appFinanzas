@@ -1,16 +1,25 @@
+import { lazy, type ComponentType } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
 import { PAGINAS_INICIO } from "./config";
 import { useConfiguracion } from "./hooks/useConfiguracion";
-import { AjustesPage } from "./pages/AjustesPage";
-import { CategoriasPage } from "./pages/CategoriasPage";
-import { CuentasPage } from "./pages/CuentasPage";
 import { DashboardPage } from "./pages/DashboardPage";
-import { MetasPage } from "./pages/MetasPage";
-import { PresupuestosPage } from "./pages/PresupuestosPage";
-import { SuscripcionesPage } from "./pages/SuscripcionesPage";
-import { TransaccionesPage } from "./pages/TransaccionesPage";
+
+// El Dashboard (la página de inicio habitual) va en el paquete principal; el resto
+// se descarga la primera vez que se visita. Así la app abre antes.
+/** lazy() espera un "export default": lo adaptamos a nuestras exportaciones con nombre. */
+function perezosa<N extends string>(cargar: () => Promise<Record<N, ComponentType>>, nombre: N) {
+  return lazy(() => cargar().then((modulo) => ({ default: modulo[nombre] })));
+}
+
+const TransaccionesPage = perezosa(() => import("./pages/TransaccionesPage"), "TransaccionesPage");
+const PresupuestosPage = perezosa(() => import("./pages/PresupuestosPage"), "PresupuestosPage");
+const SuscripcionesPage = perezosa(() => import("./pages/SuscripcionesPage"), "SuscripcionesPage");
+const CuentasPage = perezosa(() => import("./pages/CuentasPage"), "CuentasPage");
+const MetasPage = perezosa(() => import("./pages/MetasPage"), "MetasPage");
+const CategoriasPage = perezosa(() => import("./pages/CategoriasPage"), "CategoriasPage");
+const AjustesPage = perezosa(() => import("./pages/AjustesPage"), "AjustesPage");
 
 /** Mapa de rutas: cada URL muestra una página dentro del Layout común. */
 export default function App() {

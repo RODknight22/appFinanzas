@@ -5,17 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Finanzas Personales</title>
-    <script>
-      // Aplica tema y color de acento antes de pintar, para evitar un destello.
-      try {
-        const guardado = localStorage.getItem("tema");
-        // Sin elección guardada, oscuro: es el estilo principal de la app.
-        const oscuro = guardado ? guardado === "oscuro" : true;
-        document.documentElement.classList.toggle("dark", oscuro);
-        const acento = localStorage.getItem("acento");
-        if (acento) document.documentElement.dataset.acento = acento;
-      } catch {}
-    </script>
+    <!-- Síncrono a propósito: debe ejecutarse antes de pintar nada -->
+    <script src="/tema-inicial.js"></script>
+    <meta name="color-scheme" content="dark light" />
   </head>
   <body>
     <div id="root"></div>
