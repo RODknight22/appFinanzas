@@ -6,6 +6,8 @@ from app.models import Categoria, Configuracion, TipoMovimiento
 
 # Nombre de la categoría donde se anotan los rendimientos de las cuentas.
 CATEGORIA_RENDIMIENTOS = "Rendimientos"
+# Categoría de gasto donde se anotan las comisiones de las transferencias.
+CATEGORIA_COMISIONES = "Comisiones"
 
 GASTO, INGRESO = TipoMovimiento.GASTO, TipoMovimiento.INGRESO
 
@@ -23,6 +25,7 @@ CATEGORIAS_POR_DEFECTO: list[tuple[str, TipoMovimiento, str, str]] = [
     ("Suscripciones", GASTO, "repeat", "#8b5cf6"),
     ("Mascotas", GASTO, "paw-print", "#f97316"),
     ("Viajes", GASTO, "plane", "#06b6d4"),
+    (CATEGORIA_COMISIONES, GASTO, "receipt", "#94a3b8"),
     ("Otros gastos", GASTO, "circle", "#64748b"),
     ("Sueldo", INGRESO, "briefcase", "#10b981"),
     ("Freelance", INGRESO, "laptop", "#3b82f6"),

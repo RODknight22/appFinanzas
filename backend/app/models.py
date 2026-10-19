@@ -181,6 +181,41 @@ class Transaccion(TransaccionBase, table=True):
     monto_principal: Decimal | None = Field(
         default=None, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
+    # Solo en la comisión de una transferencia: se edita y borra junto con ella.
+    transferencia_id: int | None = Field(default=None, foreign_key="transferencia.id", index=True)
+
+
+# ---------------------------------------------------------------------------
+# Transferencias entre cuentas
+# ---------------------------------------------------------------------------
+class TransferenciaBase(SQLModel):
+    """Dinero que pasa de una cuenta a otra (incluido el pago de una tarjeta).
+
+    No es ingreso ni gasto: el dinero sigue siendo tuyo. Por eso vive en su
+    propia tabla y el dashboard no la suma en el flujo del mes.
+    """
+
+    cuenta_origen_id: int = Field(foreign_key="cuenta.id", index=True)
+    cuenta_destino_id: int = Field(foreign_key="cuenta.id", index=True)
+    # Lo que sale, en la moneda de la cuenta de origen.
+    monto_origen: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    # Lo que llega, en la moneda de la cuenta de destino. Guardarlo registra el
+    # tipo de cambio *real* que aplicó el banco. Si no se indica: igual que el
+    # origen (misma moneda) o convertido con la tasa de la fecha.
+    monto_destino: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    # Comisión cobrada en la cuenta de origen. Sí es un gasto: se anota como
+    # una transacción enlazada en la categoría "Comisiones".
+    comision: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    fecha: date = Field(index=True)
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class Transferencia(TransferenciaBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
 
 
 # ---------------------------------------------------------------------------

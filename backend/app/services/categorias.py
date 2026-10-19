@@ -2,6 +2,7 @@
 
 from sqlmodel import Session, col, select
 
+from app.datos_iniciales import CATEGORIAS_POR_DEFECTO
 from app.models import Categoria, Presupuesto, TipoMovimiento, Transaccion
 from app.schemas import CategoriaCreate, CategoriaUpdate
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404
@@ -61,3 +62,20 @@ def eliminar(session: Session, categoria_id: int) -> None:
         raise ConflictoError("No se puede eliminar una categoría que tiene presupuestos")
     session.delete(categoria)
     session.commit()
+
+
+def de_la_app(session: Session, nombre: str, tipo: TipoMovimiento) -> Categoria:
+    """Devuelve una categoría que la app usa por su cuenta ("Rendimientos", "Comisiones").
+
+    Si el usuario la borró, se vuelve a crear con su icono y color por defecto.
+    """
+    consulta = select(Categoria).where(Categoria.nombre == nombre, Categoria.tipo == tipo)
+    categoria = session.exec(consulta).first()
+    if categoria is None:
+        icono, color = next(
+            (i, c) for n, t, i, c in CATEGORIAS_POR_DEFECTO if n == nombre and t == tipo
+        )
+        categoria = Categoria(nombre=nombre, tipo=tipo, icono=icono, color=color)
+        session.add(categoria)
+        session.flush()  # asigna el id sin cerrar la transacción
+    return categoria

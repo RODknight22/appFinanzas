@@ -7,9 +7,9 @@ from typing import Any
 from sqlmodel import Session, col, select
 
 from app.datos_iniciales import CATEGORIA_RENDIMIENTOS
-from app.models import Categoria, Cuenta, CuentaBase, TipoCuenta, TipoMovimiento, Transaccion
+from app.models import Cuenta, CuentaBase, TipoCuenta, TipoMovimiento, Transaccion, Transferencia
 from app.schemas import CuentaCreate, CuentaUpdate
-from app.services import configuracion
+from app.services import categorias, configuracion
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404
 from app.services.errores import ConflictoError, ReglaDeNegocioError
 from app.services.saldos import CENTIMOS, saldo_actual
@@ -33,6 +33,12 @@ def _comprobar_nombre_libre(session: Session, nombre: str, excluir_id: int | Non
     duplicada = session.exec(select(Cuenta).where(Cuenta.nombre == nombre)).first()
     if duplicada is not None and duplicada.id != excluir_id:
         raise ConflictoError(f"Ya existe una cuenta llamada '{nombre}'")
+
+
+def _tiene_transferencias(session: Session, cuenta_id: int) -> bool:
+    return existe(session, Transferencia.cuenta_origen_id, cuenta_id) or existe(
+        session, Transferencia.cuenta_destino_id, cuenta_id
+    )
 
 
 def _normalizar_por_tipo(datos: dict[str, Any]) -> dict[str, Any]:
@@ -77,6 +83,8 @@ def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuent
         # dejaría el saldo mezclando dos divisas.
         if existe(session, Transaccion.cuenta_id, cuenta_id):
             raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene transacciones")
+        if _tiene_transferencias(session, cuenta_id):
+            raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene transferencias")
         configuracion.comprobar_moneda_activa(session, enviados["moneda"])
 
     # Validamos el estado final completo (lo actual + lo que cambia).
@@ -92,6 +100,8 @@ def eliminar(session: Session, cuenta_id: int) -> None:
     # Borrarla dejaría transacciones huérfanas y descuadraría el balance.
     if existe(session, Transaccion.cuenta_id, cuenta_id):
         raise ConflictoError("No se puede eliminar una cuenta que tiene transacciones")
+    if _tiene_transferencias(session, cuenta_id):
+        raise ConflictoError("No se puede eliminar una cuenta que tiene transferencias")
     session.delete(cuenta)
     session.commit()
 
@@ -107,21 +117,6 @@ def calcular_rendimiento(saldo: Decimal, tasa_anual: Decimal, dias: int) -> Deci
     """
     tasa_diaria = tasa_anual / Decimal(100) / Decimal(365)
     return (saldo * ((1 + tasa_diaria) ** dias - 1)).quantize(CENTIMOS)
-
-
-def _categoria_rendimientos(session: Session) -> Categoria:
-    """Devuelve la categoría de ingresos "Rendimientos", creándola si se borró."""
-    consulta = select(Categoria).where(
-        Categoria.nombre == CATEGORIA_RENDIMIENTOS, Categoria.tipo == TipoMovimiento.INGRESO
-    )
-    categoria = session.exec(consulta).first()
-    if categoria is None:
-        categoria = Categoria(
-            nombre=CATEGORIA_RENDIMIENTOS, tipo=TipoMovimiento.INGRESO, icono="trending-up", color="#84cc16"
-        )
-        session.add(categoria)
-        session.flush()  # asigna el id sin cerrar la transacción
-    return categoria
 
 
 def registrar_rendimientos(session: Session, cuenta_id: int, hoy: date | None = None) -> Transaccion:
@@ -154,7 +149,7 @@ def registrar_rendimientos(session: Session, cuenta_id: int, hoy: date | None = 
         fecha=hoy,
         notas=f"Rendimientos de {dias} día(s) al {cuenta.tasa_rendimiento_anual}% anual",
         cuenta_id=cuenta.id,
-        categoria_id=_categoria_rendimientos(session).id,
+        categoria_id=categorias.de_la_app(session, CATEGORIA_RENDIMIENTOS, TipoMovimiento.INGRESO).id,
     )
     completar_montos(session, transaccion, cuenta)
     cuenta.fecha_ultimo_rendimiento = hoy
