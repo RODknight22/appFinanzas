@@ -353,7 +353,7 @@ class TasaRead(SQLModel):
 
 
 class TasaManual(SQLModel):
-    en_principal: Decimal = Field(gt=0, max_digits=18, decimal_places=6)
+    en_principal: Decimal = Field(ge=Decimal("0.000001"), le=Decimal(1_000_000), max_digits=18, decimal_places=6)
 
 
 # --- Acceso (login) --------------------------------------------------------
