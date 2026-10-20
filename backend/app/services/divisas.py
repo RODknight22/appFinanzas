@@ -75,15 +75,18 @@ def tasa_por_usd(session: Session, moneda: Moneda, fecha: date) -> Decimal:
 
 
 def _buscar_tasa_por_usd(session: Session, moneda: Moneda, fecha: date) -> Decimal:
+    # .limit(1) en todas estas búsquedas: .first() no lo añade a la consulta, y sin él
+    # SQLite devuelve (y SQLAlchemy construye) todas las tasas de años para usar una.
     anterior = session.exec(
         select(TasaCambio)
         .where(TasaCambio.moneda == moneda, TasaCambio.fecha <= fecha)
         .order_by(col(TasaCambio.fecha).desc())
+        .limit(1)
     ).first()
     if anterior is not None:
         return anterior.por_usd
     mas_antigua = session.exec(
-        select(TasaCambio).where(TasaCambio.moneda == moneda).order_by(col(TasaCambio.fecha))
+        select(TasaCambio).where(TasaCambio.moneda == moneda).order_by(col(TasaCambio.fecha)).limit(1)
     ).first()
     if mas_antigua is None:
         raise ReglaDeNegocioError(
@@ -105,7 +108,7 @@ def convertir(session: Session, monto: Decimal, de: Moneda, a: Moneda, fecha: da
 
 def _ultima_tasa(session: Session, moneda: Moneda) -> TasaCambio | None:
     return session.exec(
-        select(TasaCambio).where(TasaCambio.moneda == moneda).order_by(col(TasaCambio.fecha).desc())
+        select(TasaCambio).where(TasaCambio.moneda == moneda).order_by(col(TasaCambio.fecha).desc()).limit(1)
     ).first()
 
 

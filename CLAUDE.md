@@ -63,6 +63,8 @@ dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login y p
 - Si cambia package.json: `docker compose up -d --build -V frontend` (-V renueva node_modules).
 - Tests (Git Bash, raíz): `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
 - Tipos: `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit`
+- Rendimiento: como Tests, pero `python -m benchmarks.rendimiento 10000 50000` (BD temporal).
+  Medir antes y después de optimizar; no optimizar sin una medición que lo pida.
 - Verificación visual: Playwright (`mcr.microsoft.com/playwright:v1.49.1-noble`) contra
   contenedores temporales `fin-test-backend`/`fin-test-frontend` en la red `appfinanzas_default`
   con `DATA_DIR=/tmp/data`: nunca probar sobre los datos reales. Borrarlos al terminar.
