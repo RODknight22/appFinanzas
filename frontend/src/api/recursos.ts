@@ -5,9 +5,12 @@
 import type {
   AportacionMeta,
   Categoria,
+  CobroIngreso,
   Cuenta,
+  DatosCobro,
   DatosMeta,
   DatosNuevos,
+  IngresoRecurrente,
   MesAnio,
   Meta,
   PaginaTransacciones,
@@ -70,6 +73,14 @@ export const suscripcionesApi = {
   ...crearRecurso<Suscripcion, { proximos_dias?: number }>("/suscripciones"),
   registrarPago: (id: number, datos: { cuenta_id: number; categoria_id: number }) =>
     http.post<PagoSuscripcion>(`/suscripciones/${id}/registrar-pago`, datos),
+};
+
+export const ingresosApi = {
+  ...crearRecurso<IngresoRecurrente, { proximos_dias?: number }>("/ingresos-recurrentes"),
+  registrarCobro: (id: number, datos: DatosCobro) =>
+    http.post<CobroIngreso>(`/ingresos-recurrentes/${id}/registrar-cobro`, datos),
+  /** Pasa al siguiente periodo sin anotar ningún ingreso. */
+  omitir: (id: number) => http.post<IngresoRecurrente>(`/ingresos-recurrentes/${id}/omitir`, {}),
 };
 
 /** Las metas no usan crearRecurso: su respuesta trae campos calculados que no se envían. */

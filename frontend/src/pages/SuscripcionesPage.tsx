@@ -3,25 +3,19 @@ import { useState } from "react";
 
 import { categoriasApi, cuentasApi, suscripcionesApi } from "../api/recursos";
 import { FormularioPagoSuscripcion } from "../components/formularios/FormularioPagoSuscripcion";
-import { FormularioSuscripcion, PERIODICIDADES } from "../components/formularios/FormularioSuscripcion";
+import { FormularioSuscripcion } from "../components/formularios/FormularioSuscripcion";
 import { AccionesFila } from "../components/ui/AccionesFila";
 import { Boton } from "../components/ui/Boton";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { COBROS_POR_MES, PERIODICIDADES } from "../config";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
-import type { Periodicidad, Suscripcion } from "../types";
+import type { Suscripcion } from "../types";
 import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../utils/formato";
-
-/** Cuántas veces se cobra al mes, en promedio, cada periodicidad. */
-const COBROS_POR_MES: Record<Periodicidad, number> = {
-  semanal: 52 / 12,
-  mensual: 1,
-  anual: 1 / 12,
-};
 
 /** Tres modales posibles; el tipo de unión deja claro cuál está abierto. */
 type EstadoModal =

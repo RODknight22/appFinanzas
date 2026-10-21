@@ -15,7 +15,7 @@ export type FechaISO = string;
 export type TipoMovimiento = "ingreso" | "gasto";
 export type TipoCuenta = "efectivo" | "debito" | "credito" | "rendimientos" | "ahorro" | "inversion";
 export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL";
-export type Periodicidad = "semanal" | "mensual" | "anual";
+export type Periodicidad = "semanal" | "quincenal" | "mensual" | "anual";
 
 // --- Entidades -------------------------------------------------------------
 export interface Cuenta {
@@ -143,6 +143,31 @@ export interface PagoSuscripcion {
   suscripcion: Suscripcion;
 }
 
+export interface IngresoRecurrente {
+  id: number;
+  nombre: string;
+  /** Importe habitual; al cobrar se puede indicar el que llegó de verdad. */
+  monto: Dinero;
+  moneda: Moneda;
+  periodicidad: Periodicidad;
+  fecha_proximo_cobro: FechaISO;
+  cuenta_id: number;
+  categoria_id: number;
+}
+
+/** Lo que llegó de verdad: lo que se omita se toma del ingreso recurrente. */
+export interface DatosCobro {
+  monto?: Dinero;
+  fecha?: FechaISO;
+  cuenta_id?: number;
+  notas?: string;
+}
+
+export interface CobroIngreso {
+  transaccion: Transaccion;
+  ingreso: IngresoRecurrente;
+}
+
 // --- Dashboard -------------------------------------------------------------
 export interface SaldoCuenta {
   cuenta_id: number;
@@ -206,7 +231,7 @@ export interface ProgresoPresupuesto {
 
 // --- Configuración ---------------------------------------------------------
 export type ColorAcento = "esmeralda" | "azul" | "indigo" | "violeta" | "rosa" | "naranja";
-export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "cuentas" | "metas";
+export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "ingresos" | "efectivo" | "cuentas" | "metas";
 export type TamanoWidget = "pequeno" | "mediano" | "ancho" | "grande";
 
 export interface WidgetDisposicion {

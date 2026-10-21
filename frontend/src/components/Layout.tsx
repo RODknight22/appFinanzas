@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  HandCoins,
   LayoutDashboard,
   LogOut,
   Moon,
@@ -27,7 +28,7 @@ interface ItemMenu {
   /** Versión corta para la barra inferior del móvil, donde hay poco espacio. */
   corta: string;
   icono: LucideIcon;
-  /** En la barra inferior del móvil solo caben 6: el resto va en la cabecera. */
+  /** En la barra inferior del móvil solo caben 6: el resto va como icono en la cabecera. */
   soloEscritorio?: boolean;
 }
 
@@ -37,6 +38,7 @@ const MENU: ItemMenu[] = [
   { ruta: "/presupuestos", etiqueta: "Presupuestos", corta: "Límites", icono: PiggyBank },
   { ruta: "/metas", etiqueta: "Metas", corta: "Metas", icono: Target },
   { ruta: "/suscripciones", etiqueta: "Suscripciones", corta: "Recurrentes", icono: Repeat },
+  { ruta: "/ingresos", etiqueta: "Ingresos fijos", corta: "Ingresos", icono: HandCoins, soloEscritorio: true },
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
   { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
 ];
@@ -118,9 +120,11 @@ export function Layout() {
           <span className="truncate font-semibold">Hola, {nombre}</span>
         </span>
         <div className="flex items-center gap-1">
-          <Link to="/categorias" aria-label="Categorías" className="rounded-lg p-2 text-tenue">
-            <Tags size={18} />
-          </Link>
+          {MENU.filter((item) => item.soloEscritorio).map(({ ruta, etiqueta, icono: Icono }) => (
+            <Link key={ruta} to={ruta} aria-label={etiqueta} className="rounded-lg p-2 text-tenue">
+              <Icono size={18} />
+            </Link>
+          ))}
           <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue">
             <Settings size={18} />
           </Link>
