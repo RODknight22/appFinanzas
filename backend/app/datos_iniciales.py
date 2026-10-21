@@ -8,6 +8,9 @@ from app.models import Categoria, Configuracion, TipoMovimiento
 CATEGORIA_RENDIMIENTOS = "Rendimientos"
 # Categoría de gasto donde se anotan las comisiones de las transferencias.
 CATEGORIA_COMISIONES = "Comisiones"
+# Donde caen los movimientos importados cuya categoría no se pudo deducir.
+CATEGORIA_OTROS_GASTOS = "Otros gastos"
+CATEGORIA_OTROS_INGRESOS = "Otros ingresos"
 
 GASTO, INGRESO = TipoMovimiento.GASTO, TipoMovimiento.INGRESO
 
@@ -26,12 +29,12 @@ CATEGORIAS_POR_DEFECTO: list[tuple[str, TipoMovimiento, str, str]] = [
     ("Mascotas", GASTO, "paw-print", "#f97316"),
     ("Viajes", GASTO, "plane", "#06b6d4"),
     (CATEGORIA_COMISIONES, GASTO, "receipt", "#94a3b8"),
-    ("Otros gastos", GASTO, "circle", "#64748b"),
+    (CATEGORIA_OTROS_GASTOS, GASTO, "circle", "#64748b"),
     ("Sueldo", INGRESO, "briefcase", "#10b981"),
     ("Freelance", INGRESO, "laptop", "#3b82f6"),
     (CATEGORIA_RENDIMIENTOS, INGRESO, "trending-up", "#84cc16"),
     ("Regalos", INGRESO, "gift", "#ec4899"),
-    ("Otros ingresos", INGRESO, "banknote", "#64748b"),
+    (CATEGORIA_OTROS_INGRESOS, INGRESO, "banknote", "#64748b"),
 ]
 
 

@@ -8,6 +8,7 @@ Separarlos de las tablas evita, por ejemplo, que un cliente envíe su propio `id
 
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import field_validator
 from sqlmodel import Field, SQLModel
@@ -115,6 +116,45 @@ class TransaccionUpdate(SQLModel):
     notas: str | None = Field(default=None, max_length=500)
     categoria_id: int | None = None
     cuenta_id: int | None = None
+
+
+# --- Importar extractos bancarios -------------------------------------------
+class FilaImportacion(SQLModel):
+    """Un movimiento del archivo tal como se importaría (vista previa, aún sin guardar)."""
+
+    fila: int  # en el archivo, para que el usuario lo encuentre
+    fecha: date
+    monto: Decimal  # positivo: el signo lo da `tipo`
+    tipo: TipoMovimiento
+    concepto: str
+    categoria_id: int
+    # alta = mismo concepto ya categorizado antes; media = parecido; ninguna = "Otros".
+    confianza: Literal["alta", "media", "ninguna"]
+    # Ya registrado en la cuenta (como transacción o transferencia): no se importa por defecto.
+    duplicado: bool
+
+
+class VistaPreviaImportacion(SQLModel):
+    columnas: dict[str, str]  # qué columna del archivo se usó para cada dato
+    filas: list[FilaImportacion]
+    filas_ignoradas: int
+
+
+class MovimientoImportado(SQLModel):
+    fecha: date
+    monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    tipo: TipoMovimiento
+    concepto: str = Field(max_length=500)
+    categoria_id: int
+
+
+class ImportacionCreate(SQLModel):
+    cuenta_id: int
+    movimientos: list[MovimientoImportado] = Field(min_length=1, max_length=5000)
+
+
+class ResultadoImportacion(SQLModel):
+    creadas: int
 
 
 # --- Transferencias --------------------------------------------------------

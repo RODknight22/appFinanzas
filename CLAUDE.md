@@ -15,7 +15,8 @@ el código. Hablarle en español, explicar el diseño antes de cambios grandes, 
 ## Funcionalidades actuales
 Transacciones (búsqueda sin tildes, filtros en URL, paginación), transferencias (comisión, pago de
 tarjeta), metas de ahorro (cuenta o aportaciones, celebraciones), suscripciones, presupuestos,
-dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login y personalización.
+dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login, personalización e
+importar extractos CSV/.xlsx (formato autodetectado, categoría aprendida, duplicados).
 
 ## Principios
 - Código autodocumentado, modular, tipado estricto; comentarios breves que expliquen el *por qué*.
@@ -37,6 +38,8 @@ dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login y p
   (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo) y
   `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
 - Búsqueda: `_filtrar()` en services/transacciones.py; texto con `sin_acentos()` (database.py).
+- Importar: `lector_extractos.py` (puro: bytes → fecha, importe con signo, concepto) e
+  `importaciones.py` (vista previa sin guardar + confirmar todo o nada; concepto → `notas`).
 - Mes financiero: services/mes_financiero.py según `dia_inicio_mes` de la configuración.
 - Dependencias: versiones en requirements.txt + constraints.txt; pip-audit y npm audit en CI.
 - Acceso: un usuario (scrypt) + cookie HttpOnly `sesion`; `requiere_sesion` en main.py. Tests:
@@ -53,7 +56,8 @@ dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login y p
 
 ## Hoja de ruta
 - [x] v1.0.0: ejecutables Windows/Linux + Docker. Versión: `app/version.py` + package.json.
-- [ ] Siguiente: importar CSV/Excel + reglas de categorización, ingresos recurrentes, copias de
+- [x] Importar CSV/.xlsx (nivel 1). Después: reglas manuales, .xls, conexión bancaria (PSD2).
+- [ ] Siguiente: ingresos recurrentes, copias de
   seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el repo, notificaciones en
   vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no aditivos, react-router 7,
   firma de ejecutables, más estilos visuales.

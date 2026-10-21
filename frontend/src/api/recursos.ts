@@ -10,6 +10,7 @@ import type {
   DatosNuevos,
   MesAnio,
   Meta,
+  MovimientoImportado,
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
@@ -17,6 +18,7 @@ import type {
   TipoMovimiento,
   Transaccion,
   Transferencia,
+  VistaPreviaImportacion,
 } from "../types";
 import { http } from "./cliente";
 
@@ -83,4 +85,17 @@ export const metasApi = {
   aportar: (id: number, datos: Omit<AportacionMeta, "id" | "meta_id">) =>
     http.post<AportacionMeta>(`/metas/${id}/aportaciones`, datos),
   eliminarAportacion: (id: number, aportacionId: number) => http.delete(`/metas/${id}/aportaciones/${aportacionId}`),
+};
+
+/** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */
+export const importacionesApi = {
+  /** Lee el archivo (CSV o .xlsx) en el servidor sin guardar nada. */
+  vistaPrevia: (cuentaId: number, archivo: File, invertirSignos: boolean) =>
+    http.post<VistaPreviaImportacion>("/importaciones/vista-previa", archivo, {
+      cuenta_id: cuentaId,
+      invertir_signos: invertirSignos ? "true" : undefined,
+    }),
+  /** Crea todas las transacciones o ninguna. */
+  importar: (cuentaId: number, movimientos: MovimientoImportado[]) =>
+    http.post<{ creadas: number }>("/importaciones", { cuenta_id: cuentaId, movimientos }),
 };
