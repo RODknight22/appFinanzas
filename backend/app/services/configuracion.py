@@ -58,6 +58,9 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         dia_inicio_mes=configuracion.dia_inicio_mes or 1,
         widgets=widgets,
         foto_version=hashlib.sha256(configuracion.foto).hexdigest()[:12] if configuracion.foto else None,
+        tutorial_visto=bool(configuracion.tutorial_visto),
+        bienvenida_cerrada=bool(configuracion.bienvenida_cerrada),
+        mostrar_consejos=configuracion.mostrar_consejos is not False,
     )
 
 
@@ -96,7 +99,9 @@ def actualizar(session: Session, cambios: ConfiguracionUpdate) -> ConfiguracionR
         if campo in enviados:
             setattr(configuracion, campo, (enviados[campo] or "").strip() or None)
 
-    for campo in ("color_acento", "pagina_inicio", "dia_inicio_mes"):
+    for campo in (
+        "color_acento", "pagina_inicio", "dia_inicio_mes", "tutorial_visto", "bienvenida_cerrada", "mostrar_consejos"
+    ):
         if enviados.get(campo) is not None:
             setattr(configuracion, campo, enviados[campo])
 

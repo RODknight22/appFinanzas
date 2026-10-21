@@ -1,6 +1,9 @@
+import { GraduationCap } from "lucide-react";
+
 import { PAGINAS_INICIO } from "../../config";
 import { useConfiguracion } from "../../hooks/useConfiguracion";
 import type { PaginaInicio } from "../../types";
+import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { Tarjeta } from "../ui/Tarjeta";
 import { avisarError } from "./avisarError";
@@ -8,7 +11,7 @@ import { avisarError } from "./avisarError";
 // 1-28: así el día existe en todos los meses, febrero incluido.
 const DIAS = Array.from({ length: 28 }, (_, i) => i + 1);
 
-/** Página que se abre al entrar y día en que empieza el mes financiero. */
+/** Página que se abre al entrar, día en que empieza el mes financiero y ayudas. */
 export function SeccionPreferencias() {
   const { configuracion, actualizarConfiguracion } = useConfiguracion();
 
@@ -41,6 +44,26 @@ export function SeccionPreferencias() {
             ))}
           </select>
         </Campo>
+
+        <div className="space-y-1">
+          <label className="flex items-center gap-2 text-sm font-medium text-suave">
+            <input
+              type="checkbox"
+              checked={configuracion.mostrar_consejos}
+              onChange={(e) => actualizarConfiguracion({ mostrar_consejos: e.target.checked }).catch(avisarError)}
+              className="accent-acento-600"
+            />
+            Mostrar consejos
+          </label>
+          <p className="text-xs text-tenue">Las bombillas con ayuda junto a los títulos y algunos botones.</p>
+        </div>
+
+        <Boton
+          variante="secundario"
+          onClick={() => actualizarConfiguracion({ tutorial_visto: false, bienvenida_cerrada: false }).catch(avisarError)}
+        >
+          <GraduationCap size={16} /> Ver el tutorial otra vez
+        </Boton>
       </div>
     </Tarjeta>
   );

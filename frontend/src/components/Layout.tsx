@@ -19,6 +19,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { useTema } from "../hooks/useTema";
+import { AsistenteBienvenida } from "./bienvenida/AsistenteBienvenida";
 import { Avatar } from "./ui/Avatar";
 import { Cargando } from "./ui/Estados";
 
@@ -144,6 +145,9 @@ export function Layout() {
           <Outlet />
         </Suspense>
       </main>
+
+      {/* La primera vez: moneda, primera cuenta y recorrido por el menú */}
+      {!configuracion.tutorial_visto && <AsistenteBienvenida />}
 
       {/* Barra inferior en móvil */}
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-linea bg-superficie/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden">

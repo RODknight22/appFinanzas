@@ -17,7 +17,9 @@ from sqlmodel import SQLModel
 _RENOMBRES_TIPO_CUENTA = {"BANCO": "DEBITO", "TARJETA": "CREDITO"}
 
 
-def _anadir_columnas_nuevas(conexion: Connection) -> None:
+def _anadir_columnas_nuevas(conexion: Connection) -> set[str]:
+    """Añade las columnas que falten y devuelve cuáles ("tabla.columna")."""
+    anadidas: set[str] = set()
     inspector = inspect(conexion)
     for tabla in SQLModel.metadata.sorted_tables:
         if not inspector.has_table(tabla.name):
@@ -33,6 +35,8 @@ def _anadir_columnas_nuevas(conexion: Connection) -> None:
                 )
             tipo_sql = columna.type.compile(dialect=conexion.dialect)
             conexion.execute(text(f"ALTER TABLE {tabla.name} ADD COLUMN {columna.name} {tipo_sql}"))
+            anadidas.add(f"{tabla.name}.{columna.name}")
+    return anadidas
 
 
 def _renombrar_tipos_de_cuenta(conexion: Connection) -> None:
@@ -60,8 +64,21 @@ def _rellenar_monedas(conexion: Connection) -> None:
     conexion.execute(text("UPDATE transaccion SET monto_principal = monto WHERE monto_principal IS NULL"))
 
 
+def _saltar_primeros_pasos_si_ya_se_usaba(conexion: Connection, anadidas: set[str]) -> None:
+    """Quien ya usaba la app antes del tutorial no necesita el asistente ni la bienvenida.
+
+    Solo al añadir la columna (una vez): después, el valor lo decide el usuario.
+    """
+    if "configuracion.tutorial_visto" not in anadidas:
+        return
+    conexion.execute(text(
+        "UPDATE configuracion SET tutorial_visto = 1, bienvenida_cerrada = 1 WHERE EXISTS (SELECT 1 FROM cuenta)"
+    ))
+
+
 def aplicar_migraciones(conexion: Connection) -> None:
     """Se ejecuta dentro de una transacción: si algo falla, no se aplica nada."""
-    _anadir_columnas_nuevas(conexion)
+    anadidas = _anadir_columnas_nuevas(conexion)
+    _saltar_primeros_pasos_si_ya_se_usaba(conexion, anadidas)
     _renombrar_tipos_de_cuenta(conexion)
     _rellenar_monedas(conexion)

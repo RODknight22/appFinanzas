@@ -43,6 +43,7 @@ export function IngresosPage() {
     <>
       <EncabezadoPagina
         titulo="Ingresos fijos"
+        consejo="Elige los días de la quincena, repite cada N semanas o meses, y adelanta el cobro al viernes si cae en fin de semana."
         descripcion="Nómina, rentas y otros ingresos que llegan cada cierto tiempo"
         acciones={<Boton onClick={() => setModal({ modo: "nuevo" })}><Plus size={16} /> Nuevo</Boton>}
       />

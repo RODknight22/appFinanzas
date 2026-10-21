@@ -8,6 +8,7 @@ import { ListaTransferencias } from "../components/cuentas/ListaTransferencias";
 import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { FormularioTransferencia, type PagoTarjeta } from "../components/formularios/FormularioTransferencia";
 import { Boton } from "../components/ui/Boton";
+import { Consejo } from "../components/ui/Consejo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
@@ -67,6 +68,7 @@ export function CuentasPage() {
     <>
       <EncabezadoPagina
         titulo="Cuentas"
+        consejo="Fija con la chincheta las cuentas que más usas: saldrán arriba y en el panel. Para varias divisas en un mismo banco (como Revolut), crea subcuentas."
         descripcion="Débito, tarjetas de crédito, cuentas con rendimientos y subcuentas por divisa"
         acciones={
           <>
@@ -74,6 +76,12 @@ export function CuentasPage() {
               <Boton variante="secundario" onClick={() => setTransferencia({})}>
                 <ArrowRightLeft size={16} /> Transferir
               </Boton>
+            )}
+            {cuentas.length >= 2 && (
+              <Consejo
+                alinear="fin"
+                texto="Una transferencia mueve dinero entre tus cuentas (o paga una tarjeta) sin contar como gasto ni ingreso. Si te cobran comisión, anótala: esa parte sí cuenta como gasto."
+              />
             )}
             <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva cuenta</Boton>
           </>

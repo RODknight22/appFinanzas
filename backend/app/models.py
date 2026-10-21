@@ -376,6 +376,10 @@ class Configuracion(SQLModel, table=True):
     # Foto de perfil (ya recortada y comprimida por el navegador) y su tipo MIME.
     foto: bytes | None = None
     foto_tipo: str | None = None
+    # --- Primeros pasos (null = aún no) ---
+    tutorial_visto: bool | None = None  # asistente inicial completado o saltado
+    bienvenida_cerrada: bool | None = None  # tarjeta de primeros pasos del panel
+    mostrar_consejos: bool | None = None  # null = sí
 
 
 # ---------------------------------------------------------------------------

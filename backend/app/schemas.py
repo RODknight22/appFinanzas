@@ -419,6 +419,9 @@ class ConfiguracionRead(SQLModel):
     widgets: list[WidgetDisposicion] | None
     # Huella de la foto (cambia al subir otra): sirve para que el navegador no use una copia vieja.
     foto_version: str | None
+    tutorial_visto: bool
+    bienvenida_cerrada: bool
+    mostrar_consejos: bool
 
 
 class ConfiguracionUpdate(SQLModel):
@@ -432,6 +435,9 @@ class ConfiguracionUpdate(SQLModel):
     pagina_inicio: PaginaInicio | None = None
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)
+    tutorial_visto: bool | None = None
+    bienvenida_cerrada: bool | None = None
+    mostrar_consejos: bool | None = None
 
 
 class FotoPerfil(SQLModel):

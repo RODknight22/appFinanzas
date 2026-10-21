@@ -47,6 +47,7 @@ export function PresupuestosPage() {
     <>
       <EncabezadoPagina
         titulo="Presupuestos"
+        consejo="Cada presupuesto puede ir en su propia moneda: los gastos en otra divisa se convierten con la tasa del día en que los hiciste."
         descripcion="Pon un límite mensual a cada categoría de gasto"
         acciones={
           <>

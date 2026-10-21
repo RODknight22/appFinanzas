@@ -43,6 +43,7 @@ export function SuscripcionesPage() {
     <>
       <EncabezadoPagina
         titulo="Suscripciones"
+        consejo="Al marcar un pago se anota el gasto y la fecha salta sola al siguiente cobro."
         descripcion="Pagos recurrentes y su próxima fecha de cobro"
         acciones={<Boton onClick={() => setModal({ modo: "nueva" })}><Plus size={16} /> Nueva</Boton>}
       />

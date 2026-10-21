@@ -35,6 +35,7 @@ export function CategoriasPage() {
     <>
       <EncabezadoPagina
         titulo="Categorías"
+        consejo="Las categorías de gasto se pueden presupuestar. Al importar un extracto, la app recuerda qué categoría usaste para cada concepto."
         descripcion="Clasifica tus ingresos y gastos"
         acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva categoría</Boton>}
       />

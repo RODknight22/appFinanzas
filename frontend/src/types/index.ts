@@ -303,6 +303,11 @@ export interface Configuracion {
   widgets: WidgetDisposicion[] | null;
   /** Cambia cada vez que se sube otra foto; null = sin foto. */
   foto_version: string | null;
+  /** Primeros pasos: asistente inicial y tarjeta de bienvenida del panel. */
+  tutorial_visto: boolean;
+  bienvenida_cerrada: boolean;
+  /** Bombillas con consejos junto a títulos y botones. */
+  mostrar_consejos: boolean;
 }
 
 export interface Tasa {

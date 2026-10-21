@@ -61,6 +61,7 @@ export function MetasPage() {
     <>
       <EncabezadoPagina
         titulo="Metas de ahorro"
+        consejo="Una meta puede medirse con el saldo de una cuenta o con las aportaciones que vayas anotando. Al cruzar el 25, 50, 75 y 100 % lo celebramos."
         descripcion="Lo que quieres conseguir y cuánto apartar cada mes para llegar"
         acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva meta</Boton>}
       />
