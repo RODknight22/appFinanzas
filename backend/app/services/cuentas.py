@@ -7,7 +7,10 @@ from typing import Any
 from sqlmodel import Session, col, select
 
 from app.datos_iniciales import CATEGORIA_RENDIMIENTOS
-from app.models import Cuenta, CuentaBase, IngresoRecurrente, Meta, TipoCuenta, TipoMovimiento, Transaccion, Transferencia
+from app.models import (
+    AbonoDeuda, Cuenta, CuentaBase, Deuda, IngresoRecurrente, Meta, TipoCuenta, TipoMovimiento, Transaccion,
+    Transferencia,
+)
 from app.schemas import CuentaCreate, CuentaUpdate
 from app.services import categorias, configuracion
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404, obtener_referencia
@@ -145,6 +148,8 @@ def eliminar(session: Session, cuenta_id: int) -> None:
         raise ConflictoError("No se puede eliminar una cuenta vinculada a una meta de ahorro")
     if existe(session, IngresoRecurrente.cuenta_id, cuenta_id):
         raise ConflictoError("No se puede eliminar una cuenta que usa un ingreso recurrente")
+    if existe(session, Deuda.cuenta_id, cuenta_id) or existe(session, AbonoDeuda.cuenta_id, cuenta_id):
+        raise ConflictoError("No se puede eliminar una cuenta con préstamos o abonos de deudas")
     session.delete(cuenta)
     session.commit()
 

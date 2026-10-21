@@ -15,6 +15,7 @@ from app.routers import (
     configuracion,
     cuentas,
     dashboard,
+    deudas,
     importaciones,
     ingresos_recurrentes,
     metas,
@@ -63,7 +64,7 @@ app.include_router(acceso.router)
 # Añadir la dependencia aquí evita olvidarla en algún endpoint concreto.
 for modulo in (
     cuentas, categorias, transacciones, transferencias, presupuestos, suscripciones, metas, dashboard,
-    configuracion, importaciones, ingresos_recurrentes,
+    configuracion, importaciones, ingresos_recurrentes, deudas,
 ):
     app.include_router(modulo.router, dependencies=[Depends(requiere_sesion)])
 

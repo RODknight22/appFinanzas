@@ -7,9 +7,12 @@ import type {
   Categoria,
   CobroIngreso,
   Cuenta,
+  DatosAbono,
   DatosCobro,
+  DatosDeuda,
   DatosMeta,
   DatosNuevos,
+  Deuda,
   IngresoRecurrente,
   MesAnio,
   Meta,
@@ -17,6 +20,7 @@ import type {
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
+  SentidoDeuda,
   Suscripcion,
   TipoMovimiento,
   Transaccion,
@@ -96,6 +100,17 @@ export const metasApi = {
   aportar: (id: number, datos: Omit<AportacionMeta, "id" | "meta_id">) =>
     http.post<AportacionMeta>(`/metas/${id}/aportaciones`, datos),
   eliminarAportacion: (id: number, aportacionId: number) => http.delete(`/metas/${id}/aportaciones/${aportacionId}`),
+};
+
+/** Deudas: las respuestas traen lo abonado y lo pendiente, ya calculados. */
+export const deudasApi = {
+  listar: (filtros?: { sentido?: SentidoDeuda; pendientes?: boolean }) =>
+    http.get<Deuda[]>("/deudas", filtros as Record<string, string>),
+  crear: (datos: DatosDeuda) => http.post<Deuda>("/deudas", datos),
+  actualizar: (id: number, cambios: Partial<DatosDeuda>) => http.patch<Deuda>(`/deudas/${id}`, cambios),
+  eliminar: (id: number) => http.delete(`/deudas/${id}`),
+  abonar: (id: number, datos: DatosAbono) => http.post<Deuda>(`/deudas/${id}/abonos`, datos),
+  eliminarAbono: (id: number, abonoId: number) => http.delete(`/deudas/${id}/abonos/${abonoId}`),
 };
 
 /** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */

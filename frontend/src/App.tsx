@@ -20,6 +20,7 @@ const SuscripcionesPage = perezosa(() => import("./pages/SuscripcionesPage"), "S
 const IngresosPage = perezosa(() => import("./pages/IngresosPage"), "IngresosPage");
 const EfectivoPage = perezosa(() => import("./pages/EfectivoPage"), "EfectivoPage");
 const CuentasPage = perezosa(() => import("./pages/CuentasPage"), "CuentasPage");
+const DeudasPage = perezosa(() => import("./pages/DeudasPage"), "DeudasPage");
 const MetasPage = perezosa(() => import("./pages/MetasPage"), "MetasPage");
 const CategoriasPage = perezosa(() => import("./pages/CategoriasPage"), "CategoriasPage");
 const AjustesPage = perezosa(() => import("./pages/AjustesPage"), "AjustesPage");
@@ -46,6 +47,7 @@ export default function App() {
         {/* Dirección antigua: Efectivo ahora es una pestaña de Cuentas */}
         <Route path="efectivo" element={<Navigate to="/cuentas/efectivo" replace />} />
         <Route path="metas" element={<MetasPage />} />
+        <Route path="deudas" element={<DeudasPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
         <Route path="ajustes" element={<AjustesPage />} />
         {/* Cualquier otra URL vuelve a la página de inicio */}

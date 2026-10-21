@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   HandCoins,
+  Handshake,
   LayoutDashboard,
   LogOut,
   Moon,
@@ -38,6 +39,7 @@ const MENU: ItemMenu[] = [
   { ruta: "/transacciones", etiqueta: "Transacciones", corta: "Movimientos", icono: ArrowLeftRight },
   { ruta: "/presupuestos", etiqueta: "Presupuestos", corta: "Límites", icono: PiggyBank },
   { ruta: "/metas", etiqueta: "Metas", corta: "Metas", icono: Target },
+  { ruta: "/deudas", etiqueta: "Deudas", corta: "Deudas", icono: Handshake, soloEscritorio: true },
   { ruta: "/suscripciones", etiqueta: "Suscripciones", corta: "Recurrentes", icono: Repeat },
   { ruta: "/ingresos", etiqueta: "Ingresos fijos", corta: "Ingresos", icono: HandCoins, soloEscritorio: true },
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },

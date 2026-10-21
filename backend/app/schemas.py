@@ -21,13 +21,16 @@ from app.models import (
     AportacionMetaBase,
     CategoriaBase,
     ColorAcento,
+    AbonoDeudaBase,
     CuentaBase,
+    DeudaBase,
     IngresoRecurrenteBase,
     Moneda,
     OrigenTasa,
     PaginaInicio,
     Periodicidad,
     PresupuestoBase,
+    SentidoDeuda,
     SuscripcionBase,
     TamanoWidget,
     TipoCuenta,
@@ -311,6 +314,41 @@ class IngresoRecurrenteUpdate(SQLModel):
     dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
     dia_del_mes: int | None = Field(default=None, ge=1, le=31)
     adelantar_a_habil: bool | None = None
+
+
+# --- Deudas ----------------------------------------------------------------
+class DeudaCreate(DeudaBase):
+    pass
+
+
+class DeudaUpdate(SQLModel):
+    persona: str | None = Field(default=None, min_length=1, max_length=100)
+    sentido: SentidoDeuda | None = None
+    monto: Decimal | None = Field(default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    moneda: Moneda | None = None
+    fecha: date | None = None
+    fecha_vencimiento: date | None = None
+    cuenta_id: int | None = None
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class AbonoDeudaCreate(AbonoDeudaBase):
+    pass
+
+
+class AbonoDeudaRead(AbonoDeudaBase):
+    id: int
+    deuda_id: int
+
+
+class DeudaRead(DeudaBase):
+    id: int
+    moneda: Moneda
+    fecha_saldada: date | None
+    abonado: Decimal
+    pendiente: Decimal
+    vencida: bool  # pasó la fecha de vencimiento y aún queda algo
+    abonos: list[AbonoDeudaRead]
 
 
 class CobroIngresoCreate(SQLModel):

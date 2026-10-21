@@ -354,6 +354,54 @@ class IngresoRecurrente(IngresoRecurrenteBase, table=True):
 
 
 # ---------------------------------------------------------------------------
+# Deudas (quién te debe y a quién le debes)
+# ---------------------------------------------------------------------------
+class SentidoDeuda(str, Enum):
+    ME_DEBEN = "me_deben"  # prestaste: te lo tienen que devolver
+    DEBO = "debo"  # te prestaron: lo tienes que devolver
+
+
+class DeudaBase(SQLModel):
+    """Dinero prestado entre tú y otra persona.
+
+    Como una transferencia, no es gasto ni ingreso: con `cuenta_id`, el préstamo
+    mueve el saldo de esa cuenta (prestar resta, que te presten suma) y cada abono
+    lo devuelve. Sin cuenta es solo un apunte (p. ej. una deuda de antes de la app).
+    """
+
+    persona: str = Field(min_length=1, max_length=100)
+    sentido: SentidoDeuda
+    monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    # Si no se indica: la de la cuenta o, sin cuenta, la principal.
+    moneda: Moneda | None = None
+    fecha: date
+    fecha_vencimiento: date | None = None
+    cuenta_id: int | None = Field(default=None, foreign_key="cuenta.id", index=True)
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class Deuda(DeudaBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    # Día del abono que dejó la deuda a cero (null = pendiente).
+    fecha_saldada: date | None = None
+
+
+class AbonoDeudaBase(SQLModel):
+    """Una devolución (parcial o total) de una deuda, en la moneda de la deuda."""
+
+    monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    fecha: date
+    # Cuenta donde entra (si te pagan) o de donde sale (si pagas); null = sin mover dinero.
+    cuenta_id: int | None = Field(default=None, foreign_key="cuenta.id", index=True)
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class AbonoDeuda(AbonoDeudaBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    deuda_id: int = Field(foreign_key="deuda.id", index=True)
+
+
+# ---------------------------------------------------------------------------
 # Configuración de la app (una sola fila, id = 1)
 # ---------------------------------------------------------------------------
 class Configuracion(SQLModel, table=True):

@@ -196,6 +196,41 @@ export interface IngresoRecurrente {
   adelantar_a_habil: boolean | null;
 }
 
+// --- Deudas ----------------------------------------------------------------
+/** me_deben: prestaste; debo: te prestaron. */
+export type SentidoDeuda = "me_deben" | "debo";
+
+export interface AbonoDeuda {
+  id: number;
+  deuda_id: number;
+  monto: Dinero;
+  fecha: FechaISO;
+  /** Cuenta donde entra o de donde sale; null = sin mover dinero. */
+  cuenta_id: number | null;
+  notas: string | null;
+}
+
+export interface Deuda {
+  id: number;
+  persona: string;
+  sentido: SentidoDeuda;
+  monto: Dinero;
+  moneda: Moneda;
+  fecha: FechaISO;
+  fecha_vencimiento: FechaISO | null;
+  /** Con cuenta, el préstamo mueve su saldo; sin ella es solo un apunte. */
+  cuenta_id: number | null;
+  notas: string | null;
+  readonly fecha_saldada: FechaISO | null;
+  readonly abonado: Dinero;
+  readonly pendiente: Dinero;
+  readonly vencida: boolean;
+  readonly abonos: AbonoDeuda[];
+}
+
+export type DatosDeuda = Pick<Deuda, "persona" | "sentido" | "monto" | "moneda" | "fecha" | "fecha_vencimiento" | "cuenta_id" | "notas">;
+export type DatosAbono = Omit<AbonoDeuda, "id" | "deuda_id">;
+
 /** Lo que llegó de verdad: lo que se omita se toma del ingreso recurrente. */
 export interface DatosCobro {
   monto?: Dinero;
