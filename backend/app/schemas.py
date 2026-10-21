@@ -16,6 +16,7 @@ from sqlmodel import Field, SQLModel
 from app.models import (
     DECIMALES,
     MAX_DIGITOS,
+    MAX_INTERVALO,
     MetaBase,
     AportacionMetaBase,
     CategoriaBase,
@@ -302,6 +303,11 @@ class IngresoRecurrenteUpdate(SQLModel):
     fecha_proximo_cobro: date | None = None
     cuenta_id: int | None = None
     categoria_id: int | None = None
+    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)
+    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
+    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
+    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
+    adelantar_a_habil: bool | None = None
 
 
 class CobroIngresoCreate(SQLModel):

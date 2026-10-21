@@ -15,7 +15,7 @@ export type FechaISO = string;
 export type TipoMovimiento = "ingreso" | "gasto";
 export type TipoCuenta = "efectivo" | "debito" | "credito" | "rendimientos" | "ahorro" | "inversion";
 export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL";
-export type Periodicidad = "semanal" | "quincenal" | "mensual" | "anual";
+export type Periodicidad = "diaria" | "semanal" | "quincenal" | "mensual" | "anual";
 
 // --- Entidades -------------------------------------------------------------
 export interface Cuenta {
@@ -179,6 +179,15 @@ export interface IngresoRecurrente {
   fecha_proximo_cobro: FechaISO;
   cuenta_id: number;
   categoria_id: number;
+  /** Cada N días/semanas/meses/años; null = 1. */
+  intervalo: number | null;
+  /** Días de la quincenal (31 = el último); null = 15 y último. */
+  dia_quincena_1: number | null;
+  dia_quincena_2: number | null;
+  /** Día fijo de la mensual (31 = el último); null = el de la fecha. */
+  dia_del_mes: number | null;
+  /** Sábado o domingo → el viernes anterior. */
+  adelantar_a_habil: boolean | null;
 }
 
 /** Lo que llegó de verdad: lo que se omita se toma del ingreso recurrente. */

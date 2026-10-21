@@ -18,6 +18,7 @@ from sqlmodel import Field, SQLModel
 # 0.30000000000000004; con Decimal da exactamente 0.3.
 MAX_DIGITOS = 12
 DECIMALES = 2
+MAX_INTERVALO = 365  # "cada 365 días" es lo más largo que tiene sentido
 
 
 # ---------------------------------------------------------------------------
@@ -38,6 +39,7 @@ class TipoCuenta(str, Enum):
 
 
 class Periodicidad(str, Enum):
+    DIARIA = "diaria"  # con `intervalo`: cada N días
     SEMANAL = "semanal"
     QUINCENAL = "quincenal"  # días 15 y último del mes, como las nóminas en México
     MENSUAL = "mensual"
@@ -330,6 +332,14 @@ class IngresoRecurrenteBase(SQLModel):
     fecha_proximo_cobro: date = Field(index=True)
     cuenta_id: int = Field(foreign_key="cuenta.id", index=True)
     categoria_id: int = Field(foreign_key="categoria.id", index=True)
+    # Ajustes del calendario (services/periodicidad.py); null = el comportamiento clásico.
+    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)  # cada N periodos
+    # Días de cobro de la quincenal (31 = el último del mes); null = 15 y último.
+    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
+    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
+    # Día fijo de la mensual (31 = el último); null = el de la fecha del próximo cobro.
+    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
+    adelantar_a_habil: bool | None = None  # sábado o domingo → el viernes anterior
 
 
 class IngresoRecurrente(IngresoRecurrenteBase, table=True):

@@ -1,10 +1,11 @@
+from dataclasses import replace
 from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.models import Periodicidad
-from app.services.periodicidad import siguiente_fecha
+from app.services.periodicidad import Calendario, siguiente_fecha
 
 
 @pytest.mark.parametrize(
@@ -22,6 +23,43 @@ from app.services.periodicidad import siguiente_fecha
 )
 def test_quincenas_caen_el_15_y_el_ultimo_dia(actual: date, esperada: date) -> None:
     assert siguiente_fecha(actual, Periodicidad.QUINCENAL) == esperada
+
+
+
+@pytest.mark.parametrize(
+    ("periodicidad", "ajustes", "actual", "esperada"),
+    [
+        (Periodicidad.DIARIA, Calendario(intervalo=10), date(2026, 10, 1), date(2026, 10, 11)),
+        (Periodicidad.SEMANAL, Calendario(intervalo=2), date(2026, 10, 1), date(2026, 10, 15)),
+        (Periodicidad.MENSUAL, Calendario(intervalo=3, dia_del_mes=5), date(2026, 10, 5), date(2027, 1, 5)),
+        (Periodicidad.ANUAL, Calendario(intervalo=2), date(2026, 10, 1), date(2028, 10, 1)),
+        # Quincena con días a elegir (31 = el último del mes).
+        (Periodicidad.QUINCENAL, Calendario(dias_quincena=(1, 16)), date(2026, 10, 1), date(2026, 10, 16)),
+        (Periodicidad.QUINCENAL, Calendario(dias_quincena=(1, 16)), date(2026, 10, 16), date(2026, 11, 1)),
+        (Periodicidad.QUINCENAL, Calendario(dias_quincena=(10, 31)), date(2026, 10, 31), date(2026, 11, 10)),
+        # Día fijo del mes: el 31 de enero no deriva al 28 para siempre tras febrero.
+        (Periodicidad.MENSUAL, Calendario(dia_del_mes=31), date(2027, 1, 31), date(2027, 2, 28)),
+        (Periodicidad.MENSUAL, Calendario(dia_del_mes=31), date(2027, 2, 28), date(2027, 3, 31)),
+    ],
+)
+def test_calendario_flexible(periodicidad: Periodicidad, ajustes: Calendario, actual: date, esperada: date) -> None:
+    assert siguiente_fecha(actual, periodicidad, ajustes) == esperada
+
+
+@pytest.mark.parametrize(
+    ("periodicidad", "ajustes", "actual", "esperada"),
+    [
+        (Periodicidad.QUINCENAL, Calendario(), date(2026, 10, 15), date(2026, 10, 30)),  # sáb 31 → vie 30
+        # Desde el viernes adelantado no se repite el mismo cobro: el siguiente es el 15
+        # (domingo → viernes 13) y luego el 30 (lunes, se queda).
+        (Periodicidad.QUINCENAL, Calendario(), date(2026, 10, 30), date(2026, 11, 13)),
+        (Periodicidad.QUINCENAL, Calendario(), date(2026, 11, 13), date(2026, 11, 30)),
+        # El domingo 1 de noviembre pasa al viernes 30 de octubre: el siguiente es el 1 de diciembre.
+        (Periodicidad.MENSUAL, Calendario(dia_del_mes=1), date(2026, 10, 30), date(2026, 12, 1)),
+    ],
+)
+def test_adelantar_a_dia_habil(periodicidad: Periodicidad, ajustes: Calendario, actual: date, esperada: date) -> None:
+    assert siguiente_fecha(actual, periodicidad, replace(ajustes, adelantar_a_habil=True)) == esperada
 
 
 def _crear(client: TestClient, cuenta: dict, categoria: dict, **extra) -> dict:
@@ -157,3 +195,39 @@ def test_eliminar_conserva_las_transacciones(
 
     assert client.delete(f"/ingresos-recurrentes/{ingreso['id']}").status_code == 204
     assert len(client.get("/transacciones").json()) == 1
+
+
+def test_cobro_usa_el_calendario_del_ingreso(client: TestClient, cuenta: dict, categoria_ingreso: dict) -> None:
+    ingreso = _crear(
+        client, cuenta, categoria_ingreso, fecha_proximo_cobro="2026-10-01", dia_quincena_1=1, dia_quincena_2=16
+    )
+    assert (ingreso["dia_quincena_1"], ingreso["dia_quincena_2"]) == (1, 16)
+
+    avanzado = client.post(f"/ingresos-recurrentes/{ingreso['id']}/omitir").json()
+    assert avanzado["fecha_proximo_cobro"] == "2026-10-16"
+
+    client.patch(f"/ingresos-recurrentes/{ingreso['id']}", json={"periodicidad": "mensual", "intervalo": 2, "dia_del_mes": 31})
+    avanzado = client.post(f"/ingresos-recurrentes/{ingreso['id']}/omitir").json()
+    assert avanzado["fecha_proximo_cobro"] == "2026-12-31"
+
+    # null vuelve al calendario clásico: mensual desde el día de la fecha (31 → 31 ene).
+    client.patch(f"/ingresos-recurrentes/{ingreso['id']}", json={"intervalo": None, "dia_del_mes": None})
+    avanzado = client.post(f"/ingresos-recurrentes/{ingreso['id']}/omitir").json()
+    assert avanzado["fecha_proximo_cobro"] == "2027-01-31"
+
+
+@pytest.mark.parametrize(
+    "dias", [{"dia_quincena_1": 1}, {"dia_quincena_1": 16, "dia_quincena_2": 1}, {"dia_quincena_1": 32, "dia_quincena_2": 33}]
+)
+def test_dias_de_quincena_invalidos(client: TestClient, cuenta: dict, categoria_ingreso: dict, dias: dict) -> None:
+    datos = {
+        "nombre": "Nómina", "monto": "100", "periodicidad": "quincenal", "fecha_proximo_cobro": "2026-10-15",
+        "cuenta_id": cuenta["id"], "categoria_id": categoria_ingreso["id"], **dias,
+    }
+    assert client.post("/ingresos-recurrentes", json=datos).status_code in (400, 422)
+
+
+def test_patch_valida_los_dias_de_quincena(client: TestClient, cuenta: dict, categoria_ingreso: dict) -> None:
+    ingreso = _crear(client, cuenta, categoria_ingreso, dia_quincena_1=10, dia_quincena_2=25)
+    respuesta = client.patch(f"/ingresos-recurrentes/{ingreso['id']}", json={"dia_quincena_1": 26})
+    assert respuesta.status_code == 400

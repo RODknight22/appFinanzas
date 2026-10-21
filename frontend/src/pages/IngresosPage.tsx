@@ -11,12 +11,12 @@ import { Contenido, Vacio } from "../components/ui/Estados";
 import { IconoCategoria } from "../components/ui/IconoCategoria";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
-import { COBROS_POR_MES, PERIODICIDADES } from "../config";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { IngresoRecurrente } from "../types";
 import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../utils/formato";
+import { cobrosPorMes, describirPeriodicidad } from "../utils/periodicidad";
 
 type EstadoModal =
   | null
@@ -53,7 +53,7 @@ export function IngresosPage() {
           const categoriaPorId = new Map(categoriasIngreso.map((c) => [c.id, c]));
           // Cada ingreso se convierte a la moneda principal (tasa de hoy) antes de sumar.
           const mensual = ingresos.reduce(
-            (total, i) => total + (convertir(Number(i.monto), i.moneda) ?? 0) * COBROS_POR_MES[i.periodicidad],
+            (total, i) => total + (convertir(Number(i.monto), i.moneda) ?? 0) * cobrosPorMes(i),
             0,
           );
 
@@ -87,7 +87,7 @@ export function IngresosPage() {
                             <p className="truncate font-medium">{ingreso.nombre}</p>
                             <p className="text-xs">
                               <span className="text-tenue">
-                                {PERIODICIDADES[ingreso.periodicidad]} · {cuentaPorId.get(ingreso.cuenta_id)?.nombre} ·{" "}
+                                {describirPeriodicidad(ingreso)} · {cuentaPorId.get(ingreso.cuenta_id)?.nombre} ·{" "}
                               </span>
                               <span className={colorFecha}>
                                 {textoVencimiento(ingreso.fecha_proximo_cobro)} ({formatearFecha(ingreso.fecha_proximo_cobro)})

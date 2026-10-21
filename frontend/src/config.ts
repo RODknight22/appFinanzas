@@ -36,6 +36,7 @@ export const PAGINAS_INICIO: Record<PaginaInicio, { nombre: string; ruta: string
 };
 
 export const PERIODICIDADES: Record<Periodicidad, string> = {
+  diaria: "Diaria",
   semanal: "Semanal",
   quincenal: "Quincenal",
   mensual: "Mensual",
@@ -44,6 +45,7 @@ export const PERIODICIDADES: Record<Periodicidad, string> = {
 
 /** Cuántas veces se cobra al mes, en promedio, cada periodicidad. */
 export const COBROS_POR_MES: Record<Periodicidad, number> = {
+  diaria: 365 / 12,
   semanal: 52 / 12,
   quincenal: 2,
   mensual: 1,
