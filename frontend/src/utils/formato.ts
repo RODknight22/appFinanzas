@@ -46,7 +46,7 @@ export function formatearNumero(valor: number, maxDecimales = 4): string {
  * Las fechas ISO ("2026-10-18") se interpretan en UTC por defecto, lo que puede
  * mostrar el día anterior según la zona horaria. Las construimos en hora local.
  */
-function fechaLocal(fecha: FechaISO): Date {
+export function fechaLocal(fecha: FechaISO): Date {
   const [anio, mes, dia] = fecha.split("-").map(Number);
   return new Date(anio, mes - 1, dia);
 }
@@ -69,6 +69,18 @@ export function formatearMes(mes: MesAnio, formato: "corto" | "largo" = "largo")
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+/** Nombre corto de un mes (1-12) con el formato regional de la app: "oct", "Oct"… */
+export function nombreMesCorto(mes: number): string {
+  return new Date(2000, mes - 1, 1).toLocaleDateString(localeActual, { month: "short" }).replace(".", "");
+}
+
+/** Suma días a una fecha ISO (negativo para restar). */
+export function sumarDias(fecha: FechaISO, dias: number): FechaISO {
+  const resultado = fechaLocal(fecha);
+  resultado.setDate(resultado.getDate() + dias);
+  return aISO(resultado);
+}
+
 /** Fecha de hoy en formato ISO local, para valores por defecto de formularios. */
 export function hoyISO(): FechaISO {
   return aISO(new Date());
@@ -81,7 +93,7 @@ export function configurarDiaInicioMes(dia: number): void {
   diaInicioMes = dia;
 }
 
-function aISO(fecha: Date): FechaISO {
+export function aISO(fecha: Date): FechaISO {
   const mes = String(fecha.getMonth() + 1).padStart(2, "0");
   const dia = String(fecha.getDate()).padStart(2, "0");
   return `${fecha.getFullYear()}-${mes}-${dia}`;

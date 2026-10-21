@@ -8,6 +8,7 @@ import type { Moneda, Periodicidad, Suscripcion } from "../../types";
 import { hoyISO } from "../../utils/formato";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { SelectMoneda } from "../ui/SelectMoneda";
+import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
 
 interface FormularioSuscripcionProps {
@@ -56,9 +57,7 @@ export function FormularioSuscripcion({ inicial, onGuardado, onCancelar }: Formu
           </select>
         </Campo>
       </div>
-      <Campo etiqueta="Próximo cobro">
-        <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
-      </Campo>
+      <SelectorFecha etiqueta="Próximo cobro" valor={fecha} onCambiar={setFecha} />
       <PieFormulario error={error} enviando={enviando} onCancelar={onCancelar} />
     </form>
   );

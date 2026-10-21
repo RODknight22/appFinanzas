@@ -10,6 +10,7 @@ import { hoyISO } from "../../utils/formato";
 import { UNIDADES, ULTIMO_DIA, textoDia } from "../../utils/periodicidad";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { SelectMoneda } from "../ui/SelectMoneda";
+import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
 
 /** Días 1-30 y "Último día" (31), que el backend recorta según el mes. */
@@ -121,9 +122,7 @@ export function FormularioIngreso({ inicial, cuentas, categoriasIngreso, onGuard
           </select>
         </Campo>
       </div>
-      <Campo etiqueta="Próximo cobro">
-        <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
-      </Campo>
+      <SelectorFecha etiqueta="Próximo cobro" valor={fecha} onCambiar={setFecha} />
 
       <fieldset className="space-y-3 rounded-xl bg-superficie-2/60 p-3">
         <legend className="sr-only">Calendario de cobro</legend>

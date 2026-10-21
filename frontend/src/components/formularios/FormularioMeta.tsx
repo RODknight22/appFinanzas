@@ -6,6 +6,7 @@ import { useEnvio } from "../../hooks/useEnvio";
 import type { Cuenta, Meta, Moneda } from "../../types";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { SelectMoneda } from "../ui/SelectMoneda";
+import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
 
 const ICONOS_META = ["🎯", "✈️", "🏠", "🚗", "💻", "📱", "🎓", "💍", "🏖️", "🐶", "🎁", "🛟", "💰", "🇲🇽"];
@@ -87,9 +88,7 @@ export function FormularioMeta({ inicial, cuentas, onGuardado, onCancelar }: For
           </div>
           <SelectMoneda valor={moneda} onCambiar={setMoneda} compacta className="w-[5.5rem]" etiqueta="Moneda" />
         </div>
-        <Campo etiqueta="Fecha límite (opcional)">
-          <input className={CLASE_ENTRADA} type="date" value={fechaLimite} onChange={(e) => setFechaLimite(e.target.value)} />
-        </Campo>
+        <SelectorFecha etiqueta="Fecha límite (opcional)" valor={fechaLimite} onCambiar={setFechaLimite} opcional />
       </div>
 
       <fieldset className="space-y-2">

@@ -10,6 +10,7 @@ import { formatearDinero, hoyISO } from "../../utils/formato";
 import { SelectMoneda } from "../ui/SelectMoneda";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { SelectorFecha } from "../ui/SelectorFecha";
 import { CategoriaRapida } from "./CategoriaRapida";
 import { PieFormulario } from "./PieFormulario";
 
@@ -142,9 +143,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
           </div>
           <VistaPreviaConversion monto={Number(monto)} de={moneda} a={cuentaDe(cuentaId)?.moneda} />
         </div>
-        <Campo etiqueta="Fecha">
-          <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
-        </Campo>
+        <SelectorFecha etiqueta="Fecha" valor={fecha} onCambiar={setFecha} />
       </div>
 
       <div className="space-y-1.5">

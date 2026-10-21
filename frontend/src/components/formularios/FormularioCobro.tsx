@@ -6,6 +6,7 @@ import type { Cuenta, IngresoRecurrente } from "../../types";
 import { formatearFecha } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
 
 interface FormularioCobroProps {
@@ -48,9 +49,7 @@ export function FormularioCobro({ ingreso, cuentas, onGuardado, onCancelar }: Fo
         <Campo etiqueta={`Monto recibido (${ingreso.moneda})`}>
           <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} required autoFocus />
         </Campo>
-        <Campo etiqueta="Fecha">
-          <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
-        </Campo>
+        <SelectorFecha etiqueta="Fecha" valor={fecha} onCambiar={setFecha} />
       </div>
       <Campo etiqueta="Cuenta">
         <select className={CLASE_ENTRADA} value={cuentaId} onChange={(e) => setCuentaId(e.target.value)} required>
