@@ -2,6 +2,7 @@
 # están en constraints.txt: así cada instalación es idéntica a la probada.
 # Actualizar: cambiar aquí, regenerar constraints.txt y pasar pip-audit (ver CI).
 fastapi==0.147.0
+openpyxl==3.1.5  # leer extractos bancarios en Excel (.xlsx)
 starlette==1.9.0
 sqlmodel==0.0.48
 uvicorn[standard]==0.54.0
