@@ -15,11 +15,12 @@ el código. Hablarle en español, explicar el diseño antes de cambios grandes, 
 ## Funcionalidades actuales
 Transacciones (búsqueda, filtros en URL, importar CSV/.xlsx), transferencias (comisión, pago de
 tarjeta), metas, suscripciones, ingresos fijos, presupuestos por divisa, dashboard (widgets),
-cuentas (subcuentas, fijadas, efectivo), categorías, multidivisa, login, tutorial, personalización.
+cuentas (subcuentas, fijadas, efectivo), deudas, deseos (máquina del tiempo), avisos, categorías,
+multidivisa, login, tutorial, personalización.
 
 ## Principios
 - Código autodocumentado, modular, tipado estricto; comentarios breves que expliquen el *por qué*.
-- Errores HTTP semánticos (400, 401, 404, 409, 422, 429, 503) con mensajes en español.
+- Errores HTTP semánticos (400, 404, 409, 422…) con mensajes en español.
 - Capas: Routers -> Services -> Models/Schemas | Pages -> Components -> api/.
 
 ## Convenciones del Backend (`backend/app/`)
@@ -32,17 +33,18 @@ cuentas (subcuentas, fijadas, efectivo), categorías, multidivisa, login, tutori
 - Cuentas: campos por tipo en `_normalizar_por_tipo`; tarjeta: saldo negativo = deuda; subcuentas
   con `cuenta_padre_id` (`MAX_NIVELES_SUBCUENTAS`). Saldos solo vía `saldos.movimientos_por_cuenta`.
 - Transferencias: no son ingreso/gasto; su comisión es una Transaccion con `transferencia_id`.
+- Deudas: préstamo y abonos mueven saldos (`saldos._FUENTES`); sin cuenta, es un apunte.
+- Avisos: services/notificaciones.py, al vuelo con clave estable; solo se guardan las leídas.
 - Recurrentes: `siguiente_fecha` + `Calendario` en services/periodicidad.py.
 - Presupuestos: cada uno en su `moneda` (`dashboard.progreso_presupuestos`).
-- Metas: progreso en `metas._con_progreso` (saldo o aportaciones); `fecha_cumplida` persiste.
+- Metas: progreso en `metas._con_progreso`; `fecha_cumplida` persiste.
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api), expuestas en la principal
   (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo) y
   `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
 - Búsqueda: `_filtrar()` en services/transacciones.py; texto con `sin_acentos()` (database.py).
-- Importar: `lector_extractos.py` (puro: bytes → fecha, importe con signo, concepto) e
-  `importaciones.py` (vista previa sin guardar + confirmar todo o nada; concepto → `notas`).
-- Mes financiero: services/mes_financiero.py según `dia_inicio_mes` de la configuración.
-- Dependencias: versiones en requirements.txt + constraints.txt; pip-audit y npm audit en CI.
+- Importar: `lector_extractos.py` (puro) e `importaciones.py` (vista previa; todo o nada).
+- Mes financiero: services/mes_financiero.py (`dia_inicio_mes`).
+- Dependencias: requirements.txt + constraints.txt; pip-audit y npm audit en CI.
 - Acceso: un usuario (scrypt) + cookie HttpOnly `sesion`; `requiere_sesion` en main.py. Tests:
   `client` simula sesión, `cliente_sin_sesion` no. Olvido: `python -m app.restablecer_contrasena`.
 
@@ -52,13 +54,13 @@ cuentas (subcuentas, fijadas, efectivo), categorías, multidivisa, login, tutori
   estado único (`null | "nueva" | entidad`), `key` para reiniciar y portal a `<body>`.
 - `useConfiguracion()` da config, tasas y `convertir`; `formatearDinero(valor, moneda)`.
 - Colores: nunca grises fijos (slate/white) sino tokens de index.css (`bg-superficie`,
-  `text-tenue`, `border-linea`…) que define cada estilo. `*-acento-*`.
+  `text-tenue`, `border-linea`…). `*-acento-*`.
 - Widgets en dashboard/registroWidgets.tsx (`DatosPanel`; tamaños S/M/L/XL = 1-4 columnas).
 - Fechas con `SelectorFecha`; consejos con `<Consejo>` o `consejo` de `EncabezadoPagina`.
 
 ## Hoja de ruta
-- [x] v1.0.0: ejecutables Windows/Linux + Docker. Versión: `app/version.py` + package.json.
-- [x] Importar CSV/.xlsx (nivel 1). Después: reglas manuales, .xls, conexión bancaria (PSD2).
+- [x] v1.0.0 (versión: `app/version.py` + package.json). Importar CSV/.xlsx; luego .xls, PSD2.
+- [ ] Recordatorios por correo (`correo_recordatorios`), seguir precios de los deseos.
 - [ ] Siguiente: copias de seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el
   repo, notificaciones en vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no
   aditivos, react-router 7, firma de ejecutables, más estilos visuales.
