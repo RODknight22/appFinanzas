@@ -7,10 +7,12 @@ interface ModalProps {
   abierto: boolean;
   onCerrar: () => void;
   children: ReactNode;
+  /** "amplio" para contenidos con tablas o listas largas (p. ej. importar un extracto). */
+  ancho?: "normal" | "amplio";
 }
 
 /** Ventana superpuesta para formularios. Se cierra con Escape o clic fuera. */
-export function Modal({ titulo, abierto, onCerrar, children }: ModalProps) {
+export function Modal({ titulo, abierto, onCerrar, children, ancho = "normal" }: ModalProps) {
   useEffect(() => {
     if (!abierto) return;
     const alPulsarTecla = (evento: KeyboardEvent) => evento.key === "Escape" && onCerrar();
@@ -31,7 +33,7 @@ export function Modal({ titulo, abierto, onCerrar, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className="max-h-[90vh] w-full max-w-md animate-entrada overflow-y-auto rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea"
+        className={`max-h-[90vh] w-full ${ancho === "amplio" ? "max-w-3xl" : "max-w-md"} animate-entrada overflow-y-auto rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea`}
         // Evita que un clic dentro del modal llegue al fondo y lo cierre.
         onMouseDown={(evento) => evento.stopPropagation()}
       >

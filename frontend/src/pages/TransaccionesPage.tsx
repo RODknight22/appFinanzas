@@ -1,8 +1,9 @@
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { useState } from "react";
 
 import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
+import { ImportarExtracto } from "../components/importacion/ImportarExtracto";
 import { BarraFiltros } from "../components/transacciones/BarraFiltros";
 import { FilaTransaccion } from "../components/transacciones/FilaTransaccion";
 import { Boton } from "../components/ui/Boton";
@@ -17,7 +18,7 @@ import { aConsulta, POR_PAGINA, useFiltrosTransacciones } from "../hooks/useFilt
 import type { Transaccion } from "../types";
 import { formatearDinero } from "../utils/formato";
 
-type EstadoModal = null | "nueva" | Transaccion;
+type EstadoModal = null | "nueva" | "importar" | Transaccion;
 
 export function TransaccionesPage() {
   const { filtros, cambiar, limpiar } = useFiltrosTransacciones();
@@ -39,7 +40,12 @@ export function TransaccionesPage() {
       <EncabezadoPagina
         titulo="Transacciones"
         descripcion="Tus ingresos y gastos registrados"
-        acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva</Boton>}
+        acciones={
+          <>
+            <Boton variante="secundario" onClick={() => setModal("importar")}><Upload size={16} /> Importar</Boton>
+            <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva</Boton>
+          </>
+        }
       />
 
       <Contenido {...catalogos} onReintentar={catalogos.recargar}>
@@ -94,8 +100,22 @@ export function TransaccionesPage() {
                 )}
               </Tarjeta>
 
-              <Modal titulo={modal === "nueva" ? "Nueva transacción" : "Editar transacción"} abierto={modal !== null} onCerrar={() => setModal(null)}>
-                {modal !== null && (
+              <Modal titulo="Importar extracto bancario" ancho="amplio" abierto={modal === "importar"} onCerrar={() => setModal(null)}>
+                <ImportarExtracto
+                  cuentas={cuentas}
+                  categorias={categorias}
+                  cuentaInicial={consulta.cuenta_id}
+                  onImportado={resultados.recargar}
+                  onCerrar={() => setModal(null)}
+                />
+              </Modal>
+
+              <Modal
+                titulo={modal === "nueva" ? "Nueva transacción" : "Editar transacción"}
+                abierto={modal !== null && modal !== "importar"}
+                onCerrar={() => setModal(null)}
+              >
+                {modal !== null && modal !== "importar" && (
                   <FormularioTransaccion
                     key={modal === "nueva" ? "nueva" : modal.id}
                     inicial={modal === "nueva" ? undefined : modal}

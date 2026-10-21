@@ -101,6 +101,31 @@ export interface PaginaTransacciones {
   total_gastos: Dinero;
 }
 
+// --- Importar extractos bancarios -------------------------------------------
+/** Un movimiento del archivo tal como se importaría (vista previa, aún sin guardar). */
+export interface FilaImportacion {
+  /** Fila en el archivo, para encontrarla. */
+  fila: number;
+  fecha: FechaISO;
+  monto: Dinero;
+  tipo: TipoMovimiento;
+  concepto: string;
+  categoria_id: number;
+  /** alta = mismo concepto ya categorizado antes; media = parecido; ninguna = "Otros". */
+  confianza: "alta" | "media" | "ninguna";
+  /** Ya registrado en la cuenta: no se importa salvo que se marque. */
+  duplicado: boolean;
+}
+
+export interface VistaPreviaImportacion {
+  /** Qué columna del archivo se usó para cada dato, p. ej. { fecha: "F. Operación" }. */
+  columnas: Record<string, string>;
+  filas: FilaImportacion[];
+  filas_ignoradas: number;
+}
+
+export type MovimientoImportado = Pick<FilaImportacion, "fecha" | "monto" | "tipo" | "concepto" | "categoria_id">;
+
 /** Dinero que pasa de una cuenta a otra (no es ingreso ni gasto). */
 export interface Transferencia {
   id: number;

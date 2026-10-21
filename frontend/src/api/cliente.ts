@@ -62,10 +62,13 @@ async function leerMensajeDeError(respuesta: Response): Promise<string> {
 }
 
 async function peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
+  // Un archivo (Blob/File) viaja tal cual; cualquier otro cuerpo, como JSON.
+  const esArchivo = cuerpo instanceof Blob;
   const respuesta = await fetch(`${URL_BASE}${ruta}`, {
     method: metodo,
-    headers: cuerpo !== undefined ? { "Content-Type": "application/json" } : undefined,
-    body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
+    headers:
+      cuerpo === undefined ? undefined : { "Content-Type": esArchivo ? "application/octet-stream" : "application/json" },
+    body: cuerpo === undefined ? undefined : esArchivo ? cuerpo : JSON.stringify(cuerpo),
   });
 
   if (!respuesta.ok) {
@@ -82,7 +85,8 @@ async function peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Prom
 export const http = {
   get: <T>(ruta: string, parametros?: ParametrosConsulta) =>
     peticion<T>("GET", `${ruta}${construirConsulta(parametros)}`),
-  post: <T>(ruta: string, cuerpo: unknown) => peticion<T>("POST", ruta, cuerpo),
+  post: <T>(ruta: string, cuerpo: unknown, parametros?: ParametrosConsulta) =>
+    peticion<T>("POST", `${ruta}${construirConsulta(parametros)}`, cuerpo),
   patch: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PATCH", ruta, cuerpo),
   put: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PUT", ruta, cuerpo),
   delete: <T = void>(ruta: string) => peticion<T>("DELETE", ruta),
