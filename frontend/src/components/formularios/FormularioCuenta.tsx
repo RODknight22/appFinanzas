@@ -29,6 +29,8 @@ export const TIPOS_CUENTA: Record<TipoCuenta, { etiqueta: string; icono: LucideI
 interface FormularioCuentaProps {
   /** Si se pasa, el formulario edita esa cuenta; si no, crea una nueva. */
   inicial?: Cuenta;
+  /** Tipo preseleccionado al crear (p. ej. "efectivo" desde la página de Efectivo). */
+  tipoInicial?: TipoCuenta;
   onGuardado: () => void;
   onCancelar: () => void;
 }
@@ -36,10 +38,10 @@ interface FormularioCuentaProps {
 /** Convierte "" en null: los campos opcionales vacíos se envían como null. */
 const textoONulo = (valor: string) => (valor.trim() === "" ? null : valor);
 
-export function FormularioCuenta({ inicial, onGuardado, onCancelar }: FormularioCuentaProps) {
+export function FormularioCuenta({ inicial, tipoInicial, onGuardado, onCancelar }: FormularioCuentaProps) {
   const { moneda: monedaPrincipal } = useConfiguracion();
   const [nombre, setNombre] = useState(inicial?.nombre ?? "");
-  const [tipo, setTipo] = useState<TipoCuenta>(inicial?.tipo ?? "debito");
+  const [tipo, setTipo] = useState<TipoCuenta>(inicial?.tipo ?? tipoInicial ?? "debito");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? monedaPrincipal);
   // En tarjetas pedimos la deuda en positivo (más natural) y la guardamos en negativo.
   const [importeInicial, setImporteInicial] = useState(() => {
