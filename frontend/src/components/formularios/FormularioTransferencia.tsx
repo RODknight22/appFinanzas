@@ -17,9 +17,17 @@ export interface PagoTarjeta {
   monto: number;
 }
 
+/** Para abrir el formulario con el sentido ya elegido (p. ej. "retirar del cajero"). */
+export interface SentidoTransferencia {
+  origenId: number;
+  destinoId: number;
+  notas: string;
+}
+
 interface FormularioTransferenciaProps {
   inicial?: Transferencia;
   pago?: PagoTarjeta;
+  sentido?: SentidoTransferencia;
   cuentas: Cuenta[];
   onGuardado: () => void;
   onCancelar: () => void;
@@ -51,14 +59,16 @@ function origenPorDefecto(cuentas: Cuenta[], destinoId: number | undefined): num
   return (candidatas.find((c) => c.tipo !== "credito") ?? candidatas[0])?.id ?? 0;
 }
 
-export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, onCancelar }: FormularioTransferenciaProps) {
+export function FormularioTransferencia({ inicial, pago, sentido, cuentas, onGuardado, onCancelar }: FormularioTransferenciaProps) {
   const { convertir } = useConfiguracion();
   const cuentaDe = (id: number) => cuentas.find((c) => c.id === id);
 
   const [destinoId, setDestinoId] = useState(
-    inicial?.cuenta_destino_id ?? pago?.cuentaId ?? cuentas.find((c) => c.id !== cuentas[0]?.id)?.id ?? 0,
+    inicial?.cuenta_destino_id ?? pago?.cuentaId ?? sentido?.destinoId ?? cuentas.find((c) => c.id !== cuentas[0]?.id)?.id ?? 0,
   );
-  const [origenId, setOrigenId] = useState(inicial?.cuenta_origen_id ?? origenPorDefecto(cuentas, destinoId));
+  const [origenId, setOrigenId] = useState(
+    inicial?.cuenta_origen_id ?? sentido?.origenId ?? origenPorDefecto(cuentas, destinoId),
+  );
   // Al pagar una tarjeta en otra moneda, lo que sale se estima a partir de la deuda.
   const [montoOrigen, setMontoOrigen] = useState(() => {
     if (inicial) return inicial.monto_origen;
@@ -69,7 +79,7 @@ export function FormularioTransferencia({ inicial, pago, cuentas, onGuardado, on
   const [montoDestino, setMontoDestino] = useState(inicial?.monto_destino ?? (pago ? pago.monto.toFixed(2) : ""));
   const [comision, setComision] = useState(inicial?.comision ?? "");
   const [fecha, setFecha] = useState(inicial?.fecha ?? hoyISO());
-  const [notas, setNotas] = useState(inicial?.notas ?? (pago ? "Pago de tarjeta" : ""));
+  const [notas, setNotas] = useState(inicial?.notas ?? (pago ? "Pago de tarjeta" : sentido?.notas ?? ""));
   const { enviando, error, ejecutar } = useEnvio();
 
   const origen = cuentaDe(origenId);

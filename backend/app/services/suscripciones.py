@@ -1,32 +1,15 @@
 """Lógica de negocio de las suscripciones y gastos recurrentes."""
 
-import calendar
 from datetime import date, timedelta
 
 from sqlmodel import Session, col, select
 
-from app.models import Periodicidad, Suscripcion, TipoMovimiento, Transaccion
+from app.models import Suscripcion, TipoMovimiento, Transaccion
 from app.schemas import PagoSuscripcionCreate, SuscripcionCreate, SuscripcionUpdate
 from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404
+from app.services.periodicidad import siguiente_fecha
 from app.services.transacciones import completar_montos, validar_relaciones
-
-
-def _sumar_meses(fecha: date, meses: int) -> date:
-    """Suma meses respetando los meses cortos: 31 ene + 1 mes = 28/29 feb."""
-    total = fecha.month - 1 + meses
-    anio, mes = fecha.year + total // 12, total % 12 + 1
-    ultimo_dia = calendar.monthrange(anio, mes)[1]
-    return date(anio, mes, min(fecha.day, ultimo_dia))
-
-
-def siguiente_fecha(fecha: date, periodicidad: Periodicidad) -> date:
-    """Calcula la fecha del próximo cobro a partir de la actual."""
-    if periodicidad == Periodicidad.SEMANAL:
-        return fecha + timedelta(weeks=1)
-    if periodicidad == Periodicidad.MENSUAL:
-        return _sumar_meses(fecha, 1)
-    return _sumar_meses(fecha, 12)
 
 
 def listar(session: Session, proximos_dias: int | None = None) -> list[Suscripcion]:

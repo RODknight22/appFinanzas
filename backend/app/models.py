@@ -39,6 +39,7 @@ class TipoCuenta(str, Enum):
 
 class Periodicidad(str, Enum):
     SEMANAL = "semanal"
+    QUINCENAL = "quincenal"  # días 15 y último del mes, como las nóminas en México
     MENSUAL = "mensual"
     ANUAL = "anual"
 
@@ -71,6 +72,8 @@ class PaginaInicio(str, Enum):
     TRANSACCIONES = "transacciones"
     PRESUPUESTOS = "presupuestos"
     SUSCRIPCIONES = "suscripciones"
+    INGRESOS = "ingresos"
+    EFECTIVO = "efectivo"
     CUENTAS = "cuentas"
     METAS = "metas"
 
@@ -304,6 +307,30 @@ class SuscripcionBase(SQLModel):
 
 
 class Suscripcion(SuscripcionBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+
+# ---------------------------------------------------------------------------
+# Ingresos recurrentes
+# ---------------------------------------------------------------------------
+class IngresoRecurrenteBase(SQLModel):
+    """Un ingreso que llega cada cierto tiempo (nómina, renta, envío desde México).
+
+    Guarda la cuenta y la categoría para que registrar el cobro sea un clic.
+    """
+
+    nombre: str = Field(min_length=1, max_length=100)
+    # Importe habitual: al cobrar se puede indicar otro si ese mes llegó distinto.
+    monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    # Si no se indica al crearlo, la moneda de su cuenta.
+    moneda: Moneda | None = None
+    periodicidad: Periodicidad
+    fecha_proximo_cobro: date = Field(index=True)
+    cuenta_id: int = Field(foreign_key="cuenta.id", index=True)
+    categoria_id: int = Field(foreign_key="categoria.id", index=True)
+
+
+class IngresoRecurrente(IngresoRecurrenteBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
 

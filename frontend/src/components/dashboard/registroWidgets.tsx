@@ -11,6 +11,7 @@ import type {
   FlujoMensual,
   GastoDiario,
   GastoPorCategoria,
+  IngresoRecurrente,
   Meta,
   MesAnio,
   ProgresoPresupuesto,
@@ -31,6 +32,7 @@ import { GraficoCategorias } from "./GraficoCategorias";
 import { GraficoFlujo } from "./GraficoFlujo";
 import { GraficoPatrimonio } from "./GraficoPatrimonio";
 import { TarjetaMetrica } from "./TarjetaMetrica";
+import { ListaCobros } from "./widgets/ListaCobros";
 import { ListaPagos } from "./widgets/ListaPagos";
 import { ListaSaldos } from "./widgets/ListaSaldos";
 import { ListaUltimas } from "./widgets/ListaUltimas";
@@ -44,6 +46,7 @@ export interface DatosPanel {
   gastos: GastoPorCategoria[];
   presupuestos: ProgresoPresupuesto[];
   pagos: PagoProximo[];
+  cobros: IngresoRecurrente[];
   diasProximos: number;
   ultimas: Transaccion[];
   categorias: Categoria[];
@@ -190,6 +193,15 @@ export const WIDGETS = {
     pintar: ({ pagos, diasProximos }) => (
       <Tarjeta titulo={`Próximos pagos (${diasProximos} días)`} accion={enlace("/suscripciones", "Ver todas")} className="h-full">
         <ListaPagos pagos={pagos} />
+      </Tarjeta>
+    ),
+  },
+  proximos_cobros: {
+    titulo: "Próximos cobros",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ cobros, diasProximos }) => (
+      <Tarjeta titulo={`Próximos cobros (${diasProximos} días)`} accion={enlace("/ingresos", "Ver todos")} className="h-full">
+        <ListaCobros cobros={cobros} />
       </Tarjeta>
     ),
   },

@@ -1,4 +1,4 @@
-import type { ColorAcento, Moneda, PaginaInicio } from "./types";
+import type { ColorAcento, Moneda, PaginaInicio, Periodicidad } from "./types";
 
 /**
  * Monedas disponibles. El `locale` decide el formato de cada una
@@ -29,8 +29,25 @@ export const PAGINAS_INICIO: Record<PaginaInicio, { nombre: string; ruta: string
   transacciones: { nombre: "Transacciones", ruta: "/transacciones" },
   presupuestos: { nombre: "Presupuestos", ruta: "/presupuestos" },
   suscripciones: { nombre: "Suscripciones", ruta: "/suscripciones" },
+  ingresos: { nombre: "Ingresos fijos", ruta: "/ingresos" },
+  efectivo: { nombre: "Efectivo", ruta: "/efectivo" },
   cuentas: { nombre: "Cuentas", ruta: "/cuentas" },
   metas: { nombre: "Metas", ruta: "/metas" },
+};
+
+export const PERIODICIDADES: Record<Periodicidad, string> = {
+  semanal: "Semanal",
+  quincenal: "Quincenal",
+  mensual: "Mensual",
+  anual: "Anual",
+};
+
+/** Cuántas veces se cobra al mes, en promedio, cada periodicidad. */
+export const COBROS_POR_MES: Record<Periodicidad, number> = {
+  semanal: 52 / 12,
+  quincenal: 2,
+  mensual: 1,
+  anual: 1 / 12,
 };
 
 export const AVATARES = ["🦊", "🐼", "🐯", "🦁", "🐨", "🐸", "🐙", "🦉", "🌵", "🌻", "🚀", "⚡", "💰", "💎", "🎯", "☕"];

@@ -3,17 +3,12 @@ import { useState, type FormEvent } from "react";
 import { suscripcionesApi } from "../../api/recursos";
 import { useConfiguracion } from "../../hooks/useConfiguracion";
 import { useEnvio } from "../../hooks/useEnvio";
+import { PERIODICIDADES } from "../../config";
 import type { Moneda, Periodicidad, Suscripcion } from "../../types";
 import { hoyISO } from "../../utils/formato";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { SelectMoneda } from "../ui/SelectMoneda";
 import { PieFormulario } from "./PieFormulario";
-
-export const PERIODICIDADES: Record<Periodicidad, string> = {
-  semanal: "Semanal",
-  mensual: "Mensual",
-  anual: "Anual",
-};
 
 interface FormularioSuscripcionProps {
   inicial?: Suscripcion;

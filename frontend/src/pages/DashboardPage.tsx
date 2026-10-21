@@ -2,7 +2,7 @@ import { LayoutGrid, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
-import { categoriasApi, cuentasApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
+import { categoriasApi, cuentasApi, ingresosApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
 import { avisarError } from "../components/ajustes/avisarError";
 import { PanelWidgets } from "../components/dashboard/PanelWidgets";
 import { EsqueletoPanel } from "../components/dashboard/EsqueletoPanel";
@@ -19,7 +19,7 @@ import type { WidgetDisposicion } from "../types";
 import { proximosPagos } from "../utils/cuentas";
 import { mesActual } from "../utils/formato";
 
-/** Días hacia delante que se muestran en "Próximos pagos". */
+/** Días hacia delante que se muestran en "Próximos pagos" y "Próximos cobros". */
 const DIAS_PROXIMOS = 14;
 
 export function DashboardPage() {
@@ -45,6 +45,7 @@ export function DashboardPage() {
         metasApi.listar(),
         dashboardApi.patrimonio(mes, 12),
         dashboardApi.gastosDiarios(mes),
+        ingresosApi.listar({ proximos_dias: DIAS_PROXIMOS }),
       ]),
     [mes],
   );
@@ -86,7 +87,7 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar} esqueleto={<EsqueletoPanel />}>
-        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
             resumen,
@@ -94,6 +95,7 @@ export function DashboardPage() {
             gastos,
             presupuestos,
             pagos: proximosPagos(suscripciones, cuentas, saldos, DIAS_PROXIMOS),
+            cobros,
             diasProximos: DIAS_PROXIMOS,
             ultimas,
             categorias,

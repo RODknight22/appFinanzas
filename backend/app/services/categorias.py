@@ -3,7 +3,7 @@
 from sqlmodel import Session, col, select
 
 from app.datos_iniciales import CATEGORIAS_POR_DEFECTO
-from app.models import Categoria, Presupuesto, TipoMovimiento, Transaccion
+from app.models import Categoria, IngresoRecurrente, Presupuesto, TipoMovimiento, Transaccion
 from app.schemas import CategoriaCreate, CategoriaUpdate
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404
 from app.services.errores import ConflictoError
@@ -60,6 +60,8 @@ def eliminar(session: Session, categoria_id: int) -> None:
         raise ConflictoError("No se puede eliminar una categoría que tiene transacciones")
     if existe(session, Presupuesto.categoria_id, categoria_id):
         raise ConflictoError("No se puede eliminar una categoría que tiene presupuestos")
+    if existe(session, IngresoRecurrente.categoria_id, categoria_id):
+        raise ConflictoError("No se puede eliminar una categoría que usa un ingreso recurrente")
     session.delete(categoria)
     session.commit()
 

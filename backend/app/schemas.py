@@ -21,6 +21,7 @@ from app.models import (
     CategoriaBase,
     ColorAcento,
     CuentaBase,
+    IngresoRecurrenteBase,
     Moneda,
     OrigenTasa,
     PaginaInicio,
@@ -279,6 +280,45 @@ class PagoSuscripcionRead(SQLModel):
 
     transaccion: TransaccionRead
     suscripcion: SuscripcionRead
+
+
+# --- Ingresos recurrentes --------------------------------------------------
+class IngresoRecurrenteCreate(IngresoRecurrenteBase):
+    pass
+
+
+class IngresoRecurrenteRead(IngresoRecurrenteBase):
+    id: int
+
+
+class IngresoRecurrenteUpdate(SQLModel):
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    monto: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    moneda: Moneda | None = None
+    periodicidad: Periodicidad | None = None
+    fecha_proximo_cobro: date | None = None
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
+
+
+class CobroIngresoCreate(SQLModel):
+    """Lo que llegó de verdad; lo que no se envíe se toma del ingreso recurrente."""
+
+    monto: Decimal | None = Field(
+        default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
+    )
+    fecha: date | None = None
+    cuenta_id: int | None = None
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class CobroIngresoRead(SQLModel):
+    """Resultado del cobro: la transacción creada y el ingreso con su nueva fecha."""
+
+    transaccion: TransaccionRead
+    ingreso: IngresoRecurrenteRead
 
 
 # --- Dashboard (solo lectura: datos calculados, no tablas) -----------------

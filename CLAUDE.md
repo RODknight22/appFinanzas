@@ -14,9 +14,10 @@ el código. Hablarle en español, explicar el diseño antes de cambios grandes, 
 
 ## Funcionalidades actuales
 Transacciones (búsqueda sin tildes, filtros en URL, paginación), transferencias (comisión, pago de
-tarjeta), metas de ahorro (cuenta o aportaciones, celebraciones), suscripciones, presupuestos,
-dashboard de widgets con gráficas, cuentas, categorías, multidivisa, login, personalización e
-importar extractos CSV/.xlsx (formato autodetectado, categoría aprendida, duplicados).
+tarjeta), metas de ahorro (cuenta o aportaciones, celebraciones), suscripciones, ingresos fijos,
+efectivo (retiros, gasto rápido), presupuestos, dashboard de widgets, cuentas,
+categorías, multidivisa, login, personalización e importar extractos CSV/.xlsx (formato
+autodetectado, categoría aprendida, duplicados).
 
 ## Principios
 - Código autodocumentado, modular, tipado estricto; comentarios breves que expliquen el *por qué*.
@@ -33,6 +34,7 @@ importar extractos CSV/.xlsx (formato autodetectado, categoría aprendida, dupli
 - Cuentas: campos por tipo en `_normalizar_por_tipo`; saldo de tarjeta negativo = deuda. Saldos
   solo vía `saldos.movimientos_por_cuenta` (transacciones + transferencias, opcional `antes_de`).
 - Transferencias: no son ingreso/gasto; su comisión es una Transaccion con `transferencia_id`.
+- Recurrentes (suscripciones, ingresos): fechas en services/periodicidad.py (quincenal: 15 y fin).
 - Metas: progreso en `metas._con_progreso` (saldo o aportaciones); `fecha_cumplida` persiste.
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api), expuestas en la principal
   (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo) y
@@ -57,7 +59,7 @@ importar extractos CSV/.xlsx (formato autodetectado, categoría aprendida, dupli
 ## Hoja de ruta
 - [x] v1.0.0: ejecutables Windows/Linux + Docker. Versión: `app/version.py` + package.json.
 - [x] Importar CSV/.xlsx (nivel 1). Después: reglas manuales, .xls, conexión bancaria (PSD2).
-- [ ] Siguiente: ingresos recurrentes, copias de
+- [ ] Siguiente: copias de
   seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el repo, notificaciones en
   vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no aditivos, react-router 7,
   firma de ejecutables, más estilos visuales.
