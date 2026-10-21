@@ -280,6 +280,8 @@ class PresupuestoBase(SQLModel):
     monto_limite: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
     # Guardamos el mes como texto "YYYY-MM": es legible y se ordena correctamente.
     mes_anio: str
+    # El límite está en esta moneda; si no se indica al crearlo, la principal.
+    moneda: Moneda | None = None
 
     @field_validator("mes_anio")
     @classmethod

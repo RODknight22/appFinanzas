@@ -242,6 +242,7 @@ class PresupuestoUpdate(SQLModel):
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
     mes_anio: str | None = None
+    moneda: Moneda | None = None
 
     @field_validator("mes_anio")
     @classmethod
@@ -374,11 +375,16 @@ class ProgresoPresupuesto(SQLModel):
     nombre: str
     color: str
     mes_anio: str
+    # Límite, gastado y restante van en la moneda del presupuesto.
+    moneda: Moneda
     monto_limite: Decimal
     gastado: Decimal
     restante: Decimal
     porcentaje: float
     excedido: bool
+    # En la moneda principal, para poder sumar presupuestos de distintas monedas.
+    limite_principal: Decimal
+    gastado_principal: Decimal
 
 
 # --- Configuración y divisas -----------------------------------------------

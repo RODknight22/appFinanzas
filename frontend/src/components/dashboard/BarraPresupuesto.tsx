@@ -22,7 +22,7 @@ export function BarraPresupuesto({ progreso }: { progreso: ProgresoPresupuesto }
           {progreso.nombre}
         </span>
         <span className="tabular-nums text-tenue">
-          {formatearDinero(progreso.gastado)} / {formatearDinero(progreso.monto_limite)}
+          {formatearDinero(progreso.gastado, progreso.moneda)} / {formatearDinero(progreso.monto_limite, progreso.moneda)}
         </span>
       </div>
       <div
@@ -37,8 +37,8 @@ export function BarraPresupuesto({ progreso }: { progreso: ProgresoPresupuesto }
       </div>
       <p className={`mt-1 text-xs ${progreso.excedido ? "text-rose-600 dark:text-rose-400" : "text-tenue"}`}>
         {progreso.excedido
-          ? `Excedido en ${formatearDinero(-restante)} (${progreso.porcentaje}%)`
-          : `Quedan ${formatearDinero(restante)} (${progreso.porcentaje}% usado)`}
+          ? `Excedido en ${formatearDinero(-restante, progreso.moneda)} (${progreso.porcentaje}%)`
+          : `Quedan ${formatearDinero(restante, progreso.moneda)} (${progreso.porcentaje}% usado)`}
       </p>
     </div>
   );

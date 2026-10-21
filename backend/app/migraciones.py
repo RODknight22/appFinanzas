@@ -51,6 +51,7 @@ def _rellenar_monedas(conexion: Connection) -> None:
     principal = "COALESCE((SELECT moneda FROM configuracion WHERE id = 1), 'MXN')"
     conexion.execute(text(f"UPDATE cuenta SET moneda = {principal} WHERE moneda IS NULL"))
     conexion.execute(text(f"UPDATE suscripcion SET moneda = {principal} WHERE moneda IS NULL"))
+    conexion.execute(text(f"UPDATE presupuesto SET moneda = {principal} WHERE moneda IS NULL"))
     conexion.execute(text(
         "UPDATE transaccion SET moneda = (SELECT moneda FROM cuenta WHERE cuenta.id = transaccion.cuenta_id) "
         "WHERE moneda IS NULL"

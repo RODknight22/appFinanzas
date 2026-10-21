@@ -146,6 +146,7 @@ export interface Presupuesto {
   categoria_id: number;
   monto_limite: Dinero;
   mes_anio: MesAnio;
+  moneda: Moneda;
 }
 
 export interface Suscripcion {
@@ -247,11 +248,16 @@ export interface ProgresoPresupuesto {
   nombre: string;
   color: string;
   mes_anio: MesAnio;
+  /** Límite, gastado y restante van en esta moneda. */
+  moneda: Moneda;
   monto_limite: Dinero;
   gastado: Dinero;
   restante: Dinero;
   porcentaje: number;
   excedido: boolean;
+  /** En la moneda principal, para sumar presupuestos de distintas monedas. */
+  limite_principal: Dinero;
+  gastado_principal: Dinero;
 }
 
 // --- Configuración ---------------------------------------------------------
