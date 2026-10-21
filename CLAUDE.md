@@ -13,15 +13,13 @@ el código. Hablarle en español, explicar el diseño antes de cambios grandes, 
   (ejecutable PyInstaller, empaquetado/) y Dockerfile raíz. Release: tag `v*` → .github/workflows.
 
 ## Funcionalidades actuales
-Transacciones (búsqueda sin tildes, filtros en URL, paginación), transferencias (comisión, pago de
-tarjeta), metas de ahorro (cuenta o aportaciones, celebraciones), suscripciones, ingresos fijos,
-efectivo (retiros, gasto rápido), presupuestos, dashboard de widgets, cuentas,
-categorías, multidivisa, login, personalización e importar extractos CSV/.xlsx (formato
-autodetectado, categoría aprendida, duplicados).
+Transacciones (búsqueda, filtros en URL, importar CSV/.xlsx), transferencias (comisión, pago de
+tarjeta), metas, suscripciones, ingresos fijos, presupuestos por divisa, dashboard (widgets),
+cuentas (subcuentas, fijadas, efectivo), categorías, multidivisa, login, tutorial, personalización.
 
 ## Principios
 - Código autodocumentado, modular, tipado estricto; comentarios breves que expliquen el *por qué*.
-- Errores HTTP semánticos (400, 401, 404, 409, 422, 429, 503) con mensajes legibles en español.
+- Errores HTTP semánticos (400, 401, 404, 409, 422, 429, 503) con mensajes en español.
 - Capas: Routers -> Services -> Models/Schemas | Pages -> Components -> api/.
 
 ## Convenciones del Backend (`backend/app/`)
@@ -31,10 +29,11 @@ autodetectado, categoría aprendida, duplicados).
 - Servicios lanzan `ErrorDeDominio` (services/errores.py); main.py → `{"detail": ...}`.
 - Arranque (`init_db`): `create_all` + migraciones.py (solo columnas *nullable*/renombrar valores)
   + datos_iniciales.py. Nunca borrar `finance.db`: los cambios de esquema deben ser aditivos.
-- Cuentas: campos por tipo en `_normalizar_por_tipo`; saldo de tarjeta negativo = deuda. Saldos
-  solo vía `saldos.movimientos_por_cuenta` (transacciones + transferencias, opcional `antes_de`).
+- Cuentas: campos por tipo en `_normalizar_por_tipo`; tarjeta: saldo negativo = deuda; subcuentas
+  con `cuenta_padre_id` (`MAX_NIVELES_SUBCUENTAS`). Saldos solo vía `saldos.movimientos_por_cuenta`.
 - Transferencias: no son ingreso/gasto; su comisión es una Transaccion con `transferencia_id`.
-- Recurrentes (suscripciones, ingresos): fechas en services/periodicidad.py (quincenal: 15 y fin).
+- Recurrentes: `siguiente_fecha` + `Calendario` en services/periodicidad.py.
+- Presupuestos: cada uno en su `moneda` (`dashboard.progreso_presupuestos`).
 - Metas: progreso en `metas._con_progreso` (saldo o aportaciones); `fecha_cumplida` persiste.
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api), expuestas en la principal
   (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo) y
@@ -53,16 +52,16 @@ autodetectado, categoría aprendida, duplicados).
   estado único (`null | "nueva" | entidad`), `key` para reiniciar y portal a `<body>`.
 - `useConfiguracion()` da config, tasas y `convertir`; `formatearDinero(valor, moneda)`.
 - Colores: nunca grises fijos (slate/white) sino tokens de index.css (`bg-superficie`,
-  `text-tenue`, `border-linea`…) que define cada estilo (fintech, oscuro primero). `*-acento-*`.
+  `text-tenue`, `border-linea`…) que define cada estilo. `*-acento-*`.
 - Widgets en dashboard/registroWidgets.tsx (`DatosPanel`; tamaños S/M/L/XL = 1-4 columnas).
+- Fechas con `SelectorFecha`; consejos con `<Consejo>` o `consejo` de `EncabezadoPagina`.
 
 ## Hoja de ruta
 - [x] v1.0.0: ejecutables Windows/Linux + Docker. Versión: `app/version.py` + package.json.
 - [x] Importar CSV/.xlsx (nivel 1). Después: reglas manuales, .xls, conexión bancaria (PSD2).
-- [ ] Siguiente: copias de
-  seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el repo, notificaciones en
-  vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no aditivos, react-router 7,
-  firma de ejecutables, más estilos visuales.
+- [ ] Siguiente: copias de seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el
+  repo, notificaciones en vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no
+  aditivos, react-router 7, firma de ejecutables, más estilos visuales.
 
 ## Comandos
 - `docker compose up --build` / `docker compose down` (conserva la BD).
@@ -70,10 +69,10 @@ autodetectado, categoría aprendida, duplicados).
 - Tests (Git Bash, raíz): `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
 - Tipos: `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit`
 - Rendimiento: como Tests, pero `python -m benchmarks.rendimiento 10000 50000` (BD temporal).
-  Medir antes y después de optimizar; no optimizar sin una medición que lo pida.
+  Medir antes y después: no optimizar sin medición.
 - Verificación visual: Playwright (`mcr.microsoft.com/playwright:v1.49.1-noble`) contra
-  contenedores temporales `fin-test-backend`/`fin-test-frontend` en la red `appfinanzas_default`
-  con `DATA_DIR=/tmp/data`: nunca probar sobre los datos reales. Borrarlos al terminar.
+  contenedores temporales `fin-test-*` (red `appfinanzas_default`), nunca con los datos reales:
+  `DATA_DIR=/tmp/data` y `API_URL` al backend de prueba. Vite: entrar por IP. Borrarlos al final.
 
 ## Reglas
 - Mantener este documento al día: menos de 6.000 caracteres y líneas de ≤ 100 (salvo comandos).
