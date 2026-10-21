@@ -73,3 +73,26 @@ export function proximosPagos(
   // Las fechas ISO se ordenan bien como texto ("2026-10-05" < "2026-10-18").
   return pagos.sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
+
+/** Para mostrar: las fijadas arriba y después por nombre (los formularios mantienen el orden por nombre). */
+function ordenarCuentas(cuentas: Cuenta[]): Cuenta[] {
+  return [...cuentas].sort((a, b) => Number(Boolean(b.fijada)) - Number(Boolean(a.fijada)) || a.nombre.localeCompare(b.nombre));
+}
+
+export interface GrupoCuentas {
+  cuenta: Cuenta;
+  subcuentas: Cuenta[];
+}
+
+/**
+ * Cuentas madre con sus subcuentas debajo, ambas ordenadas (fijadas primero).
+ * Una subcuenta cuya madre no esté en la lista se muestra como cuenta suelta.
+ */
+export function agruparCuentas(cuentas: Cuenta[]): GrupoCuentas[] {
+  const ids = new Set(cuentas.map((c) => c.id));
+  const esSubcuenta = (c: Cuenta) => c.cuenta_padre_id !== null && ids.has(c.cuenta_padre_id);
+  return ordenarCuentas(cuentas.filter((c) => !esSubcuenta(c))).map((cuenta) => ({
+    cuenta,
+    subcuentas: ordenarCuentas(cuentas.filter((c) => c.cuenta_padre_id === cuenta.id)),
+  }));
+}

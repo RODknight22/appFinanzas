@@ -1,6 +1,5 @@
 import {
   ArrowLeftRight,
-  Banknote,
   HandCoins,
   LayoutDashboard,
   LogOut,
@@ -41,7 +40,6 @@ const MENU: ItemMenu[] = [
   { ruta: "/suscripciones", etiqueta: "Suscripciones", corta: "Recurrentes", icono: Repeat },
   { ruta: "/ingresos", etiqueta: "Ingresos fijos", corta: "Ingresos", icono: HandCoins, soloEscritorio: true },
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
-  { ruta: "/efectivo", etiqueta: "Efectivo", corta: "Efectivo", icono: Banknote, soloEscritorio: true },
   { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
 ];
 

@@ -31,6 +31,8 @@ interface FormularioCuentaProps {
   inicial?: Cuenta;
   /** Tipo preseleccionado al crear (p. ej. "efectivo" desde la página de Efectivo). */
   tipoInicial?: TipoCuenta;
+  /** Todas las cuentas: si se pasan, se puede elegir de cuál es subcuenta. */
+  cuentas?: Cuenta[];
   onGuardado: () => void;
   onCancelar: () => void;
 }
@@ -38,7 +40,7 @@ interface FormularioCuentaProps {
 /** Convierte "" en null: los campos opcionales vacíos se envían como null. */
 const textoONulo = (valor: string) => (valor.trim() === "" ? null : valor);
 
-export function FormularioCuenta({ inicial, tipoInicial, onGuardado, onCancelar }: FormularioCuentaProps) {
+export function FormularioCuenta({ inicial, tipoInicial, cuentas = [], onGuardado, onCancelar }: FormularioCuentaProps) {
   const { moneda: monedaPrincipal } = useConfiguracion();
   const [nombre, setNombre] = useState(inicial?.nombre ?? "");
   const [tipo, setTipo] = useState<TipoCuenta>(inicial?.tipo ?? tipoInicial ?? "debito");
@@ -53,6 +55,13 @@ export function FormularioCuenta({ inicial, tipoInicial, onGuardado, onCancelar 
   const [diaPago, setDiaPago] = useState(String(inicial?.dia_pago ?? ""));
   const [limiteCredito, setLimiteCredito] = useState(inicial?.limite_credito ?? "");
   const [tasaAnual, setTasaAnual] = useState(inicial?.tasa_rendimiento_anual ?? "");
+  const [padreId, setPadreId] = useState(String(inicial?.cuenta_padre_id ?? ""));
+  const [numeroCuenta, setNumeroCuenta] = useState(inicial?.numero_cuenta ?? "");
+  const [fijada, setFijada] = useState(inicial?.fijada ?? false);
+  // Un solo nivel de subcuentas: la madre no puede ser subcuenta, y una cuenta
+  // que ya tiene subcuentas no puede pasar a ser subcuenta de otra.
+  const posiblesMadres = cuentas.filter((c) => c.cuenta_padre_id === null && c.id !== inicial?.id);
+  const tieneSubcuentas = inicial !== undefined && cuentas.some((c) => c.cuenta_padre_id === inicial.id);
   const { enviando, error, ejecutar } = useEnvio();
 
   const esCredito = tipo === "credito";
@@ -71,6 +80,9 @@ export function FormularioCuenta({ inicial, tipoInicial, onGuardado, onCancelar 
       dia_pago: esCredito ? Number(diaPago) : null,
       limite_credito: esCredito ? textoONulo(limiteCredito) : null,
       tasa_rendimiento_anual: esRendimientos ? tasaAnual : null,
+      cuenta_padre_id: padreId ? Number(padreId) : null,
+      numero_cuenta: textoONulo(numeroCuenta),
+      fijada,
     };
     const ok = await ejecutar(() =>
       inicial ? cuentasApi.actualizar(inicial.id, datos) : cuentasApi.crear(datos),
@@ -86,6 +98,21 @@ export function FormularioCuenta({ inicial, tipoInicial, onGuardado, onCancelar 
 
       <Campo etiqueta="Moneda de la cuenta" ayuda="No se puede cambiar cuando la cuenta ya tiene transacciones.">
         <SelectMoneda valor={moneda} onCambiar={setMoneda} />
+      </Campo>
+
+      {posiblesMadres.length > 0 && !tieneSubcuentas && (
+        <Campo etiqueta="Subcuenta de" ayuda="Como en Revolut: una cuenta con varias subcuentas, cada una en su divisa y con su saldo.">
+          <select className={CLASE_ENTRADA} value={padreId} onChange={(e) => setPadreId(e.target.value)}>
+            <option value="">Ninguna (cuenta independiente)</option>
+            {posiblesMadres.map((cuenta) => (
+              <option key={cuenta.id} value={cuenta.id}>{cuenta.nombre}</option>
+            ))}
+          </select>
+        </Campo>
+      )}
+
+      <Campo etiqueta="Número de cuenta (opcional)" ayuda="IBAN, CLABE o el número que te dé tu banco. Solo para tenerlo a mano.">
+        <input className={CLASE_ENTRADA} value={numeroCuenta} onChange={(e) => setNumeroCuenta(e.target.value)} maxLength={50} placeholder="Ej.: ES12 3456 7890 1234 5678 9012" />
       </Campo>
 
       <fieldset>
@@ -140,6 +167,11 @@ export function FormularioCuenta({ inicial, tipoInicial, onGuardado, onCancelar 
           <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0.01" max="100" value={tasaAnual} onChange={(e) => setTasaAnual(e.target.value)} required />
         </Campo>
       )}
+
+      <label className="flex items-center gap-2 text-sm text-suave">
+        <input type="checkbox" checked={fijada} onChange={(e) => setFijada(e.target.checked)} className="accent-acento-600" />
+        Fijar arriba en Cuentas y en el panel
+      </label>
 
       <PieFormulario error={error} enviando={enviando} onCancelar={onCancelar} />
     </form>

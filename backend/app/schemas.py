@@ -64,6 +64,9 @@ class CuentaUpdate(SQLModel):
     tasa_rendimiento_anual: Decimal | None = Field(
         default=None, gt=0, le=100, max_digits=5, decimal_places=2
     )
+    cuenta_padre_id: int | None = None
+    numero_cuenta: str | None = Field(default=None, max_length=50)
+    fijada: bool | None = None
 
 
 # --- Categorías ------------------------------------------------------------
@@ -336,6 +339,8 @@ class SaldoCuenta(SQLModel):
     moneda: Moneda
     saldo: Decimal  # en la moneda de la cuenta
     saldo_principal: Decimal  # convertido a la moneda principal con la tasa de hoy
+    cuenta_padre_id: int | None = None
+    fijada: bool = False
 
 
 class ResumenMes(SQLModel):

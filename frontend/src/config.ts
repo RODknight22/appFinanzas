@@ -30,7 +30,7 @@ export const PAGINAS_INICIO: Record<PaginaInicio, { nombre: string; ruta: string
   presupuestos: { nombre: "Presupuestos", ruta: "/presupuestos" },
   suscripciones: { nombre: "Suscripciones", ruta: "/suscripciones" },
   ingresos: { nombre: "Ingresos fijos", ruta: "/ingresos" },
-  efectivo: { nombre: "Efectivo", ruta: "/efectivo" },
+  efectivo: { nombre: "Efectivo", ruta: "/cuentas/efectivo" },
   cuentas: { nombre: "Cuentas", ruta: "/cuentas" },
   metas: { nombre: "Metas", ruta: "/metas" },
 };

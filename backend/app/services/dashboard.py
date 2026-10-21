@@ -80,6 +80,8 @@ def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
                 moneda=moneda,
                 saldo=saldo,
                 saldo_principal=divisas.convertir(session, saldo, moneda, principal, hoy),
+                cuenta_padre_id=cuenta.cuenta_padre_id,
+                fijada=bool(cuenta.fijada),
             )
         )
     return saldos

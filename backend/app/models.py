@@ -129,6 +129,13 @@ class CuentaBase(SQLModel):
     tasa_rendimiento_anual: Decimal | None = Field(
         default=None, gt=0, le=100, max_digits=5, decimal_places=2
     )
+    # Subcuenta de otra (como Revolut: una cuenta con "bolsillos" en varias divisas).
+    # Cada una tiene su saldo y su moneda; la madre muestra además el total.
+    cuenta_padre_id: int | None = Field(default=None, foreign_key="cuenta.id")
+    # IBAN, CLABE o número de cuenta: solo informativo.
+    numero_cuenta: str | None = Field(default=None, max_length=50)
+    # Fijada: sale primero en la lista y en el panel.
+    fijada: bool | None = None
 
 
 class Cuenta(CuentaBase, table=True):

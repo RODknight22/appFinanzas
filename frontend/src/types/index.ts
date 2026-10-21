@@ -30,6 +30,12 @@ export interface Cuenta {
   limite_credito: Dinero | null;
   // Solo cuentas con rendimientos: tasa anual en % (null en el resto)
   tasa_rendimiento_anual: string | null;
+  /** Subcuenta de otra (como los "bolsillos" por divisa de Revolut); null = cuenta principal. */
+  cuenta_padre_id: number | null;
+  /** IBAN, CLABE o número de cuenta: solo informativo. */
+  numero_cuenta: string | null;
+  /** Sale primero en la página de Cuentas y en el panel. */
+  fijada: boolean | null;
   /** La gestiona el backend: hasta qué día se registraron los rendimientos. */
   readonly fecha_ultimo_rendimiento: FechaISO | null;
 }
@@ -213,6 +219,8 @@ export interface SaldoCuenta {
   saldo: Dinero;
   /** Convertido a la moneda principal con la tasa de hoy. */
   saldo_principal: Dinero;
+  cuenta_padre_id: number | null;
+  fijada: boolean;
 }
 
 export interface ResumenMes {

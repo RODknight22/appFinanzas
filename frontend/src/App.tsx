@@ -2,6 +2,7 @@ import { lazy, type ComponentType } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
+import { SeccionCuentas } from "./components/cuentas/SeccionCuentas";
 import { PAGINAS_INICIO } from "./config";
 import { useConfiguracion } from "./hooks/useConfiguracion";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -38,8 +39,12 @@ export default function App() {
         <Route path="presupuestos" element={<PresupuestosPage />} />
         <Route path="suscripciones" element={<SuscripcionesPage />} />
         <Route path="ingresos" element={<IngresosPage />} />
-        <Route path="efectivo" element={<EfectivoPage />} />
-        <Route path="cuentas" element={<CuentasPage />} />
+        <Route path="cuentas" element={<SeccionCuentas />}>
+          <Route index element={<CuentasPage />} />
+          <Route path="efectivo" element={<EfectivoPage />} />
+        </Route>
+        {/* Dirección antigua: Efectivo ahora es una pestaña de Cuentas */}
+        <Route path="efectivo" element={<Navigate to="/cuentas/efectivo" replace />} />
         <Route path="metas" element={<MetasPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
         <Route path="ajustes" element={<AjustesPage />} />
