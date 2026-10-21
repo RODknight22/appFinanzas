@@ -5,6 +5,7 @@ import type { Credenciales } from "../../api/acceso";
 import { useEnvio } from "../../hooks/useEnvio";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
+import { EntradaContrasena } from "../ui/EntradaContrasena";
 
 interface PantallaAccesoProps {
   /** true si aún no existe el usuario: se muestra el alta en lugar del login. */
@@ -53,9 +54,7 @@ export function PantallaAcceso({ primeraVez, onEntrar }: PantallaAccesoProps) {
             <input className={CLASE_ENTRADA} value={usuario} onChange={(e) => setUsuario(e.target.value)} autoComplete="username" required maxLength={50} autoFocus />
           </Campo>
           <Campo etiqueta="Contraseña" ayuda={primeraVez ? `Mínimo ${LONGITUD_MINIMA} caracteres` : undefined}>
-            <input
-              className={CLASE_ENTRADA}
-              type="password"
+            <EntradaContrasena
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
               autoComplete={primeraVez ? "new-password" : "current-password"}
@@ -65,7 +64,7 @@ export function PantallaAcceso({ primeraVez, onEntrar }: PantallaAccesoProps) {
           </Campo>
           {primeraVez && (
             <Campo etiqueta="Repite la contraseña">
-              <input className={CLASE_ENTRADA} type="password" value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required />
+              <EntradaContrasena value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required />
             </Campo>
           )}
           <ErrorFormulario mensaje={errorLocal ?? error} />
