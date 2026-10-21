@@ -20,10 +20,21 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app import models  # noqa: F401  (registra las tablas en el metadata)
 from app.models import Moneda, OrigenTasa, TasaCambio, Usuario
-from app.services import acceso
+from app.services import acceso, divisas
 from app.database import get_session
 from app.dependencias import requiere_sesion
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def _sin_internet_para_tasas_historicas(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Algunos tests activan las tasas automáticas: la descarga histórica nunca debe salir a la red."""
+
+    def sin_red(_url: str) -> object:
+        raise OSError("los tests no usan internet")
+
+    monkeypatch.setattr(divisas, "_pedir_json_historico", sin_red)
+    monkeypatch.setattr(divisas, "_ultimo_fallo_historicas", None)
 
 
 @pytest.fixture

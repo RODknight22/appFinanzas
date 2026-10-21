@@ -123,6 +123,7 @@ def completar_montos(session: Session, transaccion: Transaccion, cuenta: Cuenta)
     principal = configuracion.moneda_principal(session)
     if transaccion.moneda != cuenta.moneda or transaccion.moneda != principal:
         divisas.asegurar_tasas_del_dia(session)
+        divisas.asegurar_tasas_historicas(session, transaccion.fecha, transaccion.fecha)
     transaccion.monto_cuenta = divisas.convertir(
         session, transaccion.monto, transaccion.moneda, cuenta.moneda, transaccion.fecha
     )
