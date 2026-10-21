@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import event
+from sqlalchemy import event, func
 from sqlalchemy.engine import Engine
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 # La carpeta de datos se puede cambiar con la variable de entorno DATA_DIR.
 # En Docker vale "/data" (un volumen montado); en local, por defecto usamos la
@@ -85,10 +85,17 @@ def init_db() -> None:
 
 
 def _descargar_tasas() -> None:
+    from app.models import Transaccion
     from app.services import divisas
 
     with Session(engine) as session:
         divisas.asegurar_tasas_del_dia(session)
+        # Rellena los días pasados sin tasa (p. ej. lo anotado antes de instalar la app)
+        # y corrige lo que se convirtió con una tasa aproximada.
+        primera = session.exec(select(func.min(Transaccion.fecha))).one()
+        if primera is not None:
+            divisas.asegurar_tasas_historicas(session, primera)
+            session.commit()
 
 
 def get_session() -> Generator[Session, None, None]:
