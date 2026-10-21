@@ -161,3 +161,18 @@ def test_errores_legibles(client: TestClient, cuenta: dict, cuenta_id: int | Non
 def test_importar_exige_sesion(cliente_sin_sesion: TestClient) -> None:
     respuesta = cliente_sin_sesion.post("/importaciones/vista-previa", params={"cuenta_id": 1}, content=EXTRACTO)
     assert respuesta.status_code == 401
+
+
+@pytest.mark.parametrize("por_trozos", [False, True], ids=["con-tamano", "chunked"])
+def test_archivo_de_mas_de_1_mb_se_rechaza_tambien_en_desarrollo(client: TestClient, cuenta: dict, por_trozos: bool) -> None:
+    grande = b"Fecha;Concepto;Importe\n" + b"01/10/2026;Cafe;-1,50\n" * 60_000  # ~1,3 MB
+
+    def trozos():
+        for inicio in range(0, len(grande), 64_000):
+            yield grande[inicio:inicio + 64_000]
+
+    respuesta = client.post(
+        "/importaciones/vista-previa", params={"cuenta_id": cuenta["id"]}, content=trozos() if por_trozos else grande
+    )
+    assert respuesta.status_code == 413
+    assert "1 MB" in respuesta.json()["detail"]

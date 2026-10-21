@@ -12,6 +12,7 @@ podrá reutilizar cualquier otra fuente de movimientos.
 import csv
 import io
 import re
+import zipfile
 from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -28,6 +29,10 @@ MAX_FILAS = 20_000
 # La cabecera de la tabla suele estar en las primeras filas (antes va el titular, la cuenta…).
 FILAS_BUSCAR_CABECERA = 40
 LONGITUD_MAX_CONCEPTO = 500
+# Un .xlsx es un ZIP: uno de pocos KB puede descomprimirse en gigas ("bomba ZIP") y
+# colgar la app. Un extracto real ocupa pocos MB descomprimido y tiene una decena de piezas.
+MAX_DESCOMPRIMIDO_EXCEL = 20_000_000
+MAX_PIEZAS_EXCEL = 200
 
 # Nombres de columna habituales en bancos de España y México, ya normalizados
 # (minúsculas, sin tildes ni signos). Basta con que la cabecera empiece por uno de ellos.
@@ -68,7 +73,23 @@ class ExtractoLeido:
 # ---------------------------------------------------------------------------
 # 1. Del archivo a una tabla de celdas
 # ---------------------------------------------------------------------------
+def _comprobar_zip(contenido: bytes) -> None:
+    """Rechaza el Excel antes de abrirlo si descomprimido ocuparía demasiado.
+
+    Basta con lo que declara el índice del ZIP: Python nunca extrae de una pieza
+    más bytes de los que declara, así que mentir ahí solo produce un archivo dañado.
+    """
+    try:
+        with zipfile.ZipFile(io.BytesIO(contenido)) as archivo:
+            piezas = archivo.infolist()
+    except zipfile.BadZipFile as error:
+        raise ReglaDeNegocioError("No se pudo abrir el Excel: el archivo parece dañado") from error
+    if len(piezas) > MAX_PIEZAS_EXCEL or sum(p.file_size for p in piezas) > MAX_DESCOMPRIMIDO_EXCEL:
+        raise ReglaDeNegocioError("El Excel es demasiado grande por dentro: exporta un periodo más corto o un CSV")
+
+
 def _filas_excel(contenido: bytes) -> list[list[Celda]]:
+    _comprobar_zip(contenido)
     # Importación local: openpyxl solo se carga si de verdad llega un Excel.
     from openpyxl import load_workbook
 

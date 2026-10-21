@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.database import SessionDep
 from app.schemas import ImportacionCreate, ResultadoImportacion, VistaPreviaImportacion
@@ -10,10 +10,22 @@ from app.services import importaciones as servicio
 
 router = APIRouter(prefix="/importaciones", tags=["Importaciones"])
 
+# Años de extractos caben de sobra. El servidor de producción ya limita todo a 1 MB,
+# pero en desarrollo no hay ese filtro: el tope aquí protege en los dos.
+TAMANO_MAXIMO_ARCHIVO = 1_000_000
+
 
 async def _archivo(request: Request) -> bytes:
-    """El archivo llega tal cual en el cuerpo: así no hace falta otra dependencia para formularios."""
-    return await request.body()
+    """El archivo llega tal cual en el cuerpo: así no hace falta otra dependencia para formularios.
+
+    Se lee por trozos contando los bytes, para no cargar en memoria un archivo enorme.
+    """
+    trozos = bytearray()
+    async for trozo in request.stream():
+        trozos += trozo
+        if len(trozos) > TAMANO_MAXIMO_ARCHIVO:
+            raise HTTPException(413, "El archivo pasa de 1 MB: exporta un periodo más corto")
+    return bytes(trozos)
 
 
 @router.post(
