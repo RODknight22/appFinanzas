@@ -101,6 +101,19 @@ def validar_color(valor: str | None) -> str | None:
     return valor
 
 
+_PATRON_ENLACE = re.compile(r"^https?://[^\s/$.?#][^\s]*$", re.IGNORECASE)
+
+
+def validar_enlace(valor: str | None) -> str | None:
+    """Solo http(s): el enlace acaba en un <a href> y un "javascript:" ejecutaría código."""
+    if valor is None or valor.strip() == "":
+        return None
+    valor = valor.strip()
+    if not _PATRON_ENLACE.match(valor):
+        raise ValueError("El enlace debe empezar por http:// o https://")
+    return valor
+
+
 def validar_mes_anio(valor: str | None) -> str | None:
     if valor is not None and not _PATRON_MES_ANIO.match(valor):
         raise ValueError("El mes debe tener formato 'YYYY-MM', p. ej. '2026-10'")
@@ -399,6 +412,55 @@ class AbonoDeudaBase(SQLModel):
 class AbonoDeuda(AbonoDeudaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     deuda_id: int = Field(foreign_key="deuda.id", index=True)
+
+
+# ---------------------------------------------------------------------------
+# Lista de deseos y "máquina del tiempo"
+# ---------------------------------------------------------------------------
+class PrioridadDeseo(str, Enum):
+    ALTA = "alta"
+    MEDIA = "media"
+    BAJA = "baja"
+
+
+class EstadoDeseo(str, Enum):
+    EN_REFLEXION = "en_reflexion"  # congelado hasta `reflexion_hasta` (máquina del tiempo)
+    DESEADO = "deseado"  # en la lista
+    COMPRADO = "comprado"
+    DESCARTADO = "descartado"  # dinero que no gastaste
+
+
+class DeseoBase(SQLModel):
+    """Algo que quieres comprar. Puede ir ligado a una meta de ahorro.
+
+    El enlace (Amazon, SHEIN…) se guarda tal cual; más adelante se podría seguir
+    su precio añadiendo columnas opcionales (precio_actual, revisado_en…).
+    """
+
+    nombre: str = Field(min_length=1, max_length=100)
+    precio: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    # Si no se indica: la principal.
+    moneda: Moneda | None = None
+    enlace: str | None = Field(default=None, max_length=500)
+    prioridad: PrioridadDeseo = PrioridadDeseo.MEDIA
+    notas: str | None = Field(default=None, max_length=500)
+    meta_id: int | None = Field(default=None, foreign_key="meta.id", index=True)
+    # Carta al yo del futuro: por qué lo quieres. Se lee al acabar la reflexión.
+    carta: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("enlace")
+    @classmethod
+    def comprobar_enlace(cls, valor: str | None) -> str | None:
+        return validar_enlace(valor)
+
+
+class Deseo(DeseoBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    estado: EstadoDeseo = EstadoDeseo.DESEADO
+    # Hora local "sin zona", como la del navegador que muestra la cuenta atrás.
+    creado: NaiveDatetime
+    reflexion_hasta: NaiveDatetime | None = None
+    fecha_decision: date | None = None  # cuándo se compró o se descartó
 
 
 # ---------------------------------------------------------------------------

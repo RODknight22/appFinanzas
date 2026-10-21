@@ -6,7 +6,7 @@ Separarlos de las tablas evita, por ejemplo, que un cliente envíe su propio `id
 - `XUpdate`: cuerpo de un PATCH (todo opcional: solo se cambia lo que se envía).
 """
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -24,12 +24,15 @@ from app.models import (
     AbonoDeudaBase,
     CuentaBase,
     DeudaBase,
+    DeseoBase,
+    EstadoDeseo,
     IngresoRecurrenteBase,
     Moneda,
     OrigenTasa,
     PaginaInicio,
     Periodicidad,
     PresupuestoBase,
+    PrioridadDeseo,
     SentidoDeuda,
     SuscripcionBase,
     TamanoWidget,
@@ -38,6 +41,7 @@ from app.models import (
     TransaccionBase,
     TransferenciaBase,
     validar_color,
+    validar_enlace,
     validar_mes_anio,
 )
 
@@ -349,6 +353,55 @@ class DeudaRead(DeudaBase):
     pendiente: Decimal
     vencida: bool  # pasó la fecha de vencimiento y aún queda algo
     abonos: list[AbonoDeudaRead]
+
+
+# --- Lista de deseos ---------------------------------------------------------
+# Plazos de la máquina del tiempo: 1 día (24 h) hasta 3 meses.
+MAX_DIAS_REFLEXION = 90
+
+
+class DeseoCreate(DeseoBase):
+    # Con días, el deseo entra en la máquina del tiempo y no se puede comprar hasta que pasen.
+    dias_reflexion: int | None = Field(default=None, ge=1, le=MAX_DIAS_REFLEXION)
+
+
+class DeseoUpdate(SQLModel):
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    precio: Decimal | None = Field(default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    moneda: Moneda | None = None
+    enlace: str | None = Field(default=None, max_length=500)
+    prioridad: PrioridadDeseo | None = None
+    notas: str | None = Field(default=None, max_length=500)
+    meta_id: int | None = None
+    carta: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("enlace")
+    @classmethod
+    def comprobar_enlace(cls, valor: str | None) -> str | None:
+        return validar_enlace(valor)
+
+
+class DeseoRead(DeseoBase):
+    id: int
+    moneda: Moneda
+    estado: EstadoDeseo
+    creado: datetime
+    reflexion_hasta: datetime | None
+    fecha_decision: date | None
+    # En reflexión y con el plazo cumplido: toca decidir.
+    listo_para_decidir: bool
+    # "amazon.es", "shein.com"… sacado del enlace.
+    tienda: str | None
+
+
+class DecisionDeseo(SQLModel):
+    """Qué hacer con un deseo: comprarlo, dejarlo en la lista o descartarlo."""
+
+    decision: Literal["comprar", "guardar", "descartar"]
+
+
+class ReflexionDeseo(SQLModel):
+    dias: int = Field(ge=1, le=MAX_DIAS_REFLEXION)
 
 
 class CobroIngresoCreate(SQLModel):

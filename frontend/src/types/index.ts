@@ -231,6 +231,36 @@ export interface Deuda {
 export type DatosDeuda = Pick<Deuda, "persona" | "sentido" | "monto" | "moneda" | "fecha" | "fecha_vencimiento" | "cuenta_id" | "notas">;
 export type DatosAbono = Omit<AbonoDeuda, "id" | "deuda_id">;
 
+// --- Lista de deseos ---------------------------------------------------------
+export type PrioridadDeseo = "alta" | "media" | "baja";
+/** en_reflexion: en la máquina del tiempo hasta `reflexion_hasta`. */
+export type EstadoDeseo = "en_reflexion" | "deseado" | "comprado" | "descartado";
+export type DecisionDeseo = "comprar" | "guardar" | "descartar";
+
+export interface Deseo {
+  id: number;
+  nombre: string;
+  precio: Dinero;
+  moneda: Moneda;
+  /** Solo http(s). */
+  enlace: string | null;
+  prioridad: PrioridadDeseo;
+  notas: string | null;
+  meta_id: number | null;
+  /** Carta al yo del futuro: por qué lo quieres. */
+  carta: string | null;
+  readonly estado: EstadoDeseo;
+  /** Fecha y hora locales "sin zona" (las interpreta el navegador como locales). */
+  readonly creado: string;
+  readonly reflexion_hasta: string | null;
+  readonly fecha_decision: FechaISO | null;
+  readonly listo_para_decidir: boolean;
+  /** "amazon.es", "shein.com"… */
+  readonly tienda: string | null;
+}
+
+export type DatosDeseo = Pick<Deseo, "nombre" | "precio" | "moneda" | "enlace" | "prioridad" | "notas" | "meta_id" | "carta">;
+
 /** Lo que llegó de verdad: lo que se omita se toma del ingreso recurrente. */
 export interface DatosCobro {
   monto?: Dinero;

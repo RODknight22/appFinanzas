@@ -9,10 +9,14 @@ import type {
   Cuenta,
   DatosAbono,
   DatosCobro,
+  DatosDeseo,
   DatosDeuda,
   DatosMeta,
   DatosNuevos,
+  DecisionDeseo,
+  Deseo,
   Deuda,
+  EstadoDeseo,
   IngresoRecurrente,
   MesAnio,
   Meta,
@@ -111,6 +115,18 @@ export const deudasApi = {
   eliminar: (id: number) => http.delete(`/deudas/${id}`),
   abonar: (id: number, datos: DatosAbono) => http.post<Deuda>(`/deudas/${id}/abonos`, datos),
   eliminarAbono: (id: number, abonoId: number) => http.delete(`/deudas/${id}/abonos/${abonoId}`),
+};
+
+/** Lista de deseos y máquina del tiempo. */
+export const deseosApi = {
+  listar: (filtros?: { estado?: EstadoDeseo }) => http.get<Deseo[]>("/deseos", filtros as Record<string, string>),
+  /** Con `dias_reflexion`, el deseo entra en la máquina del tiempo. */
+  crear: (datos: DatosDeseo & { dias_reflexion?: number | null }) => http.post<Deseo>("/deseos", datos),
+  actualizar: (id: number, cambios: Partial<DatosDeseo>) => http.patch<Deseo>(`/deseos/${id}`, cambios),
+  eliminar: (id: number) => http.delete(`/deseos/${id}`),
+  decidir: (id: number, decision: DecisionDeseo) => http.post<Deseo>(`/deseos/${id}/decidir`, { decision }),
+  reflexionar: (id: number, dias: number) => http.post<Deseo>(`/deseos/${id}/reflexionar`, { dias }),
+  crearMeta: (id: number) => http.post<Deseo>(`/deseos/${id}/crear-meta`, {}),
 };
 
 /** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */
