@@ -21,6 +21,7 @@ import type {
   MesAnio,
   Meta,
   MovimientoImportado,
+  Notificacion,
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
@@ -115,6 +116,12 @@ export const deudasApi = {
   eliminar: (id: number) => http.delete(`/deudas/${id}`),
   abonar: (id: number, datos: DatosAbono) => http.post<Deuda>(`/deudas/${id}/abonos`, datos),
   eliminarAbono: (id: number, abonoId: number) => http.delete(`/deudas/${id}/abonos/${abonoId}`),
+};
+
+/** Avisos de la campana. */
+export const notificacionesApi = {
+  listar: () => http.get<Notificacion[]>("/notificaciones"),
+  marcarLeidas: (claves: string[]) => http.post<void>("/notificaciones/leidas", { claves }),
 };
 
 /** Lista de deseos y máquina del tiempo. */

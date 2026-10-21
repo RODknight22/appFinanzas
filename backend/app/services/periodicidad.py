@@ -33,6 +33,12 @@ def _en_mes(anio: int, mes: int, dia: int) -> date:
     return date(anio, mes, min(dia, _ultimo_dia(anio, mes)))
 
 
+def proxima_fecha_del_dia(dia: int, desde: date) -> date:
+    """Próxima fecha (`desde` incluida) en que cae el día `dia` del mes, recortado si el mes es corto."""
+    este_mes = _en_mes(desde.year, desde.month, dia)
+    return este_mes if este_mes >= desde else _sumar_meses(desde.replace(day=1), 1, dia)
+
+
 def _sumar_meses(fecha: date, meses: int, dia: int | None = None) -> date:
     """Suma meses respetando los meses cortos: 31 ene + 1 mes = 28/29 feb."""
     total = fecha.month - 1 + meses

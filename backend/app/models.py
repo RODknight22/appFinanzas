@@ -490,6 +490,20 @@ class Configuracion(SQLModel, table=True):
     tutorial_visto: bool | None = None  # asistente inicial completado o saltado
     bienvenida_cerrada: bool | None = None  # tarjeta de primeros pasos del panel
     mostrar_consejos: bool | None = None  # null = sí
+    # --- Recordatorio diario de anotar gastos (null = desactivado) ---
+    recordatorio_diario: bool | None = None
+    hora_recordatorio: int | None = Field(default=None, ge=0, le=23)  # null = 21 h
+    # Para enviarlo por correo en el futuro: hoy solo se guarda.
+    correo_recordatorios: str | None = Field(default=None, max_length=254)
+
+
+class NotificacionLeida(SQLModel, table=True):
+    """Avisos ya leídos. Los avisos se calculan al vuelo (services/notificaciones.py);
+    aquí solo se guarda su clave estable, p. ej. "suscripcion:5:2026-10-25"."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    clave: str = Field(max_length=200, unique=True, index=True)
+    leida_en: NaiveDatetime
 
 
 # ---------------------------------------------------------------------------

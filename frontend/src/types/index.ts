@@ -196,6 +196,24 @@ export interface IngresoRecurrente {
   adelantar_a_habil: boolean | null;
 }
 
+// --- Notificaciones --------------------------------------------------------
+export type TipoNotificacion = "pago" | "cobro" | "tarjeta" | "deuda" | "presupuesto" | "meta" | "deseo" | "recordatorio";
+
+/** Un aviso calculado al vuelo por el backend; `clave` es estable mientras siga siendo el mismo. */
+export interface Notificacion {
+  clave: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  mensaje: string;
+  fecha: FechaISO;
+  /** Ruta de la app a la que lleva. */
+  enlace: string;
+  monto: Dinero | null;
+  moneda: Moneda | null;
+  urgente: boolean;
+  leida: boolean;
+}
+
 // --- Deudas ----------------------------------------------------------------
 /** me_deben: prestaste; debo: te prestaron. */
 export type SentidoDeuda = "me_deben" | "debo";
@@ -373,6 +391,11 @@ export interface Configuracion {
   bienvenida_cerrada: boolean;
   /** Bombillas con consejos junto a títulos y botones. */
   mostrar_consejos: boolean;
+  /** Aviso diario "¿anotaste tus gastos?" a partir de `hora_recordatorio` (0-23). */
+  recordatorio_diario: boolean;
+  hora_recordatorio: number;
+  /** Para enviar los recordatorios por correo en el futuro (hoy solo se guarda). */
+  correo_recordatorios: string | null;
 }
 
 export interface Tasa {

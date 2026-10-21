@@ -45,6 +45,9 @@ const CONFIGURACION_INICIAL: Configuracion = {
   tutorial_visto: true,
   bienvenida_cerrada: true,
   mostrar_consejos: true,
+  recordatorio_diario: false,
+  hora_recordatorio: 21,
+  correo_recordatorios: null,
 };
 
 /** Pone el color de acento en <html> (lo leen las variables CSS de index.css). */

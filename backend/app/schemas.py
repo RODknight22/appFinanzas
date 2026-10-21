@@ -6,6 +6,7 @@ Separarlos de las tablas evita, por ejemplo, que un cliente envíe su propio `id
 - `XUpdate`: cuerpo de un PATCH (todo opcional: solo se cambia lo que se envía).
 """
 
+import re
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
@@ -404,6 +405,31 @@ class ReflexionDeseo(SQLModel):
     dias: int = Field(ge=1, le=MAX_DIAS_REFLEXION)
 
 
+# --- Notificaciones --------------------------------------------------------
+TipoNotificacion = Literal["pago", "cobro", "tarjeta", "deuda", "presupuesto", "meta", "deseo", "recordatorio"]
+
+
+class Notificacion(SQLModel):
+    """Un aviso calculado al vuelo. `clave` es estable mientras el aviso sea el mismo."""
+
+    clave: str
+    tipo: TipoNotificacion
+    titulo: str
+    mensaje: str
+    fecha: date
+    # Ruta de la app a la que lleva (p. ej. "/suscripciones").
+    enlace: str
+    # Importe del aviso (si lo hay): el frontend lo formatea con su moneda.
+    monto: Decimal | None = None
+    moneda: Moneda | None = None
+    urgente: bool = False
+    leida: bool = False
+
+
+class MarcarLeidas(SQLModel):
+    claves: list[str] = Field(max_length=200)
+
+
 class CobroIngresoCreate(SQLModel):
     """Lo que llegó de verdad; lo que no se envíe se toma del ingreso recurrente."""
 
@@ -513,6 +539,13 @@ class ConfiguracionRead(SQLModel):
     tutorial_visto: bool
     bienvenida_cerrada: bool
     mostrar_consejos: bool
+    recordatorio_diario: bool
+    hora_recordatorio: int
+    correo_recordatorios: str | None
+
+
+# Comprobación básica (algo@dominio.tld); vacío = sin correo.
+_PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class ConfiguracionUpdate(SQLModel):
@@ -529,6 +562,17 @@ class ConfiguracionUpdate(SQLModel):
     tutorial_visto: bool | None = None
     bienvenida_cerrada: bool | None = None
     mostrar_consejos: bool | None = None
+    recordatorio_diario: bool | None = None
+    hora_recordatorio: int | None = Field(default=None, ge=0, le=23)
+    # Un texto vacío borra el correo.
+    correo_recordatorios: str | None = Field(default=None, max_length=254)
+
+    @field_validator("correo_recordatorios")
+    @classmethod
+    def comprobar_correo(cls, valor: str | None) -> str | None:
+        if valor and not _PATRON_CORREO.match(valor.strip()):
+            raise ValueError("El correo no parece válido (algo@dominio.com)")
+        return valor
 
 
 class FotoPerfil(SQLModel):
