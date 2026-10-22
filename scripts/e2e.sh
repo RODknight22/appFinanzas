@@ -38,7 +38,7 @@ esperar() {  # esperar <contenedor> <comando de comprobación>
 arrancar_backend() {  # uno nuevo para cada prueba: BD vacía
   docker rm -f "$BACKEND" >/dev/null 2>&1 || true
   docker run -d --name "$BACKEND" --network "$RED" -e DATA_DIR=/tmp/data -e TASAS_AUTOMATICAS=false \
-    -v "$PWD/backend/app:/app/app:ro" "$IMAGEN_BACKEND" >/dev/null
+    -e PROTECCION_LOCAL=true -v "$PWD/backend/app:/app/app:ro" "$IMAGEN_BACKEND" >/dev/null
   esperar "$BACKEND" "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""
 }
 
