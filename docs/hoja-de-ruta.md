@@ -40,7 +40,7 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
   *Dónde:* docker-compose.yml, main.py. *Hecho cuando:* una web ajena no puede escribir en :8000.
 - [ ] **CI completo:** ejecutar `scripts/verificar.sh --e2e` en GitHub Actions y añadir linters
   (ruff para Python, eslint para TS). *Dónde:* .github/workflows/ci.yml.
-- [ ] **Release más seguro** (auditoría B1): permisos por trabajo y acciones fijadas por SHA.
+- [x] **Release más seguro** (auditoría B1): permisos por trabajo y acciones fijadas por SHA.
   *Dónde:* .github/workflows/release.yml.
 - [ ] **Publicar v1.1.0:** versión en backend/app/version.py y frontend/package.json, CHANGELOG.md
   y README.md al día (importación, ingresos, efectivo, deudas, deseos), tag `v1.1.0`.
