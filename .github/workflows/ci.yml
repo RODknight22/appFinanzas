@@ -41,3 +41,18 @@ jobs:
       - run: npm run build # incluye la comprobación de tipos
       # Solo falla con avisos altos o críticos de lo que llega al usuario.
       - run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    # La app real en un navegador (Playwright) con una BD temporal: lo mismo que scripts/e2e.sh en local.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/e2e.sh
+      # Si algo falla, las capturas se descargan desde la pestaña "Summary" de la ejecución.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-e2e
+          path: e2e/capturas/
+          retention-days: 7

@@ -73,7 +73,7 @@ Comprobar que una rama ya está en `main`:
   bancarios, siempre fuera del repo y con los datos cambiados si es posible.
 - **Usa las skills del proyecto** (en .claude/skills): `/nueva-tarea`, `/cerrar-tarea`,
   `/explicame`. Repiten bien los pasos que se olvidan.
-- **Deja que verifique.** `scripts/verificar.sh --e2e` tarda unos 2 minutos y prueba backend,
+- **Deja que verifique.** `scripts/verificar.sh --e2e` tarda unos 2 minutos y prueba linters, backend,
   tipos y la app en el navegador. Pide siempre "verificado" antes de fusionar.
 - **Agentes para trabajo en paralelo dentro de una sesión:** auditorías o revisiones de solo
   lectura ("lanza agentes que revisen X, Y y Z"). Para construir funciones, mejor sesiones en
