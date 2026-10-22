@@ -3,9 +3,10 @@ import type { ReactNode } from "react";
 
 import { Boton } from "./Boton";
 
-export function Cargando() {
+/** `conRetraso`: solo se ve si la espera pasa de un instante (si no, parpadearía). */
+export function Cargando({ conRetraso = false }: { conRetraso?: boolean }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-sm text-tenue">
+    <div className={`flex items-center justify-center gap-2 py-10 text-sm text-tenue ${conRetraso ? "animate-tarde" : ""}`}>
       <Loader2 size={18} className="animate-spin" /> Cargando…
     </div>
   );

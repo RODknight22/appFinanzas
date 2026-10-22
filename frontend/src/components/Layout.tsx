@@ -15,13 +15,14 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 import { useTema } from "../hooks/useTema";
+import { precargarEnReposo, precargarPagina } from "../paginas";
 import { AsistenteBienvenida } from "./bienvenida/AsistenteBienvenida";
 import { CampanaNotificaciones } from "./CampanaNotificaciones";
 import { Avatar } from "./ui/Avatar";
@@ -50,6 +51,12 @@ const MENU: ItemMenu[] = [
   { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
 ];
 
+/** Al apuntar a un enlace (ratón, teclado o dedo) se descarga ya su página. */
+function precarga(ruta: string) {
+  const cargar = () => precargarPagina(ruta);
+  return { onPointerEnter: cargar, onFocus: cargar, onTouchStart: cargar };
+}
+
 /** Clases de un enlace del menú lateral según esté activo o no. */
 function claseEnlace({ isActive }: { isActive: boolean }): string {
   // Activa: una "píldora" de superficie con el icono en el color de acento.
@@ -74,6 +81,9 @@ export function Layout() {
   const location = useLocation();
   const notificaciones = useNotificaciones();
 
+  // Con la app ya abierta y el navegador libre, se traen las demás páginas.
+  useEffect(() => precargarEnReposo(), []);
+
   return (
     <div className="min-h-screen md:flex">
       {/* Menú lateral: solo en pantallas medianas o más grandes */}
@@ -91,18 +101,14 @@ export function Layout() {
 
         <nav className="flex flex-1 flex-col gap-1">
           {MENU.map(({ ruta, etiqueta, icono: Icono }) => (
-            <NavLink
-              key={ruta}
-              to={ruta}
-              className={claseEnlace}
-            >
+            <NavLink key={ruta} to={ruta} className={claseEnlace} {...precarga(ruta)}>
               <Icono size={18} />
               {etiqueta}
             </NavLink>
           ))}
         </nav>
 
-        <NavLink to="/ajustes" className={claseEnlace}>
+        <NavLink to="/ajustes" className={claseEnlace} {...precarga("/ajustes")}>
           <Settings size={18} />
           Ajustes
         </NavLink>
@@ -134,11 +140,11 @@ export function Layout() {
         <div className="flex items-center gap-1">
           <CampanaNotificaciones {...notificaciones} />
           {MENU.filter((item) => item.soloEscritorio).map(({ ruta, etiqueta, icono: Icono }) => (
-            <Link key={ruta} to={ruta} aria-label={etiqueta} className="rounded-lg p-2 text-tenue">
+            <Link key={ruta} to={ruta} aria-label={etiqueta} className="rounded-lg p-2 text-tenue" {...precarga(ruta)}>
               <Icono size={18} />
             </Link>
           ))}
-          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue">
+          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue" {...precarga("/ajustes")}>
             <Settings size={18} />
           </Link>
           <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-tenue">
@@ -152,8 +158,8 @@ export function Layout() {
 
       {/* key: al cambiar de página se vuelve a montar y se repite la animación de entrada */}
       <main key={location.pathname} className="mx-auto w-full max-w-6xl flex-1 animate-entrada px-4 pt-6 pb-24 md:px-8 md:py-8">
-        {/* Mientras se descarga una página (se cargan al visitarlas por primera vez) */}
-        <Suspense fallback={<Cargando />}>
+        {/* Si una página aún no se ha descargado (casi nunca: se precargan), un aviso discreto */}
+        <Suspense fallback={<Cargando conRetraso />}>
           <Outlet />
         </Suspense>
       </main>
@@ -168,6 +174,7 @@ export function Layout() {
             key={ruta}
             to={ruta}
             aria-label={etiqueta}
+            {...precarga(ruta)}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 py-2 text-[10px] ${
                 isActive ? "text-acento-600 dark:text-acento-400" : "text-tenue"

@@ -49,6 +49,7 @@ export function DashboardPage() {
         ingresosApi.listar({ proximos_dias: DIAS_PROXIMOS }),
       ]),
     [mes],
+    "dashboard",
   );
   // Las metas también se celebran aquí: al abrir la app ves si alguna cruzó un hito.
   const { celebracion, cerrar } = useHitosMetas(estado.datos?.[8]);
