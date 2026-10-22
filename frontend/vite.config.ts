@@ -27,7 +27,9 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: process.env.API_URL ?? "http://localhost:8000",
-        changeOrigin: true,
+        // Sin cambiar el Host: el backend comprueba que coincida con el Origin del
+        // navegador (localhost:5173) para rechazar escrituras de otras webs.
+        changeOrigin: false,
         rewrite: (ruta) => ruta.replace(/^\/api/, ""),
       },
     },
