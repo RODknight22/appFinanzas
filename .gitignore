@@ -18,5 +18,9 @@ dist/
 .vscode/
 .idea/
 
-# Copias de trabajo temporales de Claude Code (agentes)
-.claude/
+# Claude Code: se comparten las skills y settings.json; no lo personal ni los worktrees temporales
+.claude/worktrees/
+.claude/settings.local.json
+
+# Capturas de las pruebas E2E
+e2e/capturas/
