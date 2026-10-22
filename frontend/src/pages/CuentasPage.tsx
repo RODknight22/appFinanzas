@@ -37,6 +37,7 @@ export function CuentasPage() {
   const estado = useDatos(
     () => Promise.all([cuentasApi.listar(), dashboardApi.resumen(mesActual()), transferenciasApi.listar({ limit: 20 })]),
     [],
+    "cuentas",
   );
 
   function alGuardar() {

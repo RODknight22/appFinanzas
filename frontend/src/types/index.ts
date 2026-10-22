@@ -361,7 +361,11 @@ export interface ProgresoPresupuesto {
 }
 
 // --- Configuración ---------------------------------------------------------
-export type ColorAcento = "esmeralda" | "azul" | "indigo" | "violeta" | "rosa" | "naranja";
+export type ColorAcento =
+  | "esmeralda" | "turquesa" | "cian" | "cielo" | "azul" | "indigo"
+  | "violeta" | "fucsia" | "rosa" | "naranja" | "ambar" | "lima";
+/** Paleta de fondos y textos; cada una tiene versión clara y oscura (index.css). */
+export type EstiloVisual = "fintech" | "medianoche" | "grafito" | "bosque" | "arena";
 export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "ingresos" | "efectivo" | "cuentas" | "metas";
 export type TamanoWidget = "pequeno" | "mediano" | "ancho" | "grande";
 
@@ -379,6 +383,7 @@ export interface Configuracion {
   /** Un emoji; null = la inicial del nombre. */
   avatar: string | null;
   color_acento: ColorAcento;
+  estilo_visual: EstiloVisual;
   pagina_inicio: PaginaInicio;
   /** Día (1-28) en que empieza el mes financiero. */
   dia_inicio_mes: number;

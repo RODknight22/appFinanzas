@@ -36,6 +36,7 @@ export function PresupuestosPage() {
   const estado = useDatos(
     () => Promise.all([dashboardApi.presupuestos(mes), categoriasApi.listar({ tipo: "gasto" })]),
     [mes],
+    "presupuestos",
   );
 
   function alGuardar() {

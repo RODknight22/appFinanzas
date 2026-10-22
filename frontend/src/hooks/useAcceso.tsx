@@ -4,6 +4,7 @@ import { accesoApi, type Credenciales, type EstadoAcceso } from "../api/acceso";
 import { registrarAlPerderSesion } from "../api/cliente";
 import { PantallaAcceso } from "../components/acceso/PantallaAcceso";
 import { MensajeError } from "../components/ui/Estados";
+import { vaciarCacheDatos } from "./useDatos";
 
 interface ContextoAcceso {
   usuario: string;
@@ -45,6 +46,7 @@ export function AccesoProvider({ children }: { children: ReactNode }) {
 
   async function cerrarSesion() {
     await accesoApi.cerrarSesion();
+    vaciarCacheDatos();
     setEstado({ configurado: true, autenticado: false, usuario: null });
   }
 

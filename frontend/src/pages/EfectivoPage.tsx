@@ -78,7 +78,7 @@ function bancoPorDefecto(cuentas: Cuenta[]): Cuenta | undefined {
 
 export function EfectivoPage() {
   const [modal, setModal] = useState<EstadoModal>(null);
-  const estado = useDatos(cargar, []);
+  const estado = useDatos(cargar, [], "efectivo");
 
   function alGuardar() {
     setModal(null);

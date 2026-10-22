@@ -28,7 +28,7 @@ export function DeudasPage() {
   const [verSaldadas, setVerSaldadas] = useState(false);
   const [modal, setModal] = useState<EstadoModal>(null);
   const { convertir } = useConfiguracion();
-  const estado = useDatos(() => Promise.all([deudasApi.listar(), cuentasApi.listar()]), []);
+  const estado = useDatos(() => Promise.all([deudasApi.listar(), cuentasApi.listar()]), [], "deudas");
 
   function alGuardar() {
     setModal(null);

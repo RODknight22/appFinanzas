@@ -32,6 +32,7 @@ export function IngresosPage() {
   const estado = useDatos(
     () => Promise.all([ingresosApi.listar(), cuentasApi.listar(), categoriasApi.listar({ tipo: "ingreso" })]),
     [],
+    "ingresos",
   );
 
   function alGuardar() {

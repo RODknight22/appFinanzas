@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
+import { conTransicion } from "../utils/transicion";
 
 export type Tema = "claro" | "oscuro";
 
@@ -11,15 +13,17 @@ function temaInicial(): Tema {
 export function useTema() {
   const [tema, setTema] = useState<Tema>(temaInicial);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", tema === "oscuro");
+  function alternar() {
+    const nuevo: Tema = tema === "oscuro" ? "claro" : "oscuro";
+    // La clase se pone aquí mismo (no en un efecto) para que el fundido capture el cambio.
+    conTransicion(() => document.documentElement.classList.toggle("dark", nuevo === "oscuro"));
+    setTema(nuevo);
     try {
-      localStorage.setItem("tema", tema);
+      localStorage.setItem("tema", nuevo);
     } catch {
       // Navegación privada u otro bloqueo: el tema simplemente no se recordará.
     }
-  }, [tema]);
+  }
 
-  const alternar = () => setTema((actual) => (actual === "oscuro" ? "claro" : "oscuro"));
   return { tema, alternar };
 }

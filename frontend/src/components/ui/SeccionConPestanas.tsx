@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
+import { precarga } from "../../paginas";
+
 export interface Pestana {
   ruta: string;
   etiqueta: string;
@@ -20,6 +22,7 @@ export function SeccionConPestanas({ nombre, pestanas }: { nombre: string; pesta
             key={ruta}
             to={ruta}
             end // la primera pestaña ("/metas") no debe quedar activa en "/metas/deseos"
+            {...precarga(ruta)}
             className={({ isActive }) =>
               `flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
                 isActive ? "bg-superficie text-texto shadow-[var(--sombra)] [&>svg]:text-acento-500" : "text-tenue hover:text-texto"
