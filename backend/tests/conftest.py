@@ -19,11 +19,11 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
 from app import models  # noqa: F401  (registra las tablas en el metadata)
-from app.models import Moneda, OrigenTasa, TasaCambio, Usuario
-from app.services import acceso, divisas
 from app.database import get_session
 from app.dependencias import requiere_sesion
 from app.main import app
+from app.models import Moneda, OrigenTasa, TasaCambio, Usuario
+from app.services import acceso, divisas
 
 
 @pytest.fixture(autouse=True)

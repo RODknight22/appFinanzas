@@ -8,7 +8,15 @@ from sqlmodel import Session, col, select
 
 from app.datos_iniciales import CATEGORIA_RENDIMIENTOS
 from app.models import (
-    AbonoDeuda, Cuenta, CuentaBase, Deuda, IngresoRecurrente, Meta, TipoCuenta, TipoMovimiento, Transaccion,
+    AbonoDeuda,
+    Cuenta,
+    CuentaBase,
+    Deuda,
+    IngresoRecurrente,
+    Meta,
+    TipoCuenta,
+    TipoMovimiento,
+    Transaccion,
     Transferencia,
 )
 from app.schemas import CuentaCreate, CuentaUpdate

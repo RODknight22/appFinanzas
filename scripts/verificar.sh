@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Comprueba que todo está bien antes de fusionar: tests del backend y tipos del frontend.
+# Comprueba que todo está bien antes de fusionar: linters, tests del backend y tipos del frontend.
+# Es lo mismo que comprueba el CI de GitHub (.github/workflows/ci.yml).
 #
 # Uso (Git Bash, desde la raíz del repo o de cualquier worktree):
-#   scripts/verificar.sh          tests + tipos
+#   scripts/verificar.sh          linters + tests + tipos
 #   scripts/verificar.sh --e2e    además recorre la app con Playwright (scripts/e2e.sh)
 #
 # Todo corre en contenedores desechables: no hace falta tener Python ni Node instalados,
@@ -11,10 +12,10 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 source scripts/comun.sh
 
-paso "Tests del backend"
+paso "Backend: linter y tests"
 asegurar_imagen_backend
 docker run --rm -v "$PWD/backend:/app" -w /app "$IMAGEN_BACKEND" \
-  sh -c "pip install -q --disable-pip-version-check -r requirements-dev.txt >/dev/null && pytest -q -p no:warnings"
+  sh -c "pip install -q --disable-pip-version-check -r requirements-dev.txt >/dev/null && ruff check . && pytest -q -p no:warnings"
 
 paso "Tipos del frontend"
 docker run --rm -v "$PWD/frontend:/app" -v "$VOLUMEN_NODE:/app/node_modules" -w /app "$IMAGEN_NODE" \

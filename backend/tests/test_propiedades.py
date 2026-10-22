@@ -11,7 +11,6 @@ convertidos no necesitan redondeo y el modelo no tiene que imitarlo.
 """
 
 import random
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import Decimal

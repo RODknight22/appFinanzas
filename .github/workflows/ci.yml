@@ -21,6 +21,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      - run: ruff check .
       - run: pytest -q
       # Avisa si alguna dependencia tiene una vulnerabilidad conocida.
       - run: pip install pip-audit && pip-audit -r requirements.txt
