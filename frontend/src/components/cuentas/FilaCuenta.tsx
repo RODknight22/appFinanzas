@@ -1,4 +1,4 @@
-import { CalendarClock, CornerDownRight, CreditCard, Pin, PinOff, Sparkles } from "lucide-react";
+import { CalendarClock, ChevronDown, CornerDownRight, CreditCard, Pin, PinOff, Sparkles } from "lucide-react";
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
@@ -7,7 +7,7 @@ import { TIPOS_CUENTA } from "../formularios/FormularioCuenta";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Boton } from "../ui/Boton";
 
-interface FilaCuentaProps {
+export interface FilaCuentaProps {
   cuenta: Cuenta;
   saldo: number;
   onEditar: () => void;
@@ -20,6 +20,8 @@ interface FilaCuentaProps {
   subcuenta?: boolean;
   /** Solo en una cuenta madre: su saldo más el de sus subcuentas, en la moneda principal. */
   totalConSubcuentas?: number;
+  /** Solo en una cuenta madre: la flecha para mostrar u ocultar sus subcuentas. */
+  plegado?: { plegada: boolean; cantidad: number; onAlternar: () => void };
 }
 
 /** Fecha de corte/pago con aviso de cuánto falta: "15 oct 2026 · En 3 días". */
@@ -91,7 +93,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
 
 /** Una cuenta de la lista, con la información propia de su tipo. */
 export function FilaCuenta(props: FilaCuentaProps) {
-  const { cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas } = props;
+  const { cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas, plegado } = props;
   const { etiqueta, icono: Icono } = TIPOS_CUENTA[cuenta.tipo];
   const esCredito = cuenta.tipo === "credito";
   const IconoFijar = cuenta.fijada ? PinOff : Pin;
@@ -127,6 +129,19 @@ export function FilaCuenta(props: FilaCuentaProps) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          {plegado && (
+            <button
+              type="button"
+              onClick={plegado.onAlternar}
+              aria-expanded={!plegado.plegada}
+              aria-label={`${plegado.plegada ? "Mostrar" : "Ocultar"} ${plegado.cantidad} subcuentas`}
+              title={`${plegado.plegada ? "Mostrar" : "Ocultar"} subcuentas (${plegado.cantidad})`}
+              className="flex items-center gap-0.5 rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+            >
+              {plegado.plegada && <span className="text-xs font-semibold tabular-nums">{plegado.cantidad}</span>}
+              <ChevronDown size={16} className={`transition-transform ${plegado.plegada ? "-rotate-90" : ""}`} />
+            </button>
+          )}
           <button
             type="button"
             onClick={onFijar}
