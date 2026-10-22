@@ -19,6 +19,8 @@ Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/20
 - [x] UX: ver contraseña, presupuestos con divisa, selector de fecha, bienvenida y consejos.
 - [x] Deudas (quién te debe y a quién debes), lista de deseos, campana de avisos.
 - [x] E2E en el repo (`scripts/e2e.sh`) y `scripts/verificar.sh`; CLAUDE.md dividido.
+- [x] Apariencia: 5 estilos visuales (claro/oscuro), 12 acentos y fundido al cambiarlos;
+  navegación fluida (páginas precargadas en reposo y caché de datos en `useDatos`).
 
 ---
 
@@ -71,6 +73,9 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
 - [ ] **Limpieza:** `#64748b` repetido → constante o token; manejo de errores duplicado; atajo
   ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35× más rápido).
 - [ ] Recordatorios por correo (`correo_recordatorios`) y seguir precios de los deseos.
+- [ ] **Estilo personalizado:** elegir tinte y viveza propios (o un acento libre). *Dónde:*
+  index.css ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración
+  y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar (E2E).
 
 ## v2.0: Conectada
 

@@ -24,7 +24,7 @@ const PESTANAS: { tipo: TipoMovimiento; etiqueta: string }[] = [
 export function CategoriasPage() {
   const [tipo, setTipo] = useState<TipoMovimiento>("gasto");
   const [modal, setModal] = useState<EstadoModal>(null);
-  const estado = useDatos(() => categoriasApi.listar({ tipo }), [tipo]);
+  const estado = useDatos(() => categoriasApi.listar({ tipo }), [tipo], "categorias");
 
   function alGuardar() {
     setModal(null);

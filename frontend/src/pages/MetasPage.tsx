@@ -23,7 +23,7 @@ export function MetasPage() {
   const [modal, setModal] = useState<EstadoModal>(null);
   // La meta cuyas aportaciones se están viendo (modal aparte del de editar).
   const [aportando, setAportando] = useState<Meta | null>(null);
-  const estado = useDatos(() => Promise.all([metasApi.listar(), cuentasApi.listar()]), []);
+  const estado = useDatos(() => Promise.all([metasApi.listar(), cuentasApi.listar()]), [], "metas");
   const { celebracion, cerrar } = useHitosMetas(estado.datos?.[0]);
 
   function alGuardar() {

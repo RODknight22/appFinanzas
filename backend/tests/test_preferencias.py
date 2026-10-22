@@ -10,6 +10,7 @@ from app.services import mes_financiero
 def test_valores_por_defecto(client: TestClient) -> None:
     configuracion = client.get("/configuracion").json()
     assert configuracion["color_acento"] == "esmeralda"
+    assert configuracion["estilo_visual"] == "fintech"
     assert configuracion["pagina_inicio"] == "dashboard"
     assert configuracion["dia_inicio_mes"] == 1
     assert configuracion["nombre"] is None
@@ -29,8 +30,19 @@ def test_guardar_perfil_y_apariencia(client: TestClient) -> None:
 
 def test_valores_no_validos(client: TestClient) -> None:
     assert client.patch("/configuracion", json={"color_acento": "dorado"}).status_code == 422
+    assert client.patch("/configuracion", json={"estilo_visual": "neon"}).status_code == 422
     assert client.patch("/configuracion", json={"dia_inicio_mes": 31}).status_code == 422
     assert client.patch("/configuracion", json={"pagina_inicio": "admin"}).status_code == 422
+
+
+def test_estilo_visual_y_acentos_nuevos(client: TestClient) -> None:
+    cambios = {"estilo_visual": "medianoche", "color_acento": "turquesa"}
+    configuracion = client.patch("/configuracion", json=cambios).json()
+    assert configuracion["estilo_visual"] == "medianoche"
+    assert configuracion["color_acento"] == "turquesa"
+    # Cambiar otra cosa no toca el estilo elegido
+    client.patch("/configuracion", json={"color_acento": "ambar"})
+    assert client.get("/configuracion").json()["estilo_visual"] == "medianoche"
 
 
 def test_disposicion_de_widgets(client: TestClient) -> None:

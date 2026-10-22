@@ -31,6 +31,8 @@
       transform: translateY(6px);
     }
   }
+  /* Igual que entrada pero tras 0.3 s invisible: para avisos de espera que casi nunca hacen falta */
+  --animate-tarde: entrada 0.25s ease-out 0.3s backwards;
   /* Aparición con un pequeño rebote (celebraciones) */
   --animate-pop: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   @keyframes pop {
@@ -41,38 +43,77 @@
   }
 }
 
-/* --- Estilo "fintech" (el de por defecto) ---------------------------------
-   Para añadir otro estilo: copiar estos dos bloques como
-   :root[data-estilo="nombre"] y :root[data-estilo="nombre"].dark */
+/* --- Estilos visuales (atributo data-estilo en <html>) ---------------------
+   Cada color se calcula a partir de dos números:
+   --tinte:     el tono (0-360) que tiñe fondos, tarjetas y textos;
+   --viveza:    cuánto se nota ese tono (0 = gris puro, 1 = el fintech original).
+   Un estilo nuevo suele bastar con esas dos variables; si necesita otra luz
+   (p. ej. un negro más profundo) sobrescribe además los colores concretos.
+   El día que haya estilos personalizados, la app solo tendrá que escribir
+   estas variables en el style de <html>. */
 :root {
-  --fondo: oklch(97.2% 0.004 275);
+  --tinte: 275;
+  --viveza: 1;
+  --fondo: oklch(97.2% calc(0.004 * var(--viveza)) var(--tinte));
   --superficie: oklch(100% 0 0);
-  --superficie-2: oklch(95.6% 0.005 275);
-  --realce: oklch(93.8% 0.007 275);
-  --linea: oklch(92.5% 0.005 275);
-  --linea-fuerte: oklch(86% 0.008 275);
-  --texto: oklch(21% 0.012 275);
-  --suave: oklch(40% 0.014 275);
-  --tenue: oklch(54% 0.014 275);
-  --tenue-2: oklch(68% 0.012 275);
+  --superficie-2: oklch(95.6% calc(0.005 * var(--viveza)) var(--tinte));
+  --realce: oklch(93.8% calc(0.007 * var(--viveza)) var(--tinte));
+  --linea: oklch(92.5% calc(0.005 * var(--viveza)) var(--tinte));
+  --linea-fuerte: oklch(86% calc(0.008 * var(--viveza)) var(--tinte));
+  --texto: oklch(21% calc(0.012 * var(--viveza)) var(--tinte));
+  --suave: oklch(40% calc(0.014 * var(--viveza)) var(--tinte));
+  --tenue: oklch(54% calc(0.014 * var(--viveza)) var(--tinte));
+  --tenue-2: oklch(68% calc(0.012 * var(--viveza)) var(--tinte));
   /* Sombra de las tarjetas: suave en claro, sin sombra en oscuro (no se vería). */
   --sombra: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -12px oklch(0% 0 0 / 0.08);
 }
 
 :root.dark {
-  /* Casi negro con un toque azulado, como las apps de banca móvil. */
-  --fondo: oklch(14.5% 0.008 275);
-  --superficie: oklch(19.5% 0.01 275);
-  --superficie-2: oklch(24% 0.012 275);
-  --realce: oklch(27% 0.014 275);
+  /* Casi negro con un toque del tinte, como las apps de banca móvil. */
+  --fondo: oklch(14.5% calc(0.008 * var(--viveza)) var(--tinte));
+  --superficie: oklch(19.5% calc(0.01 * var(--viveza)) var(--tinte));
+  --superficie-2: oklch(24% calc(0.012 * var(--viveza)) var(--tinte));
+  --realce: oklch(27% calc(0.014 * var(--viveza)) var(--tinte));
   --linea: oklch(100% 0 0 / 0.07);
   --linea-fuerte: oklch(100% 0 0 / 0.13);
-  --texto: oklch(97% 0.004 275);
-  --suave: oklch(84% 0.01 275);
-  --tenue: oklch(67% 0.014 275);
-  --tenue-2: oklch(52% 0.014 275);
+  --texto: oklch(97% calc(0.004 * var(--viveza)) var(--tinte));
+  --suave: oklch(84% calc(0.01 * var(--viveza)) var(--tinte));
+  --tenue: oklch(67% calc(0.014 * var(--viveza)) var(--tinte));
+  --tenue-2: oklch(52% calc(0.014 * var(--viveza)) var(--tinte));
   --sombra: none;
   color-scheme: dark; /* barras de desplazamiento y controles nativos oscuros */
+}
+
+/* Azul marino profundo. */
+:root[data-estilo="medianoche"] {
+  --tinte: 262;
+  --viveza: 3.2;
+}
+
+/* Gris neutro; en oscuro, negro casi puro (ahorra batería en pantallas OLED). */
+:root[data-estilo="grafito"] {
+  --viveza: 0;
+}
+:root[data-estilo="grafito"].dark {
+  --fondo: oklch(9% 0 0);
+  --superficie: oklch(16% 0 0);
+  --superficie-2: oklch(21% 0 0);
+  --realce: oklch(24% 0 0);
+}
+
+/* Verde bosque discreto. */
+:root[data-estilo="bosque"] {
+  --tinte: 165;
+  --viveza: 2;
+}
+
+/* Cálido, como papel: el claro con más carácter. */
+:root[data-estilo="arena"] {
+  --tinte: 75;
+  --viveza: 2.4;
+}
+:root[data-estilo="arena"]:not(.dark) {
+  --superficie: oklch(99.4% 0.004 85);
 }
 
 @layer base {
@@ -151,6 +192,72 @@
   --color-acento-600: oklch(59.2% 0.249 0.584);
   --color-acento-700: oklch(52.5% 0.223 3.958);
   --color-acento-950: oklch(28.4% 0.109 3.907);
+}
+
+:root[data-acento="turquesa"] {
+  --color-acento-50: oklch(98.4% 0.014 180.72);
+  --color-acento-100: oklch(95.3% 0.051 180.801);
+  --color-acento-300: oklch(85.5% 0.138 181.071);
+  --color-acento-400: oklch(77.7% 0.152 181.912);
+  --color-acento-500: oklch(70.4% 0.14 182.503);
+  --color-acento-600: oklch(60% 0.118 184.704);
+  --color-acento-700: oklch(51.1% 0.096 186.391);
+  --color-acento-950: oklch(27.7% 0.046 192.524);
+}
+
+:root[data-acento="cian"] {
+  --color-acento-50: oklch(98.4% 0.019 200.873);
+  --color-acento-100: oklch(95.6% 0.045 203.388);
+  --color-acento-300: oklch(86.5% 0.127 207.078);
+  --color-acento-400: oklch(78.9% 0.154 211.53);
+  --color-acento-500: oklch(71.5% 0.143 215.221);
+  --color-acento-600: oklch(60.9% 0.126 221.723);
+  --color-acento-700: oklch(52% 0.105 223.128);
+  --color-acento-950: oklch(30.2% 0.056 229.695);
+}
+
+:root[data-acento="cielo"] {
+  --color-acento-50: oklch(97.7% 0.013 236.62);
+  --color-acento-100: oklch(95.1% 0.026 236.824);
+  --color-acento-300: oklch(82.8% 0.111 230.318);
+  --color-acento-400: oklch(74.6% 0.16 232.661);
+  --color-acento-500: oklch(68.5% 0.169 237.323);
+  --color-acento-600: oklch(58.8% 0.158 241.966);
+  --color-acento-700: oklch(50% 0.134 242.749);
+  --color-acento-950: oklch(29.3% 0.066 243.157);
+}
+
+:root[data-acento="fucsia"] {
+  --color-acento-50: oklch(97.7% 0.017 320.058);
+  --color-acento-100: oklch(95.2% 0.037 318.852);
+  --color-acento-300: oklch(83.3% 0.145 321.434);
+  --color-acento-400: oklch(74% 0.238 322.16);
+  --color-acento-500: oklch(66.7% 0.295 322.15);
+  --color-acento-600: oklch(59.1% 0.293 322.896);
+  --color-acento-700: oklch(51.8% 0.253 323.949);
+  --color-acento-950: oklch(29.3% 0.136 325.661);
+}
+
+:root[data-acento="ambar"] {
+  --color-acento-50: oklch(98.7% 0.022 95.277);
+  --color-acento-100: oklch(96.2% 0.059 95.617);
+  --color-acento-300: oklch(87.9% 0.169 91.605);
+  --color-acento-400: oklch(82.8% 0.189 84.429);
+  --color-acento-500: oklch(76.9% 0.188 70.08);
+  --color-acento-600: oklch(66.6% 0.179 58.318);
+  --color-acento-700: oklch(55.5% 0.163 48.998);
+  --color-acento-950: oklch(27.9% 0.077 45.635);
+}
+
+:root[data-acento="lima"] {
+  --color-acento-50: oklch(98.6% 0.031 120.757);
+  --color-acento-100: oklch(96.7% 0.067 122.328);
+  --color-acento-300: oklch(89.7% 0.196 126.665);
+  --color-acento-400: oklch(84.1% 0.238 128.85);
+  --color-acento-500: oklch(76.8% 0.233 130.85);
+  --color-acento-600: oklch(64.8% 0.2 131.684);
+  --color-acento-700: oklch(53.2% 0.157 131.589);
+  --color-acento-950: oklch(27.4% 0.072 132.109);
 }
 
 :root[data-acento="naranja"] {

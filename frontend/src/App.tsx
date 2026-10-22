@@ -1,4 +1,3 @@
-import { lazy, type ComponentType } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
@@ -6,25 +5,19 @@ import { SeccionCuentas, SeccionMetas, SeccionPagosFijos } from "./components/Se
 import { PAGINAS_INICIO } from "./config";
 import { useConfiguracion } from "./hooks/useConfiguracion";
 import { DashboardPage } from "./pages/DashboardPage";
-
-// El Dashboard (la página de inicio habitual) va en el paquete principal; el resto
-// se descarga la primera vez que se visita. Así la app abre antes.
-/** lazy() espera un "export default": lo adaptamos a nuestras exportaciones con nombre. */
-function perezosa<N extends string>(cargar: () => Promise<Record<N, ComponentType>>, nombre: N) {
-  return lazy(() => cargar().then((modulo) => ({ default: modulo[nombre] })));
-}
-
-const TransaccionesPage = perezosa(() => import("./pages/TransaccionesPage"), "TransaccionesPage");
-const PresupuestosPage = perezosa(() => import("./pages/PresupuestosPage"), "PresupuestosPage");
-const SuscripcionesPage = perezosa(() => import("./pages/SuscripcionesPage"), "SuscripcionesPage");
-const IngresosPage = perezosa(() => import("./pages/IngresosPage"), "IngresosPage");
-const EfectivoPage = perezosa(() => import("./pages/EfectivoPage"), "EfectivoPage");
-const CuentasPage = perezosa(() => import("./pages/CuentasPage"), "CuentasPage");
-const DeseosPage = perezosa(() => import("./pages/DeseosPage"), "DeseosPage");
-const DeudasPage = perezosa(() => import("./pages/DeudasPage"), "DeudasPage");
-const MetasPage = perezosa(() => import("./pages/MetasPage"), "MetasPage");
-const CategoriasPage = perezosa(() => import("./pages/CategoriasPage"), "CategoriasPage");
-const AjustesPage = perezosa(() => import("./pages/AjustesPage"), "AjustesPage");
+import {
+  AjustesPage,
+  CategoriasPage,
+  CuentasPage,
+  DeseosPage,
+  DeudasPage,
+  EfectivoPage,
+  IngresosPage,
+  MetasPage,
+  PresupuestosPage,
+  SuscripcionesPage,
+  TransaccionesPage,
+} from "./paginas";
 
 /** Mapa de rutas: cada URL muestra una página dentro del Layout común. */
 export default function App() {

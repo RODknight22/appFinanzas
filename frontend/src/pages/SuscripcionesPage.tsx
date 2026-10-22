@@ -32,6 +32,7 @@ export function SuscripcionesPage() {
   const estado = useDatos(
     () => Promise.all([suscripcionesApi.listar(), cuentasApi.listar(), categoriasApi.listar({ tipo: "gasto" })]),
     [],
+    "suscripciones",
   );
 
   function alGuardar() {
