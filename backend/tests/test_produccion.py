@@ -1,10 +1,12 @@
-"""Servidor de producción: web + API en un solo origen y sus defensas HTTP."""
+"""Servidores de producción y de desarrollo: web + API en un solo origen y sus defensas HTTP."""
 
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.main import app
+from app.seguridad_http import ProteccionLocal
 from app.services import acceso
 from app.servidor import crear_aplicacion
 
@@ -105,3 +107,25 @@ def test_cambiar_contrasena_tambien_tiene_freno(cliente_sin_sesion: TestClient) 
     for _ in range(acceso._MAX_FALLOS):
         assert cliente_sin_sesion.post("/auth/cambiar-contrasena", json=datos).status_code == 400
     assert cliente_sin_sesion.post("/auth/cambiar-contrasena", json=datos).status_code == 429
+
+
+@pytest.fixture
+def desarrollo(cliente_sin_sesion: TestClient) -> TestClient:
+    """La API como en `docker compose` (PROTECCION_LOCAL=true), vista a través del proxy de Vite."""
+    return TestClient(ProteccionLocal(app, con_cabeceras=False), base_url="http://localhost:5173")
+
+
+def test_desarrollo_rechaza_host_y_origen_ajenos(desarrollo: TestClient) -> None:
+    assert desarrollo.get("/health", headers={"host": "evil.com"}).status_code == 400
+    datos = {"usuario": "x", "contrasena": "12345678"}
+    assert desarrollo.post("/auth/login", json=datos, headers={"origin": "http://evil.com"}).status_code == 403
+    # Otra app del mismo ordenador (otro puerto) tampoco: la cookie "lax" sí le llegaría.
+    assert desarrollo.post("/auth/login", json=datos, headers={"origin": "http://localhost:3000"}).status_code == 403
+
+
+def test_desarrollo_deja_pasar_a_la_propia_app(desarrollo: TestClient) -> None:
+    datos = {"usuario": "x", "contrasena": "12345678"}
+    # Llega al login (401: no hay usuario), no lo frena la defensa.
+    assert desarrollo.post("/auth/login", json=datos, headers={"origin": "http://localhost:5173"}).status_code == 401
+    # Sin CSP: la web la sirve Vite y /docs carga sus scripts de un CDN.
+    assert "content-security-policy" not in desarrollo.get("/health").headers

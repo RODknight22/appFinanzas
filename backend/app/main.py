@@ -27,6 +27,7 @@ from app.routers import (
     transacciones,
     transferencias,
 )
+from app.seguridad_http import ProteccionLocal
 from app.services.errores import ErrorDeDominio
 from app.version import VERSION
 
@@ -52,6 +53,11 @@ app = FastAPI(
     redoc_url=None if PRODUCCION else "/redoc",
     openapi_url=None if PRODUCCION else "/openapi.json",
 )
+
+# Desarrollo (docker compose): el puerto 8000 también rechaza Host y Origin ajenos.
+# En producción las pone servidor.py; los tests usan el Host "testserver" y van sin ellas.
+if os.getenv("PROTECCION_LOCAL") == "true":
+    app.add_middleware(ProteccionLocal, con_cabeceras=False)
 
 
 @app.exception_handler(ErrorDeDominio)
