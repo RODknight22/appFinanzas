@@ -417,7 +417,7 @@ class Notificacion(SQLModel):
     titulo: str
     mensaje: str
     fecha: date
-    # Ruta de la app a la que lleva (p. ej. "/suscripciones").
+    # Ruta de la app a la que lleva (p. ej. "/pagos-fijos").
     enlace: str
     # Importe del aviso (si lo hay): el frontend lo formatea con su moneda.
     monto: Decimal | None = None
