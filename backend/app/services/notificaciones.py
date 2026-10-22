@@ -39,14 +39,14 @@ def _vencimientos(session: Session, hoy: date) -> list[Notificacion]:
         avisos.append(Notificacion(
             clave=f"suscripcion:{s.id}:{s.fecha_proximo_pago}", tipo="pago", titulo=f"Pago de {s.nombre}",
             mensaje=f"Vence {_cuando(s.fecha_proximo_pago, hoy)}", fecha=s.fecha_proximo_pago,
-            enlace="/suscripciones", monto=s.monto, moneda=s.moneda, urgente=s.fecha_proximo_pago <= hoy,
+            enlace="/pagos-fijos", monto=s.monto, moneda=s.moneda, urgente=s.fecha_proximo_pago <= hoy,
         ))
 
     for i in session.exec(select(IngresoRecurrente).where(IngresoRecurrente.fecha_proximo_cobro <= limite)).all():
         avisos.append(Notificacion(
             clave=f"cobro:{i.id}:{i.fecha_proximo_cobro}", tipo="cobro", titulo=f"Cobro de {i.nombre}",
             mensaje=f"Llega {_cuando(i.fecha_proximo_cobro, hoy)}: márcalo al recibirlo",
-            fecha=i.fecha_proximo_cobro, enlace="/ingresos", monto=i.monto, moneda=i.moneda,
+            fecha=i.fecha_proximo_cobro, enlace="/pagos-fijos/ingresos", monto=i.monto, moneda=i.moneda,
         ))
 
     tarjetas = session.exec(
@@ -111,7 +111,7 @@ def _deseos(session: Session, ahora: datetime) -> list[Notificacion]:
         Notificacion(
             clave=f"deseo:{d.id}:{d.reflexion_hasta:%Y-%m-%dT%H:%M}", tipo="deseo",
             titulo=f"¿Aún quieres {d.nombre}?", mensaje="Terminó la espera: lee tu carta y decide",
-            fecha=d.reflexion_hasta.date(), enlace="/deseos", monto=d.precio, moneda=d.moneda,
+            fecha=d.reflexion_hasta.date(), enlace="/metas/deseos", monto=d.precio, moneda=d.moneda,
         )
         for d in deseos.listar(session, ahora=ahora)
         if d.listo_para_decidir

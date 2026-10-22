@@ -1,7 +1,5 @@
 import {
   ArrowLeftRight,
-  Gift,
-  HandCoins,
   Handshake,
   LayoutDashboard,
   LogOut,
@@ -44,9 +42,7 @@ const MENU: ItemMenu[] = [
   { ruta: "/presupuestos", etiqueta: "Presupuestos", corta: "Límites", icono: PiggyBank },
   { ruta: "/metas", etiqueta: "Metas", corta: "Metas", icono: Target },
   { ruta: "/deudas", etiqueta: "Deudas", corta: "Deudas", icono: Handshake, soloEscritorio: true },
-  { ruta: "/deseos", etiqueta: "Deseos", corta: "Deseos", icono: Gift, soloEscritorio: true },
-  { ruta: "/suscripciones", etiqueta: "Suscripciones", corta: "Recurrentes", icono: Repeat },
-  { ruta: "/ingresos", etiqueta: "Ingresos fijos", corta: "Ingresos", icono: HandCoins, soloEscritorio: true },
+  { ruta: "/pagos-fijos", etiqueta: "Pagos fijos", corta: "Fijos", icono: Repeat },
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
   { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
 ];

@@ -1,6 +1,7 @@
 # Backend (`backend/app/`)
 
-Python 3.12, FastAPI, SQLModel, Pydantic, Uvicorn. BD: SQLite en `data/finance.db` (datos reales).
+Python 3.12, FastAPI, SQLModel, Pydantic, Uvicorn. BD: SQLite en `data/finance.db` (datos reales);
+`docker compose` usa `data-dev/` (desarrollo).
 Capas: routers (HTTP, sin lógica) → services (reglas de negocio) → models/schemas.
 
 ## Convenciones

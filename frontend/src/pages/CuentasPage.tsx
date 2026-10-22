@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
 import { cuentasApi, transferenciasApi } from "../api/recursos";
-import { FilaCuenta } from "../components/cuentas/FilaCuenta";
+import { FilaCuenta, type FilaCuentaProps } from "../components/cuentas/FilaCuenta";
 import { ListaTransferencias } from "../components/cuentas/ListaTransferencias";
 import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { FormularioTransferencia, type PagoTarjeta } from "../components/formularios/FormularioTransferencia";
@@ -14,6 +14,7 @@ import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { avisarError } from "../components/ajustes/avisarError";
+import { useCuentasPlegadas } from "../hooks/useCuentasPlegadas";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Cuenta, Transferencia } from "../types";
@@ -31,6 +32,7 @@ type EstadoTransferencia = null | { inicial?: Transferencia; pago?: PagoTarjeta 
 export function CuentasPage() {
   const [modal, setModal] = useState<EstadoModal>(null);
   const [transferencia, setTransferencia] = useState<EstadoTransferencia>(null);
+  const { estaPlegada, alternar: alternarPlegada } = useCuentasPlegadas();
   // Las cuentas vienen con su saldo actual calculado en el resumen del dashboard.
   const estado = useDatos(
     () => Promise.all([cuentasApi.listar(), dashboardApi.resumen(mesActual()), transferenciasApi.listar({ limit: 20 })]),
@@ -96,7 +98,7 @@ export function CuentasPage() {
           // El efectivo tiene su propia pestaña.
           const grupos = agruparCuentas(cuentas.filter((c) => c.tipo !== "efectivo"));
 
-          const fila = (cuenta: Cuenta, extra: { subcuenta?: boolean; totalConSubcuentas?: number } = {}) => {
+          const fila = (cuenta: Cuenta, extra: Pick<FilaCuentaProps, "subcuenta" | "totalConSubcuentas" | "plegado"> = {}) => {
             const saldo = saldos.get(cuenta.id) ?? Number(cuenta.balance_inicial);
             return (
               <FilaCuenta
@@ -131,8 +133,13 @@ export function CuentasPage() {
                           <ul className="divide-y divide-linea/60">
                             {fila(cuenta, {
                               totalConSubcuentas: [cuenta, ...subcuentas].reduce((suma, c) => suma + (enPrincipal.get(c.id) ?? 0), 0),
+                              plegado: {
+                                plegada: estaPlegada(cuenta.id),
+                                cantidad: subcuentas.length,
+                                onAlternar: () => alternarPlegada(cuenta.id),
+                              },
                             })}
-                            {subcuentas.map((sub) => fila(sub, { subcuenta: true }))}
+                            {!estaPlegada(cuenta.id) && subcuentas.map((sub) => fila(sub, { subcuenta: true }))}
                           </ul>
                         </li>
                       ),
