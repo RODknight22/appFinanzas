@@ -42,9 +42,9 @@ Ejemplo:
 
 ## 📥 Bandeja de entrada
 
-<!-- Escribe aquí sin pensar. Claude lo ordena en las secciones de abajo al revisarlo. -->
+- [ ] Cuando creas una subcuenta, quiero que haya un boton para desplegar y minimizar las subcuentas 
 
-- [ ]
+- [ ] Tambien creo que puedes hacer lo mismo que se hizo con cuenta y efectivo de ponerlas en el mismo apartado solo que diferente "pestaña" pero con Metas y deseos, Ingresos fijos y suscripciones
 
 ## ✨ Funciones nuevas
 
