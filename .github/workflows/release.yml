@@ -2,6 +2,14 @@
 #     git tag v1.0.0 && git push origin v1.0.0
 # Resultado: un Release en GitHub con los ejecutables de Windows y Linux, sus
 # sumas SHA-256 y la imagen Docker en ghcr.io.
+#
+# Seguridad (auditoría B1):
+# - Cada trabajo recibe solo los permisos que necesita; por defecto, solo leer el código.
+# - Las acciones de terceros van fijadas por SHA (la huella exacta de su código): una
+#   etiqueta como @v4 la puede mover quien controle esa acción, un SHA no. El comentario
+#   dice a qué versión corresponde; Dependabot (.github/dependabot.yml) propone actualizarlas.
+# - persist-credentials: false. Ningún paso necesita hacer push con git, así que el token
+#   no se queda guardado en la carpeta del código que ejecutan los pasos siguientes.
 name: Release
 
 on:
@@ -9,20 +17,21 @@ on:
     tags: ["v*"]
 
 permissions:
-  contents: write # crear el Release
-  packages: write # publicar la imagen Docker
+  contents: read
 
 jobs:
   web:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
       - run: npm ci && npm run build
         working-directory: frontend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: web
           path: frontend/dist
@@ -41,30 +50,42 @@ jobs:
             origen: dist/AppFinanzas
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: web
           path: frontend/dist
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
       - run: pip install -r backend/requirements.txt -c backend/constraints.txt pyinstaller==6.11.1
       - run: pyinstaller --noconfirm empaquetado/appfinanzas.spec
       - name: Nombre final
         shell: bash
-        run: mkdir salida && mv "${{ matrix.origen }}" "salida/${{ matrix.nombre }}"
-      - uses: actions/upload-artifact@v4
+        # Por variables de entorno y no con ${{ }} dentro del comando: el nombre de la
+        # etiqueta nunca se interpreta como parte del script.
+        env:
+          ORIGEN: ${{ matrix.origen }}
+          NOMBRE: ${{ matrix.nombre }}
+        run: mkdir salida && mv "$ORIGEN" "salida/$NOMBRE"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ejecutable-${{ matrix.os }}
           path: salida/*
 
   docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # publicar la imagen Docker en ghcr.io
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -72,7 +93,7 @@ jobs:
       - name: Nombre de la imagen (ghcr exige minúsculas)
         id: imagen
         run: echo "nombre=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           push: true
@@ -83,16 +104,20 @@ jobs:
   publicar:
     needs: [ejecutables, docker]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # crear el Release
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: ejecutable-*
           path: descargas
           merge-multiple: true
       # Sumas SHA-256: quien descarga puede comprobar que el archivo no se alteró.
-      - run: cd descargas && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
-      - uses: softprops/action-gh-release@v2
+      - run: cd descargas && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: descargas/*
           body_path: NOTAS_RELEASE.md
