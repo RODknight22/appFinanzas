@@ -20,7 +20,8 @@ export function SeccionApariencia() {
         <legend className="mb-3 text-sm text-tenue">
           Estilo de fondos y tarjetas. Cada uno tiene versión clara y oscura (se cambia en el menú lateral).
         </legend>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {/* auto-fill: tantas columnas como quepan, se use la tarjeta a lo ancho o a media pantalla */}
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-2">
           {Object.entries(ESTILOS).map(([valor, { nombre, descripcion, claro, oscuro }]) => {
             const activo = configuracion.estilo_visual === valor;
             return (

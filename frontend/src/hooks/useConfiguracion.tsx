@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { configuracionApi, tasasApi } from "../api/configuracion";
 import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
@@ -74,6 +74,8 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   const [configuracion, setConfiguracion] = useState<Configuracion>(CONFIGURACION_INICIAL);
   const [tasas, setTasas] = useState<Tasa[]>([]);
   const [lista, setLista] = useState(false);
+  // Número de la última petición de cambio: solo la respuesta más reciente se aplica.
+  const ultimaPeticion = useRef(0);
 
   function aplicar(nueva: Configuracion) {
     configurarMoneda(nueva.moneda);
@@ -102,13 +104,17 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
    */
   async function actualizarConfiguracion(cambios: Partial<Configuracion>) {
     const anterior = configuracion;
+    const peticion = ++ultimaPeticion.current;
     aplicar({ ...configuracion, ...cambios });
     try {
-      aplicar(await configuracionApi.actualizar(cambios));
+      const guardada = await configuracionApi.actualizar(cambios);
+      // Dos clics seguidos (estilo y luego acento): la respuesta del primero llega después
+      // del segundo clic y lo desharía un instante. La del último ya trae los dos cambios.
+      if (peticion === ultimaPeticion.current) aplicar(guardada);
       // Las tasas se expresan en la moneda principal: si cambia, hay que pedirlas de nuevo.
       if (cambios.moneda && cambios.moneda !== anterior.moneda) await recargarTasas();
     } catch (e) {
-      aplicar(anterior);
+      if (peticion === ultimaPeticion.current) aplicar(anterior);
       throw e;
     }
   }
