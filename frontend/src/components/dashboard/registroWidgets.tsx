@@ -191,7 +191,7 @@ export const WIDGETS = {
     titulo: "Próximos pagos",
     tamanoPorDefecto: "mediano",
     pintar: ({ pagos, diasProximos }) => (
-      <Tarjeta titulo={`Próximos pagos (${diasProximos} días)`} accion={enlace("/suscripciones", "Ver todas")} className="h-full">
+      <Tarjeta titulo={`Próximos pagos (${diasProximos} días)`} accion={enlace("/pagos-fijos", "Ver todas")} className="h-full">
         <ListaPagos pagos={pagos} />
       </Tarjeta>
     ),
@@ -200,7 +200,7 @@ export const WIDGETS = {
     titulo: "Próximos cobros",
     tamanoPorDefecto: "mediano",
     pintar: ({ cobros, diasProximos }) => (
-      <Tarjeta titulo={`Próximos cobros (${diasProximos} días)`} accion={enlace("/ingresos", "Ver todos")} className="h-full">
+      <Tarjeta titulo={`Próximos cobros (${diasProximos} días)`} accion={enlace("/pagos-fijos/ingresos", "Ver todos")} className="h-full">
         <ListaCobros cobros={cobros} />
       </Tarjeta>
     ),
