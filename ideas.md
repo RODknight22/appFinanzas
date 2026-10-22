@@ -43,9 +43,11 @@ Ejemplo:
 
 ## 📥 Bandeja de entrada
 
-<!-- Vacía: Claude movió tus ideas a su sección. Sigue escribiendo aquí. -->
+- [ ] En el Dashboard la parte donde aparece el mes y el año mejoralo para que puedas regresar al mes actual facil e ir a meses que estan muy atras mas facil tambie. Implementa esto a ka pestaña de transacciones
 
-- [ ]
+- [ ] Me gustaria mejorar los widgets y su personalizacion (Tamaño y como muestr los datos, tambien agregar mas widgets)
+
+- [ ] Actualizar el paso a paso de cuado inicias la app para explicar las nuevas funciones tambien, lo quiero hacer rapido y entretenido para que metan los datos basicos 
 
 ## ✨ Funciones nuevas
 
