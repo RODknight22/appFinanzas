@@ -67,6 +67,18 @@ def test_peticion_demasiado_grande(web: TestClient) -> None:
     assert respuesta.status_code == 413
 
 
+def test_peticion_grande_enviada_por_trozos_sin_tamano_tambien_se_rechaza(web: TestClient) -> None:
+    """Sin Content-Length (Transfer-Encoding: chunked) el middleware cuenta los bytes reales."""
+
+    def trozos():
+        for _ in range(20):
+            yield b"x" * 64_000  # 1,28 MB en total
+
+    respuesta = web.post("/api/auth/login", content=trozos(), headers={"content-type": "application/json"})
+    assert respuesta.status_code == 413
+    assert respuesta.json() == {"detail": "La petición es demasiado grande"}
+
+
 def test_sin_documentacion_en_produccion(web: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     # La documentación de la API se apaga con APP_MODO=produccion (lo pone el lanzador).
     assert web.get("/docs").text == "<html>app</html>"  # en la raíz solo está la web

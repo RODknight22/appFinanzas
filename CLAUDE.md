@@ -41,6 +41,11 @@ multidivisa, login, tutorial, personalización.
 - Divisas: tasas diarias por USD en `tasacambio` (manual > api), expuestas en la principal
   (`en_principal`). Toda transacción pasa por `completar_montos()` → `monto_cuenta` (saldo) y
   `monto_principal` (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
+- Recurrentes (suscripciones, ingresos): fechas en services/periodicidad.py (quincenal: 15 y fin).
+- Metas: progreso en `metas._con_progreso` (saldo o aportaciones); `fecha_cumplida` persiste.
+- Divisas: tasas diarias por USD en `tasacambio` (manual > api; días pasados del BCE con
+  `asegurar_tasas_historicas`). `completar_montos()` → `monto_cuenta` (saldo) y `monto_principal`
+  (dashboard) con la tasa de su fecha. Sumar esos campos, nunca `monto`.
 - Búsqueda: `_filtrar()` en services/transacciones.py; texto con `sin_acentos()` (database.py).
 - Importar: `lector_extractos.py` (puro) e `importaciones.py` (vista previa; todo o nada).
 - Mes financiero: services/mes_financiero.py (`dia_inicio_mes`).
@@ -64,6 +69,11 @@ multidivisa, login, tutorial, personalización.
 - [ ] Siguiente: copias de seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en el
   repo, notificaciones en vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios no
   aditivos, react-router 7, firma de ejecutables, más estilos visuales.
+- [x] v1.0.0: ejecutables Windows/Linux + Docker. Versión: `app/version.py` + package.json.
+- [x] Importar CSV/.xlsx (nivel 1; luego reglas, .xls, PSD2), ingresos fijos, efectivo.
+- [ ] Siguiente: copias de seguridad/exportar (ojo: WAL). Mejoras: importes en céntimos, E2E en
+  el repo, notificaciones en vez de alert/confirm, tipos ahorro/inversión, Alembic si hay cambios
+  no aditivos, react-router 7, firma de ejecutables, más estilos visuales.
 
 ## Comandos
 - `docker compose up --build` / `docker compose down` (conserva la BD).

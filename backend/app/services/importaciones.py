@@ -21,7 +21,7 @@ from app.database import normalizar_texto
 from app.datos_iniciales import CATEGORIA_OTROS_GASTOS, CATEGORIA_OTROS_INGRESOS
 from app.models import Cuenta, TipoMovimiento, Transaccion, Transferencia
 from app.schemas import FilaImportacion, ImportacionCreate, ResultadoImportacion, VistaPreviaImportacion
-from app.services import categorias, transacciones
+from app.services import categorias, divisas, transacciones
 from app.services.comun import obtener_referencia
 from app.services.lector_extractos import MovimientoLeido, leer_extracto
 
@@ -160,6 +160,10 @@ def vista_previa(session: Session, cuenta_id: int, contenido: bytes, invertir_si
 def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacion:
     """Crea todas las transacciones o ninguna: si una falla, no queda la importación a medias."""
     cuenta = obtener_referencia(session, Cuenta, datos.cuenta_id, "la cuenta")
+    # Un extracto suele cubrir meses atrás: una sola descarga para todo el periodo,
+    # en vez de una por movimiento, y cada uno se convierte con la tasa de su día.
+    fechas = [m.fecha for m in datos.movimientos]
+    divisas.asegurar_tasas_historicas(session, min(fechas), max(fechas))
     nuevas = []
     for movimiento in datos.movimientos:
         transacciones.validar_relaciones(session, cuenta.id, movimiento.categoria_id, movimiento.tipo)

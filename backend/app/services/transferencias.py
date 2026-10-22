@@ -57,6 +57,7 @@ def _completar_destino(session: Session, transferencia: Transferencia) -> tuple[
         transferencia.monto_destino = transferencia.monto_origen
     elif transferencia.monto_destino is None:
         divisas.asegurar_tasas_del_dia(session)
+        divisas.asegurar_tasas_historicas(session, transferencia.fecha, transferencia.fecha)
         transferencia.monto_destino = divisas.convertir(
             session, transferencia.monto_origen, origen.moneda, destino.moneda, transferencia.fecha
         )

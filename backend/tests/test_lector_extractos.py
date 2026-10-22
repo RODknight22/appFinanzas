@@ -1,6 +1,7 @@
 """Lectura de extractos bancarios con formatos de distintos bancos, sin configurar nada."""
 
 import io
+import zipfile
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -124,3 +125,26 @@ def test_archivos_no_validos_dan_un_mensaje_claro(contenido: bytes, mensaje: str
 def test_importes_exactos_sin_errores_de_coma_flotante() -> None:
     contenido = b"Fecha;Concepto;Importe\n01/10/2026;Cafe;-0,10\n01/10/2026;Cafe;-0,20\n"
     assert sum(m.importe for m in leer_extracto(contenido).movimientos) == Decimal("-0.30")
+
+
+def _zip(piezas: dict[str, bytes]) -> bytes:
+    archivo = io.BytesIO()
+    with zipfile.ZipFile(archivo, "w", zipfile.ZIP_DEFLATED) as zip_:
+        for nombre, datos in piezas.items():
+            zip_.writestr(nombre, datos)
+    return archivo.getvalue()
+
+
+@pytest.mark.parametrize(
+    "piezas",
+    [
+        {"xl/sharedStrings.xml": b"0" * 25_000_000},  # pocos KB comprimido, 25 MB descomprimido
+        {f"xl/pieza{i}.xml": b"" for i in range(201)},
+    ],
+    ids=["bomba-zip", "demasiadas-piezas"],
+)
+def test_excel_que_se_hincharia_al_abrirlo_se_rechaza_sin_descomprimir(piezas: dict[str, bytes]) -> None:
+    contenido = _zip(piezas)
+    assert len(contenido) < 100_000
+    with pytest.raises(ReglaDeNegocioError, match="demasiado grande por dentro"):
+        leer_extracto(contenido)

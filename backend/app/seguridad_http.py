@@ -7,17 +7,20 @@ Estas capas lo impiden:
 - Host: solo se aceptan peticiones dirigidas a 127.0.0.1 o localhost. Frena el
   "DNS rebinding" (evil.com que de repente resuelve a 127.0.0.1).
 - Origin: una escritura (POST, PATCH, DELETE…) solo vale si viene de la propia app.
-- Tamaño: ninguna petición puede mandar más de 1 MB (la foto de perfil ocupa < 400 KB).
+- Tamaño: ninguna petición puede mandar más de 1 MB (la foto de perfil ocupa < 400 KB),
+  ni declarándolo ni enviándolo por trozos sin declarar su tamaño.
 - Cabeceras: el navegador solo ejecuta scripts de la propia app (CSP), no deja
   meterla en un <iframe> ajeno, no adivina tipos de archivo, etc.
 """
 
 from starlette.datastructures import Headers
+from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 HOSTS_PERMITIDOS = {"127.0.0.1", "localhost"}
 TAMANO_MAXIMO = 1_000_000  # bytes
+MENSAJE_DEMASIADO_GRANDE = "La petición es demasiado grande"
 METODOS_SEGUROS = {"GET", "HEAD", "OPTIONS"}
 
 # 'unsafe-inline' solo en estilos: React y Recharts escriben style="…" al vuelo.
@@ -66,7 +69,20 @@ class ProteccionLocal:
                 return await _rechazar(403, "Origen no permitido")(scope, receive, send)
 
         if int(cabeceras.get("content-length") or 0) > TAMANO_MAXIMO:
-            return await _rechazar(413, "La petición es demasiado grande")(scope, receive, send)
+            return await _rechazar(413, MENSAJE_DEMASIADO_GRANDE)(scope, receive, send)
+
+        recibidos = 0
+
+        async def recibir_con_limite() -> Message:
+            # Content-Length puede faltar (envío "chunked") o mentir: se cuentan los bytes reales.
+            # HTTPException la convierte FastAPI en un 413 normal, esté donde esté leyéndose el cuerpo.
+            nonlocal recibidos
+            mensaje = await receive()
+            if mensaje["type"] == "http.request":
+                recibidos += len(mensaje.get("body", b""))
+                if recibidos > TAMANO_MAXIMO:
+                    raise HTTPException(413, MENSAJE_DEMASIADO_GRANDE)
+            return mensaje
 
         async def enviar_con_cabeceras(mensaje: Message) -> None:
             if mensaje["type"] == "http.response.start":
@@ -74,4 +90,4 @@ class ProteccionLocal:
                 mensaje["headers"] = [*mensaje["headers"], *CABECERAS]
             await send(mensaje)
 
-        await self.app(scope, receive, enviar_con_cabeceras)
+        await self.app(scope, recibir_con_limite, enviar_con_cabeceras)
