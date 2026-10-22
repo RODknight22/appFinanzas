@@ -19,6 +19,8 @@ Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/20
 - [x] UX: ver contraseña, presupuestos con divisa, selector de fecha, bienvenida y consejos.
 - [x] Deudas (quién te debe y a quién debes), lista de deseos, campana de avisos.
 - [x] E2E en el repo (`scripts/e2e.sh`) y `scripts/verificar.sh`; CLAUDE.md dividido.
+- [x] Apariencia: 5 estilos visuales (claro/oscuro), 12 acentos y fundido al cambiarlos;
+  navegación fluida (páginas precargadas en reposo y caché de datos en `useDatos`).
 
 ---
 
@@ -40,7 +42,7 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
   *Dónde:* docker-compose.yml, main.py. *Hecho cuando:* una web ajena no puede escribir en :8000.
 - [x] **CI completo:** ejecutar `scripts/verificar.sh --e2e` en GitHub Actions y añadir linters
   (ruff para Python, eslint para TS). *Dónde:* .github/workflows/ci.yml.
-- [ ] **Release más seguro** (auditoría B1): permisos por trabajo y acciones fijadas por SHA.
+- [x] **Release más seguro** (auditoría B1): permisos por trabajo y acciones fijadas por SHA.
   *Dónde:* .github/workflows/release.yml.
 - [ ] **Publicar v1.1.0:** versión en backend/app/version.py y frontend/package.json, CHANGELOG.md
   y README.md al día (importación, ingresos, efectivo, deudas, deseos), tag `v1.1.0`.
@@ -71,6 +73,9 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
 - [ ] **Limpieza:** `#64748b` repetido → constante o token; manejo de errores duplicado; atajo
   ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35× más rápido).
 - [ ] Recordatorios por correo (`correo_recordatorios`) y seguir precios de los deseos.
+- [ ] **Estilo personalizado:** elegir tinte y viveza propios (o un acento libre). *Dónde:*
+  index.css ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración
+  y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar (E2E).
 
 ## v2.0: Conectada
 

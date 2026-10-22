@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { configuracionApi, tasasApi } from "../api/configuracion";
 import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
-import type { ColorAcento, Configuracion, Moneda, Tasa } from "../types";
+import type { ColorAcento, Configuracion, EstiloVisual, Moneda, Tasa } from "../types";
 import { convertir } from "../utils/divisas";
+import { conTransicion } from "../utils/transicion";
 import { configurarDiaInicioMes, configurarMoneda } from "../utils/formato";
 
 interface ContextoConfiguracion {
@@ -37,6 +38,7 @@ const CONFIGURACION_INICIAL: Configuracion = {
   nombre: null,
   avatar: null,
   color_acento: "esmeralda",
+  estilo_visual: "fintech",
   pagina_inicio: "dashboard",
   dia_inicio_mes: 1,
   widgets: null,
@@ -50,14 +52,21 @@ const CONFIGURACION_INICIAL: Configuracion = {
   correo_recordatorios: null,
 };
 
-/** Pone el color de acento en <html> (lo leen las variables CSS de index.css). */
-function aplicarAcento(acento: ColorAcento) {
-  document.documentElement.dataset.acento = acento;
+/** Pone acento y estilo en <html> (los leen las variables CSS de index.css). */
+function aplicarApariencia(acento: ColorAcento, estilo: EstiloVisual) {
+  const html = document.documentElement;
+  if (html.dataset.acento === acento && html.dataset.estilo === estilo) return;
+  // Fundido suave del color viejo al nuevo, en vez de un cambio brusco.
+  conTransicion(() => {
+    html.dataset.acento = acento;
+    html.dataset.estilo = estilo;
+  });
   try {
     // Copia local para que index.html lo aplique antes de pintar en la próxima visita.
     localStorage.setItem("acento", acento);
+    localStorage.setItem("estilo", estilo);
   } catch {
-    // Navegación privada: no pasa nada, solo se verá el acento un instante después.
+    // Navegación privada: no pasa nada, solo se verán los colores un instante después.
   }
 }
 
@@ -65,11 +74,13 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   const [configuracion, setConfiguracion] = useState<Configuracion>(CONFIGURACION_INICIAL);
   const [tasas, setTasas] = useState<Tasa[]>([]);
   const [lista, setLista] = useState(false);
+  // Número de la última petición de cambio: solo la respuesta más reciente se aplica.
+  const ultimaPeticion = useRef(0);
 
   function aplicar(nueva: Configuracion) {
     configurarMoneda(nueva.moneda);
     configurarDiaInicioMes(nueva.dia_inicio_mes);
-    aplicarAcento(nueva.color_acento);
+    aplicarApariencia(nueva.color_acento, nueva.estilo_visual);
     // Cambiar el estado vuelve a renderizar la app con el nuevo formato.
     setConfiguracion(nueva);
   }
@@ -93,13 +104,17 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
    */
   async function actualizarConfiguracion(cambios: Partial<Configuracion>) {
     const anterior = configuracion;
+    const peticion = ++ultimaPeticion.current;
     aplicar({ ...configuracion, ...cambios });
     try {
-      aplicar(await configuracionApi.actualizar(cambios));
+      const guardada = await configuracionApi.actualizar(cambios);
+      // Dos clics seguidos (estilo y luego acento): la respuesta del primero llega después
+      // del segundo clic y lo desharía un instante. La del último ya trae los dos cambios.
+      if (peticion === ultimaPeticion.current) aplicar(guardada);
       // Las tasas se expresan en la moneda principal: si cambia, hay que pedirlas de nuevo.
       if (cambios.moneda && cambios.moneda !== anterior.moneda) await recargarTasas();
     } catch (e) {
-      aplicar(anterior);
+      if (peticion === ultimaPeticion.current) aplicar(anterior);
       throw e;
     }
   }

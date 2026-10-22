@@ -67,6 +67,26 @@ class ColorAcento(str, Enum):
     VIOLETA = "violeta"
     ROSA = "rosa"
     NARANJA = "naranja"
+    TURQUESA = "turquesa"
+    CIAN = "cian"
+    CIELO = "cielo"
+    LIMA = "lima"
+    AMBAR = "ambar"
+    FUCSIA = "fucsia"
+
+
+class EstiloVisual(str, Enum):
+    """Paleta de fondos, tarjetas y textos (cada una con versión clara y oscura).
+
+    Los colores viven en frontend/src/index.css: añadir un estilo es añadir un valor aquí
+    y su bloque de variables allí.
+    """
+
+    FINTECH = "fintech"
+    MEDIANOCHE = "medianoche"
+    GRAFITO = "grafito"
+    BOSQUE = "bosque"
+    ARENA = "arena"
 
 
 class PaginaInicio(str, Enum):
@@ -477,6 +497,7 @@ class Configuracion(SQLModel, table=True):
     nombre: str | None = Field(default=None, max_length=50)
     avatar: str | None = Field(default=None, max_length=8)  # un emoji; null = inicial del nombre
     color_acento: ColorAcento | None = None
+    estilo_visual: EstiloVisual | None = None
     pagina_inicio: PaginaInicio | None = None
     # Día en que empieza el "mes financiero" (p. ej. el día de cobro). 1-28 para
     # que exista en todos los meses, febrero incluido.

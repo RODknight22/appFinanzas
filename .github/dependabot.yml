@@ -1,0 +1,14 @@
+# Dependabot abre una PR cuando sale una versión nueva de una acción de GitHub.
+# Hace falta porque los workflows las fijan por SHA (seguro, pero no se actualizan solas).
+# Agrupadas y una vez al mes: como mucho una PR al mes, que pasa por el CI como cualquier otra.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      acciones:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(ci)"

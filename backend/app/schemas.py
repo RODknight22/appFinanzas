@@ -26,6 +26,7 @@ from app.models import (
     DeseoBase,
     DeudaBase,
     EstadoDeseo,
+    EstiloVisual,
     IngresoRecurrenteBase,
     MetaBase,
     Moneda,
@@ -530,6 +531,7 @@ class ConfiguracionRead(SQLModel):
     nombre: str | None
     avatar: str | None
     color_acento: ColorAcento
+    estilo_visual: EstiloVisual
     pagina_inicio: PaginaInicio
     dia_inicio_mes: int
     # null = el frontend usa su disposición por defecto
@@ -556,6 +558,7 @@ class ConfiguracionUpdate(SQLModel):
     nombre: str | None = Field(default=None, max_length=50)
     avatar: str | None = Field(default=None, max_length=8)
     color_acento: ColorAcento | None = None
+    estilo_visual: EstiloVisual | None = None
     pagina_inicio: PaginaInicio | None = None
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)

@@ -35,7 +35,7 @@ export function DeseosPage() {
   const [modal, setModal] = useState<EstadoModal>(null);
   const [verHistorial, setVerHistorial] = useState(false);
   const { convertir } = useConfiguracion();
-  const estado = useDatos(() => Promise.all([deseosApi.listar(), metasApi.listar(), ingresosApi.listar()]), []);
+  const estado = useDatos(() => Promise.all([deseosApi.listar(), metasApi.listar(), ingresosApi.listar()]), [], "deseos");
 
   async function accion(promesa: Promise<unknown>) {
     try {

@@ -8,7 +8,7 @@ from collections.abc import Callable
 
 from sqlmodel import Session
 
-from app.models import ColorAcento, Configuracion, Moneda, PaginaInicio
+from app.models import ColorAcento, Configuracion, EstiloVisual, Moneda, PaginaInicio
 from app.schemas import ConfiguracionRead, ConfiguracionUpdate, WidgetDisposicion
 from app.services import divisas
 from app.services.comun import guardar
@@ -54,6 +54,7 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         nombre=configuracion.nombre,
         avatar=configuracion.avatar,
         color_acento=configuracion.color_acento or ColorAcento.ESMERALDA,
+        estilo_visual=configuracion.estilo_visual or EstiloVisual.FINTECH,
         pagina_inicio=configuracion.pagina_inicio or PaginaInicio.DASHBOARD,
         dia_inicio_mes=configuracion.dia_inicio_mes or 1,
         widgets=widgets,
@@ -111,8 +112,8 @@ def actualizar(session: Session, cambios: ConfiguracionUpdate) -> ConfiguracionR
             setattr(configuracion, campo, (enviados[campo] or "").strip() or None)
 
     for campo in (
-        "color_acento", "pagina_inicio", "dia_inicio_mes", "tutorial_visto", "bienvenida_cerrada", "mostrar_consejos",
-        "recordatorio_diario", "hora_recordatorio",
+        "color_acento", "estilo_visual", "pagina_inicio", "dia_inicio_mes", "tutorial_visto", "bienvenida_cerrada",
+        "mostrar_consejos", "recordatorio_diario", "hora_recordatorio",
     ):
         if enviados.get(campo) is not None:
             setattr(configuracion, campo, enviados[campo])

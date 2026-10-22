@@ -27,9 +27,9 @@ export function TransaccionesPage() {
 
   // Categorías y cuentas se cargan una vez; los resultados, con cada cambio de filtros.
   // JSON.stringify: una dependencia que solo cambia cuando cambia algún filtro.
-  const catalogos = useDatos(() => Promise.all([categoriasApi.listar(), cuentasApi.listar()]), []);
+  const catalogos = useDatos(() => Promise.all([categoriasApi.listar(), cuentasApi.listar()]), [], "transacciones-catalogos");
   const consulta = aConsulta(filtros);
-  const resultados = useDatos(() => transaccionesApi.buscar(consulta), [JSON.stringify(consulta)]);
+  const resultados = useDatos(() => transaccionesApi.buscar(consulta), [JSON.stringify(consulta)], "transacciones");
 
   function alGuardar() {
     setModal(null);
