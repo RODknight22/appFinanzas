@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(scripts/verificar.sh:*)",
+      "Bash(scripts/e2e.sh:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git worktree list:*)",
+      "Bash(git branch --list:*)",
+      "Bash(git merge-base:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)"
+    ]
+  }
+}
