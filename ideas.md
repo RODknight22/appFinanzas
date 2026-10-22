@@ -47,7 +47,9 @@ Ejemplo:
 
 - [ ] Me gustaria mejorar los widgets y su personalizacion (Tamaño y como muestr los datos, tambien agregar mas widgets)
 
-- [ ] Actualizar el paso a paso de cuado inicias la app para explicar las nuevas funciones tambien, lo quiero hacer rapido y entretenido para que metan los datos basicos 
+- [ ] Actualizar el paso a paso de cuado inicias la app para explicar las nuevas funciones tambien, lo quiero hacer rapido y entretenido para que metan los datos basicos
+
+- [ ] Mejorar la pestaña de personalizacion y no me gustaron los iconos que tienen los fondos ni la descripcion de la primera
 
 ## ✨ Funciones nuevas
 
