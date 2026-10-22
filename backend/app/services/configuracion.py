@@ -58,7 +58,21 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         dia_inicio_mes=configuracion.dia_inicio_mes or 1,
         widgets=widgets,
         foto_version=hashlib.sha256(configuracion.foto).hexdigest()[:12] if configuracion.foto else None,
+        tutorial_visto=bool(configuracion.tutorial_visto),
+        bienvenida_cerrada=bool(configuracion.bienvenida_cerrada),
+        mostrar_consejos=configuracion.mostrar_consejos is not False,
+        recordatorio_diario=bool(configuracion.recordatorio_diario),
+        hora_recordatorio=_hora_recordatorio(configuracion),
+        correo_recordatorios=configuracion.correo_recordatorios,
     )
+
+
+HORA_RECORDATORIO_POR_DEFECTO = 21
+
+
+def _hora_recordatorio(configuracion: Configuracion) -> int:
+    hora = configuracion.hora_recordatorio
+    return HORA_RECORDATORIO_POR_DEFECTO if hora is None else hora
 
 
 def obtener(session: Session) -> ConfiguracionRead:
@@ -91,12 +105,15 @@ def actualizar(session: Session, cambios: ConfiguracionUpdate) -> ConfiguracionR
     if "moneda" in enviados or "monedas_activas" in enviados:
         _actualizar_monedas(session, configuracion, cambios)
 
-    # Texto libre: un texto vacío equivale a "sin nombre" / "sin avatar".
-    for campo in ("nombre", "avatar"):
+    # Texto libre: un texto vacío equivale a "sin nombre", "sin avatar" o "sin correo".
+    for campo in ("nombre", "avatar", "correo_recordatorios"):
         if campo in enviados:
             setattr(configuracion, campo, (enviados[campo] or "").strip() or None)
 
-    for campo in ("color_acento", "pagina_inicio", "dia_inicio_mes"):
+    for campo in (
+        "color_acento", "pagina_inicio", "dia_inicio_mes", "tutorial_visto", "bienvenida_cerrada", "mostrar_consejos",
+        "recordatorio_diario", "hora_recordatorio",
+    ):
         if enviados.get(campo) is not None:
             setattr(configuracion, campo, enviados[campo])
 

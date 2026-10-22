@@ -41,6 +41,13 @@ const CONFIGURACION_INICIAL: Configuracion = {
   dia_inicio_mes: 1,
   widgets: null,
   foto_version: null,
+  // Hasta saber lo que dice el backend, nada de asistente ni bienvenida (evita un parpadeo).
+  tutorial_visto: true,
+  bienvenida_cerrada: true,
+  mostrar_consejos: true,
+  recordatorio_diario: false,
+  hora_recordatorio: 21,
+  correo_recordatorios: null,
 };
 
 /** Pone el color de acento en <html> (lo leen las variables CSS de index.css). */

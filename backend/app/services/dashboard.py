@@ -11,7 +11,7 @@ from decimal import Decimal
 from sqlalchemy import func
 from sqlmodel import Session, col, select
 
-from app.models import Categoria, Cuenta, Presupuesto, TipoMovimiento, Transaccion
+from app.models import Categoria, Cuenta, Moneda, Presupuesto, TipoMovimiento, Transaccion
 from app.schemas import (
     FlujoMensual,
     GastoDiario,
@@ -22,7 +22,7 @@ from app.schemas import (
     SaldoCuenta,
 )
 from app.services import configuracion, divisas, mes_financiero
-from app.services.saldos import a_decimal, movimientos_por_cuenta, movimientos_por_cuenta_y_mes
+from app.services.saldos import CENTIMOS, a_decimal, movimientos_por_cuenta, movimientos_por_cuenta_y_mes
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +80,8 @@ def _saldos_por_cuenta(session: Session) -> list[SaldoCuenta]:
                 moneda=moneda,
                 saldo=saldo,
                 saldo_principal=divisas.convertir(session, saldo, moneda, principal, hoy),
+                cuenta_padre_id=cuenta.cuenta_padre_id,
+                fijada=bool(cuenta.fijada),
             )
         )
     return saldos
@@ -178,19 +180,64 @@ def gastos_por_categoria(session: Session, mes_anio: str) -> list[GastoPorCatego
     return sorted(resultado, key=lambda g: g.total, reverse=True)
 
 
-def progreso_presupuestos(session: Session, mes_anio: str) -> list[ProgresoPresupuesto]:
-    """Cuánto se ha gastado de cada presupuesto del mes (para las barras de progreso)."""
-    gastado_por_categoria = _gastos_por_categoria_id(session, mes_anio)
+def _gastos_en_moneda(
+    session: Session, mes_anio: str, categoria_ids: set[int], moneda: Moneda
+) -> dict[int, Decimal]:
+    """Gasto del mes por categoría expresado en `moneda`.
+
+    Lo que se gastó en esa moneda cuenta tal cual (sin pasar por la principal ida y
+    vuelta, que movería céntimos); el resto se convierte con la tasa de su fecha.
+    """
+    inicio, fin = _rango_mes(session, mes_anio)
+    consulta = (
+        select(Transaccion.categoria_id, Transaccion.moneda, Transaccion.fecha, func.sum(Transaccion.monto))
+        .where(
+            Transaccion.tipo == TipoMovimiento.GASTO,
+            Transaccion.fecha >= inicio,
+            Transaccion.fecha < fin,
+            col(Transaccion.categoria_id).in_(categoria_ids),
+        )
+        .group_by(col(Transaccion.categoria_id), col(Transaccion.moneda), col(Transaccion.fecha))
+    )
+    totales: defaultdict[int, Decimal] = defaultdict(Decimal)
+    for categoria_id, moneda_gasto, fecha, suma in session.exec(consulta).all():
+        totales[categoria_id] += divisas.convertir_sin_redondeo(session, a_decimal(suma), moneda_gasto, moneda, fecha)
+    return {categoria_id: total.quantize(CENTIMOS) for categoria_id, total in totales.items()}
+
+
+def progreso_presupuestos(session: Session, mes_anio: str, hoy: date | None = None) -> list[ProgresoPresupuesto]:
+    """Cuánto se ha gastado de cada presupuesto del mes (para las barras de progreso).
+
+    Cada presupuesto se mide en su moneda; además se dan límite y gasto en la principal
+    para los totales. El límite se convierte con la tasa de hoy (o del último día del
+    mes, si ya pasó): un límite es una cantidad fija, no un gasto con fecha propia.
+    """
+    principal = configuracion.moneda_principal(session)
+    gastado_principal = _gastos_por_categoria_id(session, mes_anio)
     consulta = (
         select(Presupuesto, Categoria)
         .join(Categoria, col(Categoria.id) == col(Presupuesto.categoria_id))
         .where(Presupuesto.mes_anio == mes_anio)
         .order_by(col(Categoria.nombre))
     )
+    filas = session.exec(consulta).all()
+
+    # Una consulta por moneda extranjera con presupuesto, no una por presupuesto.
+    por_moneda: dict[Moneda, set[int]] = defaultdict(set)
+    for presupuesto, categoria in filas:
+        moneda = presupuesto.moneda or principal
+        if moneda != principal:
+            por_moneda[moneda].add(categoria.id)
+    if por_moneda:
+        divisas.asegurar_tasas_del_dia(session)
+    gastado_en = {moneda: _gastos_en_moneda(session, mes_anio, ids, moneda) for moneda, ids in por_moneda.items()}
+    fecha_tasa = min(hoy or date.today(), _rango_mes(session, mes_anio)[1] - timedelta(days=1))
 
     resultado: list[ProgresoPresupuesto] = []
-    for presupuesto, categoria in session.exec(consulta).all():
-        gastado = gastado_por_categoria.get(categoria.id, Decimal("0.00"))
+    for presupuesto, categoria in filas:
+        moneda = presupuesto.moneda or principal
+        en_principal = gastado_principal.get(categoria.id, Decimal("0.00"))
+        gastado = en_principal if moneda == principal else gastado_en[moneda].get(categoria.id, Decimal("0.00"))
         limite = a_decimal(presupuesto.monto_limite)
         resultado.append(
             ProgresoPresupuesto(
@@ -199,11 +246,14 @@ def progreso_presupuestos(session: Session, mes_anio: str) -> list[ProgresoPresu
                 nombre=categoria.nombre,
                 color=categoria.color,
                 mes_anio=mes_anio,
+                moneda=moneda,
                 monto_limite=limite,
                 gastado=gastado,
                 restante=limite - gastado,
                 porcentaje=_porcentaje(gastado, limite),
                 excedido=gastado > limite,
+                limite_principal=divisas.convertir(session, limite, moneda, principal, fecha_tasa),
+                gastado_principal=en_principal,
             )
         )
     return resultado

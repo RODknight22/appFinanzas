@@ -4,6 +4,7 @@ from sqlmodel import Session, col, select
 
 from app.models import Categoria, Presupuesto, TipoMovimiento
 from app.schemas import PresupuestoCreate, PresupuestoUpdate
+from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ConflictoError, ReglaDeNegocioError
 
@@ -43,7 +44,10 @@ def _validar(
 
 def crear(session: Session, datos: PresupuestoCreate) -> Presupuesto:
     _validar(session, datos.categoria_id, datos.mes_anio)
-    return guardar(session, Presupuesto.model_validate(datos))
+    presupuesto = Presupuesto.model_validate(datos)
+    presupuesto.moneda = presupuesto.moneda or configuracion.moneda_principal(session)
+    configuracion.comprobar_moneda_activa(session, presupuesto.moneda)
+    return guardar(session, presupuesto)
 
 
 def actualizar(session: Session, presupuesto_id: int, cambios: PresupuestoUpdate) -> Presupuesto:
@@ -55,6 +59,8 @@ def actualizar(session: Session, presupuesto_id: int, cambios: PresupuestoUpdate
         datos.get("mes_anio", presupuesto.mes_anio),
         excluir_id=presupuesto_id,
     )
+    if "moneda" in datos:
+        configuracion.comprobar_moneda_activa(session, datos["moneda"])
     presupuesto.sqlmodel_update(datos)
     return guardar(session, presupuesto)
 

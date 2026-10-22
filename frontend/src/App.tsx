@@ -2,6 +2,7 @@ import { lazy, type ComponentType } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
+import { SeccionCuentas } from "./components/cuentas/SeccionCuentas";
 import { PAGINAS_INICIO } from "./config";
 import { useConfiguracion } from "./hooks/useConfiguracion";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -19,6 +20,8 @@ const SuscripcionesPage = perezosa(() => import("./pages/SuscripcionesPage"), "S
 const IngresosPage = perezosa(() => import("./pages/IngresosPage"), "IngresosPage");
 const EfectivoPage = perezosa(() => import("./pages/EfectivoPage"), "EfectivoPage");
 const CuentasPage = perezosa(() => import("./pages/CuentasPage"), "CuentasPage");
+const DeseosPage = perezosa(() => import("./pages/DeseosPage"), "DeseosPage");
+const DeudasPage = perezosa(() => import("./pages/DeudasPage"), "DeudasPage");
 const MetasPage = perezosa(() => import("./pages/MetasPage"), "MetasPage");
 const CategoriasPage = perezosa(() => import("./pages/CategoriasPage"), "CategoriasPage");
 const AjustesPage = perezosa(() => import("./pages/AjustesPage"), "AjustesPage");
@@ -38,9 +41,15 @@ export default function App() {
         <Route path="presupuestos" element={<PresupuestosPage />} />
         <Route path="suscripciones" element={<SuscripcionesPage />} />
         <Route path="ingresos" element={<IngresosPage />} />
-        <Route path="efectivo" element={<EfectivoPage />} />
-        <Route path="cuentas" element={<CuentasPage />} />
+        <Route path="cuentas" element={<SeccionCuentas />}>
+          <Route index element={<CuentasPage />} />
+          <Route path="efectivo" element={<EfectivoPage />} />
+        </Route>
+        {/* Dirección antigua: Efectivo ahora es una pestaña de Cuentas */}
+        <Route path="efectivo" element={<Navigate to="/cuentas/efectivo" replace />} />
         <Route path="metas" element={<MetasPage />} />
+        <Route path="deudas" element={<DeudasPage />} />
+        <Route path="deseos" element={<DeseosPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
         <Route path="ajustes" element={<AjustesPage />} />
         {/* Cualquier otra URL vuelve a la página de inicio */}

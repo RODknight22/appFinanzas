@@ -49,3 +49,46 @@ def test_migracion_anade_columnas_y_renombra_tipos() -> None:
             "fecha_ultimo_rendimiento"} <= columnas
     with engine.connect() as conexion:
         assert conexion.execute(text("SELECT tipo FROM cuenta")).scalar() == "DEBITO"
+
+
+def test_primeros_pasos_por_defecto_y_desactivar_consejos(client: TestClient) -> None:
+    configuracion = client.get("/configuracion").json()
+    assert (configuracion["tutorial_visto"], configuracion["bienvenida_cerrada"]) == (False, False)
+    assert configuracion["mostrar_consejos"] is True
+
+    cambiada = client.patch("/configuracion", json={"tutorial_visto": True, "mostrar_consejos": False}).json()
+    assert cambiada["tutorial_visto"] is True
+    assert cambiada["mostrar_consejos"] is False
+
+
+def _bd_sin_columnas_de_primeros_pasos(con_cuentas: bool):
+    """Una BD de antes del tutorial: `configuracion` sin sus columnas nuevas."""
+    engine = create_engine("sqlite://")
+    SQLModel.metadata.create_all(engine)
+    with engine.begin() as conexion:
+        for columna in ("tutorial_visto", "bienvenida_cerrada", "mostrar_consejos"):
+            conexion.execute(text(f"ALTER TABLE configuracion DROP COLUMN {columna}"))
+        conexion.execute(text("INSERT INTO configuracion (id, moneda) VALUES (1, 'MXN')"))
+        if con_cuentas:
+            conexion.execute(text(
+                "INSERT INTO cuenta (id, nombre, tipo, moneda, balance_inicial) VALUES (1, 'BBVA', 'DEBITO', 'MXN', 0)"
+            ))
+    return engine
+
+
+def test_quien_ya_usaba_la_app_no_ve_el_tutorial() -> None:
+    engine = _bd_sin_columnas_de_primeros_pasos(con_cuentas=True)
+    with engine.begin() as conexion:
+        aplicar_migraciones(conexion)
+        aplicar_migraciones(conexion)  # repetirla no cambia nada
+    with engine.connect() as conexion:
+        fila = conexion.execute(text("SELECT tutorial_visto, bienvenida_cerrada FROM configuracion")).one()
+    assert tuple(fila) == (1, 1)
+
+
+def test_una_bd_sin_cuentas_si_ve_el_tutorial() -> None:
+    engine = _bd_sin_columnas_de_primeros_pasos(con_cuentas=False)
+    with engine.begin() as conexion:
+        aplicar_migraciones(conexion)
+    with engine.connect() as conexion:
+        assert conexion.execute(text("SELECT tutorial_visto FROM configuracion")).scalar() is None

@@ -7,10 +7,13 @@ from typing import Any
 from sqlmodel import Session, col, select
 
 from app.datos_iniciales import CATEGORIA_RENDIMIENTOS
-from app.models import Cuenta, CuentaBase, IngresoRecurrente, Meta, TipoCuenta, TipoMovimiento, Transaccion, Transferencia
+from app.models import (
+    AbonoDeuda, Cuenta, CuentaBase, Deuda, IngresoRecurrente, Meta, TipoCuenta, TipoMovimiento, Transaccion,
+    Transferencia,
+)
 from app.schemas import CuentaCreate, CuentaUpdate
 from app.services import categorias, configuracion
-from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404
+from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ConflictoError, ReglaDeNegocioError
 from app.services.saldos import CENTIMOS, saldo_actual
 from app.services.transacciones import completar_montos
@@ -18,9 +21,18 @@ from app.services.transacciones import completar_montos
 # Campos que solo tienen sentido en ciertos tipos de cuenta.
 _CAMPOS_CREDITO = ("dia_corte", "dia_pago", "limite_credito")
 _CAMPOS_RENDIMIENTOS = ("tasa_rendimiento_anual",)
+# Campos opcionales que un PATCH puede vaciar con null.
+_CAMPOS_ANULABLES = frozenset(
+    _CAMPOS_CREDITO + _CAMPOS_RENDIMIENTOS + ("cuenta_padre_id", "numero_cuenta", "fijada")
+)
+# Niveles de subcuentas permitidos (1 = madre → subcuentas). El modelo admite más:
+# para permitir subcuentas de subcuentas bastaría con subir este número.
+MAX_NIVELES_SUBCUENTAS = 1
 
 
 def listar(session: Session) -> list[Cuenta]:
+    # Por nombre: las fijadas solo se destacan en la página de Cuentas y en el panel,
+    # no en los desplegables de los formularios (ni cambian la cuenta por defecto).
     return list(session.exec(select(Cuenta).order_by(col(Cuenta.nombre))).all())
 
 
@@ -39,6 +51,31 @@ def _tiene_transferencias(session: Session, cuenta_id: int) -> bool:
     return existe(session, Transferencia.cuenta_origen_id, cuenta_id) or existe(
         session, Transferencia.cuenta_destino_id, cuenta_id
     )
+
+
+def _niveles_por_debajo(session: Session, cuenta_id: int) -> int:
+    """Cuántos niveles de subcuentas cuelgan de la cuenta (0 = ninguna)."""
+    hijas = session.exec(select(Cuenta.id).where(Cuenta.cuenta_padre_id == cuenta_id)).all()
+    return max((1 + _niveles_por_debajo(session, hija) for hija in hijas if hija is not None), default=0)
+
+
+def _validar_padre(session: Session, padre_id: int | None, cuenta_id: int | None = None) -> None:
+    """La madre debe existir y no ser la propia cuenta ni una de sus subcuentas
+    (un ciclo), y el árbol no puede pasar de MAX_NIVELES_SUBCUENTAS."""
+    if padre_id is None:
+        return
+    ancestro = obtener_referencia(session, Cuenta, padre_id, "la cuenta madre")
+    niveles_encima = 0  # de la madre hacia arriba
+    while True:
+        if ancestro.id == cuenta_id:
+            raise ReglaDeNegocioError("Una cuenta no puede ser subcuenta de sí misma ni de sus subcuentas")
+        if ancestro.cuenta_padre_id is None:
+            break
+        ancestro = obtener(session, ancestro.cuenta_padre_id)
+        niveles_encima += 1
+    debajo = _niveles_por_debajo(session, cuenta_id) if cuenta_id is not None else 0
+    if niveles_encima + 1 + debajo > MAX_NIVELES_SUBCUENTAS:
+        raise ReglaDeNegocioError("Solo se admite un nivel de subcuentas: una subcuenta no puede tener subcuentas")
 
 
 def _normalizar_por_tipo(datos: dict[str, Any]) -> dict[str, Any]:
@@ -64,6 +101,7 @@ def _normalizar_por_tipo(datos: dict[str, Any]) -> dict[str, Any]:
 
 def crear(session: Session, datos: CuentaCreate) -> Cuenta:
     _comprobar_nombre_libre(session, datos.nombre)
+    _validar_padre(session, datos.cuenta_padre_id)
     cuenta = Cuenta(**_normalizar_por_tipo(datos.model_dump()))
     cuenta.moneda = cuenta.moneda or configuracion.moneda_principal(session)
     configuracion.comprobar_moneda_activa(session, cuenta.moneda)
@@ -75,9 +113,11 @@ def crear(session: Session, datos: CuentaCreate) -> Cuenta:
 
 def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuenta:
     cuenta = obtener(session, cuenta_id)
-    enviados = cambios_parciales(cambios, anulables=frozenset(_CAMPOS_CREDITO + _CAMPOS_RENDIMIENTOS))
+    enviados = cambios_parciales(cambios, anulables=_CAMPOS_ANULABLES)
     if "nombre" in enviados:
         _comprobar_nombre_libre(session, enviados["nombre"], excluir_id=cuenta_id)
+    if "cuenta_padre_id" in enviados:
+        _validar_padre(session, enviados["cuenta_padre_id"], cuenta_id)
     if enviados.get("moneda", cuenta.moneda) != cuenta.moneda:
         # Sus transacciones ya se convirtieron a la moneda antigua: cambiarla
         # dejaría el saldo mezclando dos divisas.
@@ -97,6 +137,8 @@ def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuent
 
 def eliminar(session: Session, cuenta_id: int) -> None:
     cuenta = obtener(session, cuenta_id)
+    if existe(session, Cuenta.cuenta_padre_id, cuenta_id):
+        raise ConflictoError("No se puede eliminar una cuenta que tiene subcuentas")
     # Borrarla dejaría transacciones huérfanas y descuadraría el balance.
     if existe(session, Transaccion.cuenta_id, cuenta_id):
         raise ConflictoError("No se puede eliminar una cuenta que tiene transacciones")
@@ -106,6 +148,8 @@ def eliminar(session: Session, cuenta_id: int) -> None:
         raise ConflictoError("No se puede eliminar una cuenta vinculada a una meta de ahorro")
     if existe(session, IngresoRecurrente.cuenta_id, cuenta_id):
         raise ConflictoError("No se puede eliminar una cuenta que usa un ingreso recurrente")
+    if existe(session, Deuda.cuenta_id, cuenta_id) or existe(session, AbonoDeuda.cuenta_id, cuenta_id):
+        raise ConflictoError("No se puede eliminar una cuenta con préstamos o abonos de deudas")
     session.delete(cuenta)
     session.commit()
 

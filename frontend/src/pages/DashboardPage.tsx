@@ -4,6 +4,7 @@ import { useState } from "react";
 import { dashboardApi } from "../api/dashboard";
 import { categoriasApi, cuentasApi, ingresosApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
 import { avisarError } from "../components/ajustes/avisarError";
+import { TarjetaBienvenida } from "../components/bienvenida/TarjetaBienvenida";
 import { PanelWidgets } from "../components/dashboard/PanelWidgets";
 import { EsqueletoPanel } from "../components/dashboard/EsqueletoPanel";
 import { CelebracionHito } from "../components/metas/CelebracionHito";
@@ -82,6 +83,7 @@ export function DashboardPage() {
     <>
       <EncabezadoPagina
         titulo="Dashboard"
+        consejo="Con «Personalizar» mueves, cambias de tamaño u ocultas los widgets. Las flechas del mes cambian todo el panel a la vez."
         descripcion={editando ? "Arrastra los widgets por el asa, cambia su tamaño u ocúltalos" : "Resumen de tus finanzas"}
         acciones={acciones}
       />
@@ -105,10 +107,17 @@ export function DashboardPage() {
             mes,
           };
           return (
-            // Al cambiar de mes se ven los datos anteriores atenuados hasta que llegan los nuevos.
-            <div className={`transition-opacity ${estado.cargando ? "opacity-60" : ""}`}>
-              <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />
-            </div>
+            <>
+              {!configuracion.bienvenida_cerrada && (
+                <TarjetaBienvenida
+                  progreso={{ cuentas: cuentas.length, transacciones: ultimas.length, presupuestos: presupuestos.length, metas: metas.length }}
+                />
+              )}
+              {/* Al cambiar de mes se ven los datos anteriores atenuados hasta que llegan los nuevos. */}
+              <div className={`transition-opacity ${estado.cargando ? "opacity-60" : ""}`}>
+                <PanelWidgets disposicion={disposicion} datos={datos} editando={editando} onCambiar={setBorrador} />
+              </div>
+            </>
           );
         }}
       </Contenido>

@@ -10,6 +10,7 @@ import { formatearDinero, formatearFecha, hoyISO } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
 import { Contenido } from "../ui/Estados";
+import { SelectorFecha } from "../ui/SelectorFecha";
 
 interface PanelAportacionesProps {
   meta: Meta;
@@ -74,9 +75,7 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
           <Campo etiqueta={`Importe (${meta.moneda})`}>
             <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} required autoFocus />
           </Campo>
-          <Campo etiqueta="Fecha">
-            <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
-          </Campo>
+          <SelectorFecha etiqueta="Fecha" valor={fecha} onCambiar={setFecha} />
         </div>
         <Campo etiqueta="Notas (opcional)">
           <input className={CLASE_ENTRADA} value={notas} onChange={(e) => setNotas(e.target.value)} maxLength={500} placeholder="Ej.: lo que sobró de la quincena" />

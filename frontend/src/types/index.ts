@@ -15,7 +15,7 @@ export type FechaISO = string;
 export type TipoMovimiento = "ingreso" | "gasto";
 export type TipoCuenta = "efectivo" | "debito" | "credito" | "rendimientos" | "ahorro" | "inversion";
 export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL";
-export type Periodicidad = "semanal" | "quincenal" | "mensual" | "anual";
+export type Periodicidad = "diaria" | "semanal" | "quincenal" | "mensual" | "anual";
 
 // --- Entidades -------------------------------------------------------------
 export interface Cuenta {
@@ -30,6 +30,12 @@ export interface Cuenta {
   limite_credito: Dinero | null;
   // Solo cuentas con rendimientos: tasa anual en % (null en el resto)
   tasa_rendimiento_anual: string | null;
+  /** Subcuenta de otra (como los "bolsillos" por divisa de Revolut); null = cuenta principal. */
+  cuenta_padre_id: number | null;
+  /** IBAN, CLABE o número de cuenta: solo informativo. */
+  numero_cuenta: string | null;
+  /** Sale primero en la página de Cuentas y en el panel. */
+  fijada: boolean | null;
   /** La gestiona el backend: hasta qué día se registraron los rendimientos. */
   readonly fecha_ultimo_rendimiento: FechaISO | null;
 }
@@ -146,6 +152,7 @@ export interface Presupuesto {
   categoria_id: number;
   monto_limite: Dinero;
   mes_anio: MesAnio;
+  moneda: Moneda;
 }
 
 export interface Suscripcion {
@@ -178,7 +185,99 @@ export interface IngresoRecurrente {
   fecha_proximo_cobro: FechaISO;
   cuenta_id: number;
   categoria_id: number;
+  /** Cada N días/semanas/meses/años; null = 1. */
+  intervalo: number | null;
+  /** Días de la quincenal (31 = el último); null = 15 y último. */
+  dia_quincena_1: number | null;
+  dia_quincena_2: number | null;
+  /** Día fijo de la mensual (31 = el último); null = el de la fecha. */
+  dia_del_mes: number | null;
+  /** Sábado o domingo → el viernes anterior. */
+  adelantar_a_habil: boolean | null;
 }
+
+// --- Notificaciones --------------------------------------------------------
+export type TipoNotificacion = "pago" | "cobro" | "tarjeta" | "deuda" | "presupuesto" | "meta" | "deseo" | "recordatorio";
+
+/** Un aviso calculado al vuelo por el backend; `clave` es estable mientras siga siendo el mismo. */
+export interface Notificacion {
+  clave: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  mensaje: string;
+  fecha: FechaISO;
+  /** Ruta de la app a la que lleva. */
+  enlace: string;
+  monto: Dinero | null;
+  moneda: Moneda | null;
+  urgente: boolean;
+  leida: boolean;
+}
+
+// --- Deudas ----------------------------------------------------------------
+/** me_deben: prestaste; debo: te prestaron. */
+export type SentidoDeuda = "me_deben" | "debo";
+
+export interface AbonoDeuda {
+  id: number;
+  deuda_id: number;
+  monto: Dinero;
+  fecha: FechaISO;
+  /** Cuenta donde entra o de donde sale; null = sin mover dinero. */
+  cuenta_id: number | null;
+  notas: string | null;
+}
+
+export interface Deuda {
+  id: number;
+  persona: string;
+  sentido: SentidoDeuda;
+  monto: Dinero;
+  moneda: Moneda;
+  fecha: FechaISO;
+  fecha_vencimiento: FechaISO | null;
+  /** Con cuenta, el préstamo mueve su saldo; sin ella es solo un apunte. */
+  cuenta_id: number | null;
+  notas: string | null;
+  readonly fecha_saldada: FechaISO | null;
+  readonly abonado: Dinero;
+  readonly pendiente: Dinero;
+  readonly vencida: boolean;
+  readonly abonos: AbonoDeuda[];
+}
+
+export type DatosDeuda = Pick<Deuda, "persona" | "sentido" | "monto" | "moneda" | "fecha" | "fecha_vencimiento" | "cuenta_id" | "notas">;
+export type DatosAbono = Omit<AbonoDeuda, "id" | "deuda_id">;
+
+// --- Lista de deseos ---------------------------------------------------------
+export type PrioridadDeseo = "alta" | "media" | "baja";
+/** en_reflexion: en la máquina del tiempo hasta `reflexion_hasta`. */
+export type EstadoDeseo = "en_reflexion" | "deseado" | "comprado" | "descartado";
+export type DecisionDeseo = "comprar" | "guardar" | "descartar";
+
+export interface Deseo {
+  id: number;
+  nombre: string;
+  precio: Dinero;
+  moneda: Moneda;
+  /** Solo http(s). */
+  enlace: string | null;
+  prioridad: PrioridadDeseo;
+  notas: string | null;
+  meta_id: number | null;
+  /** Carta al yo del futuro: por qué lo quieres. */
+  carta: string | null;
+  readonly estado: EstadoDeseo;
+  /** Fecha y hora locales "sin zona" (las interpreta el navegador como locales). */
+  readonly creado: string;
+  readonly reflexion_hasta: string | null;
+  readonly fecha_decision: FechaISO | null;
+  readonly listo_para_decidir: boolean;
+  /** "amazon.es", "shein.com"… */
+  readonly tienda: string | null;
+}
+
+export type DatosDeseo = Pick<Deseo, "nombre" | "precio" | "moneda" | "enlace" | "prioridad" | "notas" | "meta_id" | "carta">;
 
 /** Lo que llegó de verdad: lo que se omita se toma del ingreso recurrente. */
 export interface DatosCobro {
@@ -203,6 +302,8 @@ export interface SaldoCuenta {
   saldo: Dinero;
   /** Convertido a la moneda principal con la tasa de hoy. */
   saldo_principal: Dinero;
+  cuenta_padre_id: number | null;
+  fijada: boolean;
 }
 
 export interface ResumenMes {
@@ -247,11 +348,16 @@ export interface ProgresoPresupuesto {
   nombre: string;
   color: string;
   mes_anio: MesAnio;
+  /** Límite, gastado y restante van en esta moneda. */
+  moneda: Moneda;
   monto_limite: Dinero;
   gastado: Dinero;
   restante: Dinero;
   porcentaje: number;
   excedido: boolean;
+  /** En la moneda principal, para sumar presupuestos de distintas monedas. */
+  limite_principal: Dinero;
+  gastado_principal: Dinero;
 }
 
 // --- Configuración ---------------------------------------------------------
@@ -280,6 +386,16 @@ export interface Configuracion {
   widgets: WidgetDisposicion[] | null;
   /** Cambia cada vez que se sube otra foto; null = sin foto. */
   foto_version: string | null;
+  /** Primeros pasos: asistente inicial y tarjeta de bienvenida del panel. */
+  tutorial_visto: boolean;
+  bienvenida_cerrada: boolean;
+  /** Bombillas con consejos junto a títulos y botones. */
+  mostrar_consejos: boolean;
+  /** Aviso diario "¿anotaste tus gastos?" a partir de `hora_recordatorio` (0-23). */
+  recordatorio_diario: boolean;
+  hora_recordatorio: number;
+  /** Para enviar los recordatorios por correo en el futuro (hoy solo se guarda). */
+  correo_recordatorios: string | null;
 }
 
 export interface Tasa {

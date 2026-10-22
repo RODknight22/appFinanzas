@@ -89,3 +89,60 @@ def test_rendimientos_el_mismo_dia_de_creacion_devuelve_400(
 def test_cuenta_normal_no_genera_rendimientos(client: TestClient, cuenta: dict) -> None:
     respuesta = client.post(f"/cuentas/{cuenta['id']}/registrar-rendimientos")
     assert respuesta.status_code == 400
+
+
+# --- Subcuentas (como Revolut) y cuentas fijadas -------------------------------
+def _cuenta(client: TestClient, nombre: str, **extra) -> dict:
+    respuesta = client.post("/cuentas", json={"nombre": nombre, "tipo": "debito", **extra})
+    assert respuesta.status_code == 201, respuesta.json()
+    return respuesta.json()
+
+
+@pytest.mark.usefixtures("tasas")
+def test_subcuentas_en_varias_divisas(client: TestClient) -> None:
+    revolut = _cuenta(client, "Revolut")
+    eur = _cuenta(client, "Revolut EUR", moneda="EUR", cuenta_padre_id=revolut["id"],
+                  numero_cuenta="LT12 3456 7890", balance_inicial="100")
+
+    assert eur["cuenta_padre_id"] == revolut["id"]
+    assert eur["numero_cuenta"] == "LT12 3456 7890"
+    # Cada una con su saldo: el resumen lleva la madre para poder agruparlas.
+    saldos = {c["nombre"]: c for c in client.get("/dashboard/resumen").json()["cuentas"]}
+    assert saldos["Revolut EUR"]["saldo"] == "100.00"
+    assert saldos["Revolut EUR"]["cuenta_padre_id"] == revolut["id"]
+    assert saldos["Revolut"]["saldo"] == "0.00"
+
+
+def test_solo_un_nivel_de_subcuentas(client: TestClient) -> None:
+    madre = _cuenta(client, "Revolut")
+    hija = _cuenta(client, "Revolut EUR", cuenta_padre_id=madre["id"])
+
+    # Ni subcuenta de una subcuenta...
+    assert client.post("/cuentas", json={"nombre": "Nieta", "tipo": "debito", "cuenta_padre_id": hija["id"]}).status_code == 400
+    # ...ni una madre puede pasar a ser subcuenta de otra.
+    otra = _cuenta(client, "Wise")
+    assert client.patch(f"/cuentas/{madre['id']}", json={"cuenta_padre_id": otra["id"]}).status_code == 400
+    # Ni de sí misma.
+    assert client.patch(f"/cuentas/{otra['id']}", json={"cuenta_padre_id": otra["id"]}).status_code == 400
+    # Ni de una cuenta que no existe.
+    assert client.patch(f"/cuentas/{otra['id']}", json={"cuenta_padre_id": 999}).status_code == 400
+
+
+def test_sacar_una_subcuenta_y_borrar_la_madre(client: TestClient) -> None:
+    madre = _cuenta(client, "Revolut")
+    hija = _cuenta(client, "Revolut EUR", cuenta_padre_id=madre["id"])
+
+    assert client.delete(f"/cuentas/{madre['id']}").status_code == 409
+
+    respuesta = client.patch(f"/cuentas/{hija['id']}", json={"cuenta_padre_id": None})
+    assert respuesta.json()["cuenta_padre_id"] is None
+    assert client.delete(f"/cuentas/{madre['id']}").status_code == 204
+
+
+def test_fijar_una_cuenta(client: TestClient) -> None:
+    _cuenta(client, "Ahorro")
+    bbva = _cuenta(client, "BBVA")
+    assert client.patch(f"/cuentas/{bbva['id']}", json={"fijada": True}).json()["fijada"] is True
+
+    saldos = {c["nombre"]: c["fijada"] for c in client.get("/dashboard/resumen").json()["cuentas"]}
+    assert saldos == {"Ahorro": False, "BBVA": True}

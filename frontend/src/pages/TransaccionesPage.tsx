@@ -7,6 +7,7 @@ import { ImportarExtracto } from "../components/importacion/ImportarExtracto";
 import { BarraFiltros } from "../components/transacciones/BarraFiltros";
 import { FilaTransaccion } from "../components/transacciones/FilaTransaccion";
 import { Boton } from "../components/ui/Boton";
+import { Consejo } from "../components/ui/Consejo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Cargando, Contenido, MensajeError, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
@@ -39,10 +40,12 @@ export function TransaccionesPage() {
     <>
       <EncabezadoPagina
         titulo="Transacciones"
+        consejo="Busca sin preocuparte por las tildes. Los filtros quedan en la dirección de la página: guárdala en favoritos para volver a esa vista. Con «Importar» cargas el extracto CSV o Excel de tu banco."
         descripcion="Tus ingresos y gastos registrados"
         acciones={
           <>
             <Boton variante="secundario" onClick={() => setModal("importar")}><Upload size={16} /> Importar</Boton>
+            <Consejo alinear="fin" texto="Descarga los movimientos desde la web de tu banco (CSV o Excel) e impórtalos: verás una vista previa, los duplicados se marcan solos y nada se guarda hasta que confirmes." />
             <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva</Boton>
           </>
         }

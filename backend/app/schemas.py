@@ -6,7 +6,8 @@ Separarlos de las tablas evita, por ejemplo, que un cliente envíe su propio `id
 - `XUpdate`: cuerpo de un PATCH (todo opcional: solo se cambia lo que se envía).
 """
 
-from datetime import date
+import re
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -16,17 +17,24 @@ from sqlmodel import Field, SQLModel
 from app.models import (
     DECIMALES,
     MAX_DIGITOS,
+    MAX_INTERVALO,
     MetaBase,
     AportacionMetaBase,
     CategoriaBase,
     ColorAcento,
+    AbonoDeudaBase,
     CuentaBase,
+    DeudaBase,
+    DeseoBase,
+    EstadoDeseo,
     IngresoRecurrenteBase,
     Moneda,
     OrigenTasa,
     PaginaInicio,
     Periodicidad,
     PresupuestoBase,
+    PrioridadDeseo,
+    SentidoDeuda,
     SuscripcionBase,
     TamanoWidget,
     TipoCuenta,
@@ -34,6 +42,7 @@ from app.models import (
     TransaccionBase,
     TransferenciaBase,
     validar_color,
+    validar_enlace,
     validar_mes_anio,
 )
 
@@ -63,6 +72,9 @@ class CuentaUpdate(SQLModel):
     tasa_rendimiento_anual: Decimal | None = Field(
         default=None, gt=0, le=100, max_digits=5, decimal_places=2
     )
+    cuenta_padre_id: int | None = None
+    numero_cuenta: str | None = Field(default=None, max_length=50)
+    fijada: bool | None = None
 
 
 # --- Categorías ------------------------------------------------------------
@@ -242,6 +254,7 @@ class PresupuestoUpdate(SQLModel):
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
     mes_anio: str | None = None
+    moneda: Moneda | None = None
 
     @field_validator("mes_anio")
     @classmethod
@@ -301,6 +314,120 @@ class IngresoRecurrenteUpdate(SQLModel):
     fecha_proximo_cobro: date | None = None
     cuenta_id: int | None = None
     categoria_id: int | None = None
+    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)
+    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
+    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
+    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
+    adelantar_a_habil: bool | None = None
+
+
+# --- Deudas ----------------------------------------------------------------
+class DeudaCreate(DeudaBase):
+    pass
+
+
+class DeudaUpdate(SQLModel):
+    persona: str | None = Field(default=None, min_length=1, max_length=100)
+    sentido: SentidoDeuda | None = None
+    monto: Decimal | None = Field(default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    moneda: Moneda | None = None
+    fecha: date | None = None
+    fecha_vencimiento: date | None = None
+    cuenta_id: int | None = None
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class AbonoDeudaCreate(AbonoDeudaBase):
+    pass
+
+
+class AbonoDeudaRead(AbonoDeudaBase):
+    id: int
+    deuda_id: int
+
+
+class DeudaRead(DeudaBase):
+    id: int
+    moneda: Moneda
+    fecha_saldada: date | None
+    abonado: Decimal
+    pendiente: Decimal
+    vencida: bool  # pasó la fecha de vencimiento y aún queda algo
+    abonos: list[AbonoDeudaRead]
+
+
+# --- Lista de deseos ---------------------------------------------------------
+# Plazos de la máquina del tiempo: 1 día (24 h) hasta 3 meses.
+MAX_DIAS_REFLEXION = 90
+
+
+class DeseoCreate(DeseoBase):
+    # Con días, el deseo entra en la máquina del tiempo y no se puede comprar hasta que pasen.
+    dias_reflexion: int | None = Field(default=None, ge=1, le=MAX_DIAS_REFLEXION)
+
+
+class DeseoUpdate(SQLModel):
+    nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    precio: Decimal | None = Field(default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    moneda: Moneda | None = None
+    enlace: str | None = Field(default=None, max_length=500)
+    prioridad: PrioridadDeseo | None = None
+    notas: str | None = Field(default=None, max_length=500)
+    meta_id: int | None = None
+    carta: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("enlace")
+    @classmethod
+    def comprobar_enlace(cls, valor: str | None) -> str | None:
+        return validar_enlace(valor)
+
+
+class DeseoRead(DeseoBase):
+    id: int
+    moneda: Moneda
+    estado: EstadoDeseo
+    creado: datetime
+    reflexion_hasta: datetime | None
+    fecha_decision: date | None
+    # En reflexión y con el plazo cumplido: toca decidir.
+    listo_para_decidir: bool
+    # "amazon.es", "shein.com"… sacado del enlace.
+    tienda: str | None
+
+
+class DecisionDeseo(SQLModel):
+    """Qué hacer con un deseo: comprarlo, dejarlo en la lista o descartarlo."""
+
+    decision: Literal["comprar", "guardar", "descartar"]
+
+
+class ReflexionDeseo(SQLModel):
+    dias: int = Field(ge=1, le=MAX_DIAS_REFLEXION)
+
+
+# --- Notificaciones --------------------------------------------------------
+TipoNotificacion = Literal["pago", "cobro", "tarjeta", "deuda", "presupuesto", "meta", "deseo", "recordatorio"]
+
+
+class Notificacion(SQLModel):
+    """Un aviso calculado al vuelo. `clave` es estable mientras el aviso sea el mismo."""
+
+    clave: str
+    tipo: TipoNotificacion
+    titulo: str
+    mensaje: str
+    fecha: date
+    # Ruta de la app a la que lleva (p. ej. "/suscripciones").
+    enlace: str
+    # Importe del aviso (si lo hay): el frontend lo formatea con su moneda.
+    monto: Decimal | None = None
+    moneda: Moneda | None = None
+    urgente: bool = False
+    leida: bool = False
+
+
+class MarcarLeidas(SQLModel):
+    claves: list[str] = Field(max_length=200)
 
 
 class CobroIngresoCreate(SQLModel):
@@ -329,6 +456,8 @@ class SaldoCuenta(SQLModel):
     moneda: Moneda
     saldo: Decimal  # en la moneda de la cuenta
     saldo_principal: Decimal  # convertido a la moneda principal con la tasa de hoy
+    cuenta_padre_id: int | None = None
+    fijada: bool = False
 
 
 class ResumenMes(SQLModel):
@@ -374,11 +503,16 @@ class ProgresoPresupuesto(SQLModel):
     nombre: str
     color: str
     mes_anio: str
+    # Límite, gastado y restante van en la moneda del presupuesto.
+    moneda: Moneda
     monto_limite: Decimal
     gastado: Decimal
     restante: Decimal
     porcentaje: float
     excedido: bool
+    # En la moneda principal, para poder sumar presupuestos de distintas monedas.
+    limite_principal: Decimal
+    gastado_principal: Decimal
 
 
 # --- Configuración y divisas -----------------------------------------------
@@ -402,6 +536,16 @@ class ConfiguracionRead(SQLModel):
     widgets: list[WidgetDisposicion] | None
     # Huella de la foto (cambia al subir otra): sirve para que el navegador no use una copia vieja.
     foto_version: str | None
+    tutorial_visto: bool
+    bienvenida_cerrada: bool
+    mostrar_consejos: bool
+    recordatorio_diario: bool
+    hora_recordatorio: int
+    correo_recordatorios: str | None
+
+
+# Comprobación básica (algo@dominio.tld); vacío = sin correo.
+_PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class ConfiguracionUpdate(SQLModel):
@@ -415,6 +559,20 @@ class ConfiguracionUpdate(SQLModel):
     pagina_inicio: PaginaInicio | None = None
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)
+    tutorial_visto: bool | None = None
+    bienvenida_cerrada: bool | None = None
+    mostrar_consejos: bool | None = None
+    recordatorio_diario: bool | None = None
+    hora_recordatorio: int | None = Field(default=None, ge=0, le=23)
+    # Un texto vacío borra el correo.
+    correo_recordatorios: str | None = Field(default=None, max_length=254)
+
+    @field_validator("correo_recordatorios")
+    @classmethod
+    def comprobar_correo(cls, valor: str | None) -> str | None:
+        if valor and not _PATRON_CORREO.match(valor.strip()):
+            raise ValueError("El correo no parece válido (algo@dominio.com)")
+        return valor
 
 
 class FotoPerfil(SQLModel):

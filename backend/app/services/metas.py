@@ -7,7 +7,7 @@ from decimal import Decimal
 from sqlalchemy import func
 from sqlmodel import Session, col, select
 
-from app.models import AportacionMeta, Cuenta, Meta
+from app.models import AportacionMeta, Cuenta, Deseo, Meta
 from app.schemas import AportacionMetaCreate, MetaCreate, MetaRead, MetaUpdate
 from app.services import configuracion, divisas
 from app.services.comun import cambios_parciales, existe, obtener_o_404, obtener_referencia
@@ -148,6 +148,10 @@ def eliminar(session: Session, meta_id: int) -> None:
     meta = _obtener_tabla(session, meta_id)
     for aportacion in session.exec(select(AportacionMeta).where(AportacionMeta.meta_id == meta_id)).all():
         session.delete(aportacion)
+    # Los deseos vinculados siguen en la lista, ya sin meta.
+    for deseo in session.exec(select(Deseo).where(Deseo.meta_id == meta_id)).all():
+        deseo.meta_id = None
+        session.add(deseo)
     session.delete(meta)
     session.commit()
 

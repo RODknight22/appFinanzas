@@ -3,6 +3,7 @@ import { SeccionContrasena } from "../components/ajustes/SeccionContrasena";
 import { SeccionMonedas } from "../components/ajustes/SeccionMonedas";
 import { SeccionPerfil } from "../components/ajustes/SeccionPerfil";
 import { SeccionPreferencias } from "../components/ajustes/SeccionPreferencias";
+import { SeccionRecordatorios } from "../components/ajustes/SeccionRecordatorios";
 import { SeccionTasas } from "../components/ajustes/SeccionTasas";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 
@@ -10,12 +11,13 @@ import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 export function AjustesPage() {
   return (
     <>
-      <EncabezadoPagina titulo="Ajustes" descripcion="Perfil, apariencia, preferencias, monedas y seguridad" />
+      <EncabezadoPagina titulo="Ajustes" descripcion="Perfil, apariencia, preferencias, recordatorios, monedas y seguridad" />
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <SeccionPerfil />
         <div className="space-y-6">
           <SeccionApariencia />
           <SeccionPreferencias />
+          <SeccionRecordatorios />
         </div>
         <SeccionMonedas />
         <SeccionTasas />

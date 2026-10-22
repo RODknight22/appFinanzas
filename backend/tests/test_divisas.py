@@ -304,3 +304,58 @@ def test_recalcular_montos_en_lote(
 
     montos = sorted(t["monto_principal"] for t in client.get("/transacciones").json())
     assert montos == ["100.00", "100.00"]
+
+
+# --- Presupuestos en otra moneda ---------------------------------------------
+def _presupuesto(client: TestClient, categoria: dict, limite: str, moneda: str | None = None) -> dict:
+    datos = {"categoria_id": categoria["id"], "monto_limite": limite, "mes_anio": "2026-10"}
+    if moneda:
+        datos["moneda"] = moneda
+    respuesta = client.post("/presupuestos", json=datos)
+    assert respuesta.status_code == 201, respuesta.json()
+    return respuesta.json()
+
+
+def test_presupuesto_sin_moneda_usa_la_principal(client: TestClient, categoria_gasto: dict) -> None:
+    assert _presupuesto(client, categoria_gasto, "500")["moneda"] == "MXN"
+
+
+@pytest.mark.usefixtures("tasas")
+def test_presupuesto_en_euros_mide_el_gasto_en_euros(
+    client: TestClient, cuenta_mxn: dict, categoria_gasto: dict
+) -> None:
+    _presupuesto(client, categoria_gasto, "300", moneda="EUR")
+    _gasto(client, cuenta_mxn, categoria_gasto, "100.01", moneda="EUR")  # exacto, sin ida y vuelta
+    _gasto(client, cuenta_mxn, categoria_gasto, "2000")  # 2000 MXN = 100 EUR
+
+    progreso = client.get("/dashboard/presupuestos", params={"mes_anio": "2026-10"}).json()[0]
+
+    assert progreso["moneda"] == "EUR"
+    assert progreso["gastado"] == "200.01"
+    assert progreso["restante"] == "99.99"
+    assert progreso["porcentaje"] == 66.7
+    # En la principal, para los totales: 300 EUR = 6000 MXN.
+    assert progreso["limite_principal"] == "6000.00"
+    assert progreso["gastado_principal"] == "4000.20"
+
+
+@pytest.mark.usefixtures("tasas")
+def test_presupuesto_en_moneda_principal_no_convierte(
+    client: TestClient, cuenta_mxn: dict, categoria_gasto: dict
+) -> None:
+    _presupuesto(client, categoria_gasto, "500")
+    _gasto(client, cuenta_mxn, categoria_gasto, "10", moneda="EUR")  # 200 MXN
+
+    progreso = client.get("/dashboard/presupuestos", params={"mes_anio": "2026-10"}).json()[0]
+
+    assert progreso["gastado"] == progreso["gastado_principal"] == "200.00"
+    assert progreso["limite_principal"] == "500.00"
+
+
+def test_presupuesto_no_admite_moneda_desactivada(client: TestClient, categoria_gasto: dict) -> None:
+    client.patch("/configuracion", json={"monedas_activas": ["MXN"]})
+    respuesta = client.post(
+        "/presupuestos",
+        json={"categoria_id": categoria_gasto["id"], "monto_limite": "10", "mes_anio": "2026-10", "moneda": "EUR"},
+    )
+    assert respuesta.status_code == 400

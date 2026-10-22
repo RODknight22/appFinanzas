@@ -93,6 +93,7 @@ export function EfectivoPage() {
     <>
       <EncabezadoPagina
         titulo="Efectivo"
+        consejo="«Retirar» pasa dinero del banco a la cartera y «Gasto rápido» anota un gasto en efectivo en dos toques."
         descripcion="El dinero que llevas en la cartera"
         acciones={
           cartera && (

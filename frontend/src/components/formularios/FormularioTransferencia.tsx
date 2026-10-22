@@ -8,6 +8,7 @@ import type { Cuenta, Moneda, Transferencia } from "../../types";
 import { textoTipoDeCambio } from "../../utils/divisas";
 import { formatearDinero, formatearNumero, hoyISO } from "../../utils/formato";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
 
 /** Para abrir el formulario como "pagar tarjeta": destino y deuda ya rellenos. */
@@ -182,9 +183,7 @@ export function FormularioTransferencia({ inicial, pago, sentido, cuentas, onGua
 
       <div className="space-y-1.5">
         <div className="grid grid-cols-2 gap-3">
-          <Campo etiqueta="Fecha">
-            <input className={CLASE_ENTRADA} type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
-          </Campo>
+          <SelectorFecha etiqueta="Fecha" valor={fecha} onCambiar={setFecha} />
           <Campo etiqueta={`Comisión (${origen?.moneda ?? ""})`}>
             <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0" value={comision} onChange={(e) => setComision(e.target.value)} placeholder="Opcional" />
           </Campo>

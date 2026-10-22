@@ -7,16 +7,25 @@ import type {
   Categoria,
   CobroIngreso,
   Cuenta,
+  DatosAbono,
   DatosCobro,
+  DatosDeseo,
+  DatosDeuda,
   DatosMeta,
   DatosNuevos,
+  DecisionDeseo,
+  Deseo,
+  Deuda,
+  EstadoDeseo,
   IngresoRecurrente,
   MesAnio,
   Meta,
   MovimientoImportado,
+  Notificacion,
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
+  SentidoDeuda,
   Suscripcion,
   TipoMovimiento,
   Transaccion,
@@ -96,6 +105,35 @@ export const metasApi = {
   aportar: (id: number, datos: Omit<AportacionMeta, "id" | "meta_id">) =>
     http.post<AportacionMeta>(`/metas/${id}/aportaciones`, datos),
   eliminarAportacion: (id: number, aportacionId: number) => http.delete(`/metas/${id}/aportaciones/${aportacionId}`),
+};
+
+/** Deudas: las respuestas traen lo abonado y lo pendiente, ya calculados. */
+export const deudasApi = {
+  listar: (filtros?: { sentido?: SentidoDeuda; pendientes?: boolean }) =>
+    http.get<Deuda[]>("/deudas", filtros as Record<string, string>),
+  crear: (datos: DatosDeuda) => http.post<Deuda>("/deudas", datos),
+  actualizar: (id: number, cambios: Partial<DatosDeuda>) => http.patch<Deuda>(`/deudas/${id}`, cambios),
+  eliminar: (id: number) => http.delete(`/deudas/${id}`),
+  abonar: (id: number, datos: DatosAbono) => http.post<Deuda>(`/deudas/${id}/abonos`, datos),
+  eliminarAbono: (id: number, abonoId: number) => http.delete(`/deudas/${id}/abonos/${abonoId}`),
+};
+
+/** Avisos de la campana. */
+export const notificacionesApi = {
+  listar: () => http.get<Notificacion[]>("/notificaciones"),
+  marcarLeidas: (claves: string[]) => http.post<void>("/notificaciones/leidas", { claves }),
+};
+
+/** Lista de deseos y máquina del tiempo. */
+export const deseosApi = {
+  listar: (filtros?: { estado?: EstadoDeseo }) => http.get<Deseo[]>("/deseos", filtros as Record<string, string>),
+  /** Con `dias_reflexion`, el deseo entra en la máquina del tiempo. */
+  crear: (datos: DatosDeseo & { dias_reflexion?: number | null }) => http.post<Deseo>("/deseos", datos),
+  actualizar: (id: number, cambios: Partial<DatosDeseo>) => http.patch<Deseo>(`/deseos/${id}`, cambios),
+  eliminar: (id: number) => http.delete(`/deseos/${id}`),
+  decidir: (id: number, decision: DecisionDeseo) => http.post<Deseo>(`/deseos/${id}/decidir`, { decision }),
+  reflexionar: (id: number, dias: number) => http.post<Deseo>(`/deseos/${id}/reflexionar`, { dias }),
+  crearMeta: (id: number) => http.post<Deseo>(`/deseos/${id}/crear-meta`, {}),
 };
 
 /** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */

@@ -8,13 +8,16 @@ import { ListaTransferencias } from "../components/cuentas/ListaTransferencias";
 import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { FormularioTransferencia, type PagoTarjeta } from "../components/formularios/FormularioTransferencia";
 import { Boton } from "../components/ui/Boton";
+import { Consejo } from "../components/ui/Consejo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { avisarError } from "../components/ajustes/avisarError";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Cuenta, Transferencia } from "../types";
+import { agruparCuentas } from "../utils/cuentas";
 import { formatearDinero, mesActual } from "../utils/formato";
 
 /**
@@ -50,19 +53,35 @@ export function CuentasPage() {
     }
   }
 
+  async function alternarFijada(cuenta: Cuenta) {
+    try {
+      await cuentasApi.actualizar(cuenta.id, { fijada: !cuenta.fijada });
+      estado.recargar();
+    } catch (e) {
+      avisarError(e);
+    }
+  }
+
   const cuentas = estado.datos?.[0] ?? [];
 
   return (
     <>
       <EncabezadoPagina
         titulo="Cuentas"
-        descripcion="Efectivo, débito, tarjetas de crédito y cuentas con rendimientos"
+        consejo="Fija con la chincheta las cuentas que más usas: saldrán arriba y en el panel. Para varias divisas en un mismo banco (como Revolut), crea subcuentas."
+        descripcion="Débito, tarjetas de crédito, cuentas con rendimientos y subcuentas por divisa"
         acciones={
           <>
             {cuentas.length >= 2 && (
               <Boton variante="secundario" onClick={() => setTransferencia({})}>
                 <ArrowRightLeft size={16} /> Transferir
               </Boton>
+            )}
+            {cuentas.length >= 2 && (
+              <Consejo
+                alinear="fin"
+                texto="Una transferencia mueve dinero entre tus cuentas (o paga una tarjeta) sin contar como gasto ni ingreso. Si te cobran comisión, anótala: esa parte sí cuenta como gasto."
+              />
             )}
             <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva cuenta</Boton>
           </>
@@ -72,30 +91,51 @@ export function CuentasPage() {
       <Contenido {...estado} onReintentar={estado.recargar}>
         {([cuentas, resumen, transferencias]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
+          const enPrincipal = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo_principal)]));
+          // El efectivo tiene su propia pestaña.
+          const grupos = agruparCuentas(cuentas.filter((c) => c.tipo !== "efectivo"));
+
+          const fila = (cuenta: Cuenta, extra: { subcuenta?: boolean; totalConSubcuentas?: number } = {}) => {
+            const saldo = saldos.get(cuenta.id) ?? Number(cuenta.balance_inicial);
+            return (
+              <FilaCuenta
+                key={cuenta.id}
+                cuenta={cuenta}
+                saldo={saldo}
+                {...extra}
+                onEditar={() => setModal(cuenta)}
+                onEliminar={() =>
+                  confirmarYEliminar(`¿Eliminar la cuenta "${cuenta.nombre}"?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
+                }
+                onRegistrarRendimientos={() => registrarRendimientos(cuenta)}
+                // En una tarjeta, el saldo negativo es la deuda.
+                onPagar={() => setTransferencia({ pago: { cuentaId: cuenta.id, monto: -saldo } })}
+                onFijar={() => alternarFijada(cuenta)}
+              />
+            );
+          };
+
           return (
             <div className="space-y-6">
               <Tarjeta>
-                {cuentas.length === 0 ? (
+                {grupos.length === 0 ? (
                   <Vacio mensaje="Crea tu primera cuenta para empezar a registrar movimientos" />
                 ) : (
                   <ul className="divide-y divide-linea">
-                    {cuentas.map((cuenta) => {
-                      const saldo = saldos.get(cuenta.id) ?? Number(cuenta.balance_inicial);
-                      return (
-                        <FilaCuenta
-                          key={cuenta.id}
-                          cuenta={cuenta}
-                          saldo={saldo}
-                          onEditar={() => setModal(cuenta)}
-                          onEliminar={() =>
-                            confirmarYEliminar(`¿Eliminar la cuenta "${cuenta.nombre}"?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
-                          }
-                          onRegistrarRendimientos={() => registrarRendimientos(cuenta)}
-                          // En una tarjeta, el saldo negativo es la deuda.
-                          onPagar={() => setTransferencia({ pago: { cuentaId: cuenta.id, monto: -saldo } })}
-                        />
-                      );
-                    })}
+                    {grupos.map(({ cuenta, subcuentas }) =>
+                      subcuentas.length === 0 ? (
+                        fila(cuenta)
+                      ) : (
+                        <li key={cuenta.id}>
+                          <ul className="divide-y divide-linea/60">
+                            {fila(cuenta, {
+                              totalConSubcuentas: [cuenta, ...subcuentas].reduce((suma, c) => suma + (enPrincipal.get(c.id) ?? 0), 0),
+                            })}
+                            {subcuentas.map((sub) => fila(sub, { subcuenta: true }))}
+                          </ul>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 )}
               </Tarjeta>
@@ -127,6 +167,7 @@ export function CuentasPage() {
             // `key` fuerza un formulario nuevo al cambiar de cuenta, reiniciando sus campos.
             key={modal === "nueva" ? "nueva" : modal.id}
             inicial={modal === "nueva" ? undefined : modal}
+            cuentas={cuentas}
             onGuardado={alGuardar}
             onCancelar={() => setModal(null)}
           />

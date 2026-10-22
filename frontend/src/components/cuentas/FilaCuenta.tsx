@@ -1,4 +1,4 @@
-import { CalendarClock, CreditCard, Sparkles } from "lucide-react";
+import { CalendarClock, CornerDownRight, CreditCard, Pin, PinOff, Sparkles } from "lucide-react";
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
@@ -15,6 +15,11 @@ interface FilaCuentaProps {
   onRegistrarRendimientos: () => void;
   /** Abre una transferencia hacia la tarjeta con la deuda ya escrita. */
   onPagar: () => void;
+  onFijar: () => void;
+  /** Se pinta sangrada, debajo de su cuenta madre. */
+  subcuenta?: boolean;
+  /** Solo en una cuenta madre: su saldo más el de sus subcuentas, en la moneda principal. */
+  totalConSubcuentas?: number;
 }
 
 /** Fecha de corte/pago con aviso de cuánto falta: "15 oct 2026 · En 3 días". */
@@ -85,27 +90,54 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
 }
 
 /** Una cuenta de la lista, con la información propia de su tipo. */
-export function FilaCuenta({ cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar }: FilaCuentaProps) {
+export function FilaCuenta(props: FilaCuentaProps) {
+  const { cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas } = props;
   const { etiqueta, icono: Icono } = TIPOS_CUENTA[cuenta.tipo];
   const esCredito = cuenta.tipo === "credito";
+  const IconoFijar = cuenta.fijada ? PinOff : Pin;
 
   return (
-    <li className="py-4">
-      <div className="flex items-start gap-4">
+    <li className={subcuenta ? "py-3 pl-6 sm:pl-10" : "py-4"}>
+      <div className="flex items-start gap-3 sm:gap-4">
+        {subcuenta && <CornerDownRight size={16} className="mt-3 -mr-1 shrink-0 text-tenue-2 sm:-mr-2" aria-hidden />}
         <span className="rounded-xl bg-superficie-2 p-2.5 text-suave">
-          <Icono size={20} />
+          <Icono size={subcuenta ? 16 : 20} />
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{cuenta.nombre}</p>
-          <p className="text-xs text-tenue">{etiqueta}</p>
+        {/* En móvil el saldo va debajo del nombre: en una sola fila no caben ambos. */}
+        <div className="min-w-0 flex-1 sm:flex sm:items-start sm:gap-4">
+          <div className="min-w-0 sm:flex-1">
+            <p className="flex items-center gap-1.5 font-medium">
+              <span className="truncate">{cuenta.nombre}</span>
+              {cuenta.fijada && <Pin size={13} className="shrink-0 fill-current text-acento-600 dark:text-acento-400" aria-label="Fijada" />}
+            </p>
+            <p className="truncate text-xs text-tenue">
+              {etiqueta} · {cuenta.moneda}
+              {cuenta.numero_cuenta && <span className="font-mono"> · {cuenta.numero_cuenta}</span>}
+            </p>
+          </div>
+          <div className="mt-1 sm:mt-0 sm:text-right">
+            <p className="hidden text-xs text-tenue sm:block">{esCredito ? "Deuda" : "Saldo actual"}</p>
+            <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
+              {esCredito && <span className="text-xs font-normal text-tenue sm:hidden">Deuda </span>}
+              {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo, cuenta.moneda)}
+            </p>
+            {totalConSubcuentas !== undefined && (
+              <p className="text-xs text-tenue tabular-nums">Con subcuentas ≈ {formatearDinero(totalConSubcuentas)}</p>
+            )}
+          </div>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-tenue">{esCredito ? "Deuda" : "Saldo actual"}</p>
-          <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
-            {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo, cuenta.moneda)}
-          </p>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={onFijar}
+            aria-label={cuenta.fijada ? "Dejar de fijar" : "Fijar arriba"}
+            title={cuenta.fijada ? "Dejar de fijar" : "Fijar arriba"}
+            className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+          >
+            <IconoFijar size={16} />
+          </button>
+          <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
         </div>
-        <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
       </div>
       {/* Detalles debajo y alineados con el nombre (pl-14 = ancho del icono + hueco):
           así en móvil usan todo el ancho en vez de una columna estrecha. */}

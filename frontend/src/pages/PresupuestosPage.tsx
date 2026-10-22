@@ -26,6 +26,7 @@ function aPresupuesto(progreso: ProgresoPresupuesto): Presupuesto {
     categoria_id: progreso.categoria_id,
     monto_limite: progreso.monto_limite,
     mes_anio: progreso.mes_anio,
+    moneda: progreso.moneda,
   };
 }
 
@@ -46,6 +47,7 @@ export function PresupuestosPage() {
     <>
       <EncabezadoPagina
         titulo="Presupuestos"
+        consejo="Cada presupuesto puede ir en su propia moneda: los gastos en otra divisa se convierten con la tasa del día en que los hiciste."
         descripcion="Pon un límite mensual a cada categoría de gasto"
         acciones={
           <>
@@ -57,8 +59,9 @@ export function PresupuestosPage() {
 
       <Contenido {...estado} onReintentar={estado.recargar}>
         {([progresos, categoriasGasto]) => {
-          const totalLimite = progresos.reduce((suma, p) => suma + Number(p.monto_limite), 0);
-          const totalGastado = progresos.reduce((suma, p) => suma + Number(p.gastado), 0);
+          // En la principal: los presupuestos pueden estar en monedas distintas.
+          const totalLimite = progresos.reduce((suma, p) => suma + Number(p.limite_principal), 0);
+          const totalGastado = progresos.reduce((suma, p) => suma + Number(p.gastado_principal), 0);
 
           return (
             <>

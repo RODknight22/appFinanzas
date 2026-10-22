@@ -3,7 +3,8 @@ import { useState, type FormEvent } from "react";
 import { accesoApi } from "../../api/acceso";
 import { useEnvio } from "../../hooks/useEnvio";
 import { Boton } from "../ui/Boton";
-import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
+import { Campo, ErrorFormulario } from "../ui/Campo";
+import { EntradaContrasena } from "../ui/EntradaContrasena";
 import { Tarjeta } from "../ui/Tarjeta";
 
 /** Cambiar la contraseña. Cierra la sesión en los demás navegadores. */
@@ -35,14 +36,14 @@ export function SeccionContrasena() {
     <Tarjeta titulo="Contraseña">
       <form onSubmit={enviar} className="space-y-3">
         <Campo etiqueta="Contraseña actual">
-          <input className={CLASE_ENTRADA} type="password" value={actual} onChange={(e) => setActual(e.target.value)} autoComplete="current-password" required />
+          <EntradaContrasena value={actual} onChange={(e) => setActual(e.target.value)} autoComplete="current-password" required />
         </Campo>
         <div className="grid gap-3 sm:grid-cols-2">
           <Campo etiqueta="Nueva contraseña" ayuda="Mínimo 8 caracteres">
-            <input className={CLASE_ENTRADA} type="password" value={nueva} onChange={(e) => setNueva(e.target.value)} autoComplete="new-password" minLength={8} required />
+            <EntradaContrasena value={nueva} onChange={(e) => setNueva(e.target.value)} autoComplete="new-password" minLength={8} required />
           </Campo>
           <Campo etiqueta="Repite la nueva">
-            <input className={CLASE_ENTRADA} type="password" value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required />
+            <EntradaContrasena value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required />
           </Campo>
         </div>
         <ErrorFormulario mensaje={errorLocal ?? error} />
