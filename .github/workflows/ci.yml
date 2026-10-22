@@ -37,6 +37,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - run: npm run lint
       - run: npm run build # incluye la comprobación de tipos
       # Solo falla con avisos altos o críticos de lo que llega al usuario.
       - run: npm audit --omit=dev --audit-level=high

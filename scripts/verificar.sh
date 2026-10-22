@@ -17,9 +17,9 @@ asegurar_imagen_backend
 docker run --rm -v "$PWD/backend:/app" -w /app "$IMAGEN_BACKEND" \
   sh -c "pip install -q --disable-pip-version-check -r requirements-dev.txt >/dev/null && ruff check . && pytest -q -p no:warnings"
 
-paso "Tipos del frontend"
+paso "Frontend: linter y tipos"
 docker run --rm -v "$PWD/frontend:/app" -v "$VOLUMEN_NODE:/app/node_modules" -w /app "$IMAGEN_NODE" \
-  sh -c "$INSTALAR_NODE && npx tsc --noEmit"
+  sh -c "$INSTALAR_NODE && npm run lint && npx tsc --noEmit"
 
 if [[ "${1:-}" == "--e2e" ]]; then
   scripts/e2e.sh

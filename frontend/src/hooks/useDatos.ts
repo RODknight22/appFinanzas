@@ -21,7 +21,9 @@ export function useDatos<T>(cargar: () => Promise<T>, dependencias: unknown[]): 
   const [version, setVersion] = useState(0);
 
   // La función `cargar` se crea de nuevo en cada render; memorizarla según
-  // `dependencias` evita un bucle infinito de recargas.
+  // `dependencias` evita un bucle infinito de recargas. El linter no puede comprobar
+  // dependencias que llegan como parámetro: las declara quien llama, como en useEffect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const cargarMemo = useCallback(cargar, dependencias);
 
   useEffect(() => {
