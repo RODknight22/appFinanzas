@@ -9,7 +9,8 @@ Guía para Rodrigo y para cualquier sesión de Claude que trabaje en este repo.
 3. **Diseñar antes de programar:** Claude explica qué va a hacer, en qué archivos y por qué.
    Para cambios grandes, usa el modo plan de Claude Code (Shift+Tab) y apruébalo antes.
 4. **Construir por piezas:** cada pieza con sus tests y su commit.
-5. **Cerrarla** con `/cerrar-tarea`: trae `main`, verifica todo, fusiona y marca la tarea `[x]`.
+5. **Cerrarla** con `/cerrar-tarea`: trae `main`, verifica, marca la tarea `[x]` y abre la PR.
+   Cuando el CI está en verde, se fusiona la PR (lo dices tú o pulsas "Merge" en GitHub).
 6. **Aprender:** `/explicame` sobre lo que no haya quedado claro.
 
 ## Varias sesiones a la vez
@@ -31,25 +32,35 @@ Reglas que evitan problemas:
 - **Solo la carpeta principal levanta `docker compose`**: los puertos no se pueden compartir.
   Los worktrees verifican con `scripts/verificar.sh --e2e`, que usa contenedores propios.
 
-### Fusionar bien: lo que aprendimos el 22/10/2026
+### Fusionar: siempre por pull request
 
-Fusionar son **dos pasos**, y el 22/10 se hizo solo el primero:
+`main` está protegida en GitHub (Settings → Rules → "Proteger main"): no admite push directo ni
+`--force`, y una PR solo se puede fusionar con el CI en verde y la rama al día con `main`.
 
 ```bash
-# 1. En la rama: traer lo nuevo de main y resolver conflictos ahí (sin romper main)
-git merge main
+# 1. En la rama: traer lo nuevo de main y resolver los conflictos ahí (sin romper main)
+git fetch && git merge origin/main
 scripts/verificar.sh --e2e
-# 2. En la carpeta principal: llevar la rama a main
-git merge --no-ff feat/<tarea>
+# 2. Subir la rama y abrir la PR (el CI de GitHub vuelve a comprobar)
+git push -u origin feat/<tarea>
+gh pr create --fill
+# 3. Con el CI en verde: fusionar (o botón "Merge pull request" en GitHub)
+gh pr merge --merge --delete-branch
+# 4. En la carpeta principal: traer el resultado
+git switch main && git pull --ff-only
 ```
 
-**"Aceptar ambos" no es resolver un conflicto.** Pega las dos versiones una detrás de otra. Si las
-dos sesiones editaron la misma línea, queda duplicada: así CLAUDE.md acabó con la regla de
-divisas dos veces y por encima del límite. Hay que leer las dos versiones y escribir **una** que
-combine lo de ambas. En caso de duda, pídele a Claude: "resuelve el conflicto combinando a mano".
+**Lo que aprendimos el 22/10/2026:**
+- **Una rama se fusiona por un solo camino.** La PR #1 se fusionó en GitHub mientras se fusionaba
+  la misma rama en local: dos `main` con igual contenido y distinto historial, y el siguiente
+  push habría sido rechazado. Con la regla de GitHub ya no puede pasar: solo existe el camino PR.
+- **"Aceptar ambos" no es resolver un conflicto.** Pega las dos versiones una detrás de otra. Si
+  las dos sesiones editaron la misma línea, queda duplicada: así CLAUDE.md acabó con la regla de
+  divisas dos veces y por encima del límite. Hay que leer las dos versiones y escribir **una** que
+  combine lo de ambas. En caso de duda: "resuelve el conflicto combinando a mano".
 
 Comprobar que una rama ya está en `main`:
-`git merge-base --is-ancestor feat/<tarea> main && echo "ya está en main"`.
+`git fetch && git merge-base --is-ancestor feat/<tarea> origin/main && echo "ya está en main"`.
 
 ## Usar a Claude de forma eficiente
 

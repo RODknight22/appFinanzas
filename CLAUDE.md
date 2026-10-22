@@ -26,14 +26,17 @@ España: cobra en MXN y gasta en EUR), aprende a programar supervisando el códi
 - Medir antes de optimizar; no añadir dependencias sin justificarlas y fijar su versión.
 - Código autodocumentado y tipado; comentarios breves que expliquen el *por qué*.
 
-## Git y sesiones en paralelo
-- Al empezar: `git worktree list` y `git log --oneline -5 main`: otra sesión puede haber fusionado.
-- Cada tarea en su rama `feat/<x>` o `fix/<x>` desde `main` actualizado; si hay otra sesión,
-  en su propio worktree (`/nueva-tarea`). Commits por pieza (Conventional Commits en español).
-- Cerrar con `/cerrar-tarea`: traer `main` a la rama, resolver conflictos combinando a mano
-  (nunca "aceptar ambos" a ciegas: duplica líneas), `scripts/verificar.sh --e2e`,
-  `git merge --no-ff` a `main` y borrar la rama. Una rama por vez: no apilar ramas sin fusionar.
-- Solo la carpeta principal levanta `docker compose` (puertos 8000/5173). El push lo decide él.
+## Git: todo entra en `main` por pull request
+- GitHub protege `main` (ruleset): sin push directo; PR con el CI (`backend`, `frontend`) en verde
+  y la rama al día con `main`. Fusión con "Merge commit"; la rama se borra sola en GitHub.
+- Al empezar: `git fetch`, `git worktree list`, `gh pr list`: otra sesión puede tener PRs.
+- Cada tarea en su rama `feat/<x>` o `fix/<x>` desde `origin/main`; si hay otra sesión, en su
+  propio worktree (`/nueva-tarea`). Commits por pieza (Conventional Commits en español).
+- Cerrar con `/cerrar-tarea`: traer `origin/main` a la rama combinando conflictos a mano (nunca
+  "aceptar ambos" a ciegas: duplica líneas), `scripts/verificar.sh --e2e`, push y `gh pr create`.
+  Fusionar la PR solo cuando Rodrigo lo diga (o lo hace él en GitHub). Sin ramas apiladas.
+- Solo la carpeta principal levanta `docker compose` (puertos 8000/5173); tras cada PR fusionada:
+  `git switch main && git pull --ff-only`.
 
 ## Comandos (Git Bash, raíz del repo o de un worktree)
 - App: `docker compose up -d` / `docker compose down` (la BD se conserva).
