@@ -52,10 +52,16 @@ const CONFIGURACION_INICIAL: Configuracion = {
   correo_recordatorios: null,
 };
 
+// Lo último que se pidió pintar. No basta con mirar <html>: con el fundido, el cambio llega
+// un fotograma después y, entretanto, el DOM aún muestra lo anterior.
+const pedida = { ...document.documentElement.dataset };
+
 /** Pone acento y estilo en <html> (los leen las variables CSS de index.css). */
 function aplicarApariencia(acento: ColorAcento, estilo: EstiloVisual) {
+  if (pedida.acento === acento && pedida.estilo === estilo) return;
+  pedida.acento = acento;
+  pedida.estilo = estilo;
   const html = document.documentElement;
-  if (html.dataset.acento === acento && html.dataset.estilo === estilo) return;
   // Fundido suave del color viejo al nuevo, en vez de un cambio brusco.
   conTransicion(() => {
     html.dataset.acento = acento;
