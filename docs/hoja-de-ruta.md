@@ -30,7 +30,7 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
 - [ ] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
   *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
   *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
-- [ ] **Copia de seguridad y exportación.** Botón en Ajustes que descarga la BD y un CSV.
+- [x] **Copia de seguridad y exportación.** Botón en Ajustes que descarga la BD y un CSV.
   *Por qué:* hoy no hay forma segura de guardar los datos. *Dónde:* nuevo services/copias.py +
   Ajustes. *Ojo:* con WAL no basta copiar el archivo: usar `VACUUM INTO` o la API de backup de
   sqlite3; en el CSV, anteponer `'` a celdas que empiecen por `= + - @` (inyección de fórmulas).
