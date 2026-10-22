@@ -110,6 +110,9 @@ cd appFinanzas
 docker compose up --build     # web en http://localhost:5173 · API en http://localhost:8000/docs
 ```
 
+El desarrollo usa su propia BD en `data-dev/` (nunca tus datos reales) y el puerto 8000 tiene
+las mismas defensas de Host y Origin que la versión publicada.
+
 | Carpeta | Contenido |
 | --- | --- |
 | `backend/app` | API con FastAPI + SQLModel + SQLite (routers → services → models) |

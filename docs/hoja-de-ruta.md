@@ -35,7 +35,7 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
   Ajustes. *Ojo:* con WAL no basta copiar el archivo: usar `VACUUM INTO` o la API de backup de
   sqlite3; en el CSV, anteponer `'` a celdas que empiecen por `= + - @` (inyección de fórmulas).
   *Hecho cuando:* restaurar la copia en una BD vacía da los mismos saldos (test).
-- [ ] **Desarrollo sin datos reales y con defensas.** *Por qué:* `docker compose` usa
+- [x] **Desarrollo sin datos reales y con defensas.** *Por qué:* `docker compose` usa
   data/finance.db y el puerto 8000 no tiene las defensas de Host/Origin (auditoría M3).
   *Dónde:* docker-compose.yml, main.py. *Hecho cuando:* una web ajena no puede escribir en :8000.
 - [ ] **CI completo:** ejecutar `scripts/verificar.sh --e2e` en GitHub Actions y añadir linters

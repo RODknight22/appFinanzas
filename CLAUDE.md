@@ -39,7 +39,7 @@ España: cobra en MXN y gasta en EUR), aprende a programar supervisando el códi
   `git switch main && git pull --ff-only`.
 
 ## Comandos (Git Bash, raíz del repo o de un worktree)
-- App: `docker compose up -d` / `docker compose down` (la BD se conserva).
+- App: `docker compose up -d` / `docker compose down` (BD de desarrollo en data-dev/, se conserva).
 - Verificar: `scripts/verificar.sh` (tests + tipos), `--e2e` añade Playwright con BD temporal.
 
 ## Este documento
