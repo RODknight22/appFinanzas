@@ -59,11 +59,11 @@ Ejemplo:
 
 <!-- Algo que ya existe pero podría ser más cómodo, rápido o bonito. -->
 
-- [~] Botón para desplegar y plegar las subcuentas #mejora → PR #7
+- [x] ~~Botón para desplegar y plegar las subcuentas~~ #mejora → hecho (PR #7)
   - 💬 Claude: hecho. Flecha en la cuenta madre; plegada muestra cuántas oculta ("2 ›").
     Por defecto se ven desplegadas y el navegador recuerda cuáles plegaste.
-- [~] Metas y Deseos, Suscripciones e Ingresos fijos en un mismo apartado con pestañas,
-  como Cuentas | Efectivo #mejora → PR #8
+- [x] ~~Metas y Deseos, Suscripciones e Ingresos fijos en un mismo apartado con pestañas,
+  como Cuentas | Efectivo~~ #mejora → hecho (PR #8)
   - 💬 Claude: hecho. Menú: "Metas" (Metas | Deseos) y "Pagos fijos"
     (Suscripciones | Ingresos fijos). El menú pasa de 10 a 8 entradas. Las direcciones
     viejas (/deseos, /suscripciones, /ingresos) siguen funcionando.
@@ -81,11 +81,12 @@ Ejemplo:
 
 <!-- Lo que quieres atacar pronto, en el orden en que te apetece. -->
 
-- [~] Desarrollo con BD propia (data-dev/) y defensas en el puerto 8000 → PR #6
+- [x] ~~Desarrollo con BD propia (data-dev/) y defensas en el puerto 8000~~ → hecho (PR #6)
   - 💬 Claude: de la hoja de ruta v1.1. Tras fusionarla, `docker compose` arranca con la app
     vacía: si quieres tus datos de prueba, copia data/finance.db a data-dev/ con la app parada.
-- [ ] Después de Ajustes, lo que queda de v1.1: CI completo (E2E y linters en GitHub),
-  release más seguro y publicar la v1.1.0.
+- [~] CI completo: E2E y linters (ruff, eslint) en GitHub → PR #9
+- [ ] Lo que queda de v1.1: release más seguro y publicar la v1.1.0.
+- [ ] Ajustes con pestañas: espera a que se fusione la sesión de apariencia (tocan lo mismo).
 
 ## 💭 Conceptos e ideas abstractas
 
