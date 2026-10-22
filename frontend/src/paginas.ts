@@ -7,13 +7,13 @@ import { lazy, type ComponentType } from "react";
 const cargadores = {
   "/transacciones": () => import("./pages/TransaccionesPage"),
   "/presupuestos": () => import("./pages/PresupuestosPage"),
-  "/suscripciones": () => import("./pages/SuscripcionesPage"),
-  "/ingresos": () => import("./pages/IngresosPage"),
+  "/pagos-fijos": () => import("./pages/SuscripcionesPage"),
+  "/pagos-fijos/ingresos": () => import("./pages/IngresosPage"),
   "/cuentas": () => import("./pages/CuentasPage"),
   "/cuentas/efectivo": () => import("./pages/EfectivoPage"),
   "/metas": () => import("./pages/MetasPage"),
   "/deudas": () => import("./pages/DeudasPage"),
-  "/deseos": () => import("./pages/DeseosPage"),
+  "/metas/deseos": () => import("./pages/DeseosPage"),
   "/categorias": () => import("./pages/CategoriasPage"),
   "/ajustes": () => import("./pages/AjustesPage"),
 };
@@ -27,13 +27,13 @@ function perezosa<N extends string>(cargar: () => Promise<Record<N, ComponentTyp
 
 export const TransaccionesPage = perezosa(cargadores["/transacciones"], "TransaccionesPage");
 export const PresupuestosPage = perezosa(cargadores["/presupuestos"], "PresupuestosPage");
-export const SuscripcionesPage = perezosa(cargadores["/suscripciones"], "SuscripcionesPage");
-export const IngresosPage = perezosa(cargadores["/ingresos"], "IngresosPage");
+export const SuscripcionesPage = perezosa(cargadores["/pagos-fijos"], "SuscripcionesPage");
+export const IngresosPage = perezosa(cargadores["/pagos-fijos/ingresos"], "IngresosPage");
 export const CuentasPage = perezosa(cargadores["/cuentas"], "CuentasPage");
 export const EfectivoPage = perezosa(cargadores["/cuentas/efectivo"], "EfectivoPage");
 export const MetasPage = perezosa(cargadores["/metas"], "MetasPage");
 export const DeudasPage = perezosa(cargadores["/deudas"], "DeudasPage");
-export const DeseosPage = perezosa(cargadores["/deseos"], "DeseosPage");
+export const DeseosPage = perezosa(cargadores["/metas/deseos"], "DeseosPage");
 export const CategoriasPage = perezosa(cargadores["/categorias"], "CategoriasPage");
 export const AjustesPage = perezosa(cargadores["/ajustes"], "AjustesPage");
 
@@ -48,6 +48,12 @@ export function precargarPagina(ruta: string): void {
   if (pedidas.has(ruta) || !(ruta in cargadores)) return;
   pedidas.add(ruta);
   cargadores[ruta as Ruta]().catch(() => pedidas.delete(ruta));
+}
+
+/** Props para un enlace: al apuntarlo (ratón, teclado o dedo) se descarga ya su página. */
+export function precarga(ruta: string) {
+  const cargar = () => precargarPagina(ruta);
+  return { onPointerEnter: cargar, onFocus: cargar, onTouchStart: cargar };
 }
 
 /**

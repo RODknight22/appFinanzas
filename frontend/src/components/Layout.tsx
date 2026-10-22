@@ -20,7 +20,7 @@ import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 import { useTema } from "../hooks/useTema";
-import { precargarEnReposo, precargarPagina } from "../paginas";
+import { precarga, precargarEnReposo } from "../paginas";
 import { AsistenteBienvenida } from "./bienvenida/AsistenteBienvenida";
 import { CampanaNotificaciones } from "./CampanaNotificaciones";
 import { Avatar } from "./ui/Avatar";
@@ -46,12 +46,6 @@ const MENU: ItemMenu[] = [
   { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
   { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
 ];
-
-/** Al apuntar a un enlace (ratón, teclado o dedo) se descarga ya su página. */
-function precarga(ruta: string) {
-  const cargar = () => precargarPagina(ruta);
-  return { onPointerEnter: cargar, onFocus: cargar, onTouchStart: cargar };
-}
 
 /** Clases de un enlace del menú lateral según esté activo o no. */
 function claseEnlace({ isActive }: { isActive: boolean }): string {
