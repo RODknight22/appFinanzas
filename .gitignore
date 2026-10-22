@@ -1,6 +1,7 @@
 # Base de datos local: los datos reales nunca se suben a git
 data/*
 !data/.gitkeep
+data-dev/
 
 # Python
 __pycache__/

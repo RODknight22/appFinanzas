@@ -47,10 +47,15 @@ def _rechazar(codigo: int, mensaje: str) -> JSONResponse:
 
 class ProteccionLocal:
     """Middleware ASGI con las cuatro defensas. Se escribe "a mano" (sin
-    BaseHTTPMiddleware) para no copiar en memoria cada respuesta."""
+    BaseHTTPMiddleware) para no copiar en memoria cada respuesta.
 
-    def __init__(self, app: ASGIApp) -> None:
+    `con_cabeceras=False` en desarrollo: allí la web la sirve Vite y la CSP
+    rompería /docs, que carga sus scripts de un CDN.
+    """
+
+    def __init__(self, app: ASGIApp, con_cabeceras: bool = True) -> None:
         self.app = app
+        self.cabeceras_extra = CABECERAS if con_cabeceras else []
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -87,7 +92,7 @@ class ProteccionLocal:
         async def enviar_con_cabeceras(mensaje: Message) -> None:
             if mensaje["type"] == "http.response.start":
                 mensaje.setdefault("headers", [])
-                mensaje["headers"] = [*mensaje["headers"], *CABECERAS]
+                mensaje["headers"] = [*mensaje["headers"], *self.cabeceras_extra]
             await send(mensaje)
 
         await self.app(scope, recibir_con_limite, enviar_con_cabeceras)
