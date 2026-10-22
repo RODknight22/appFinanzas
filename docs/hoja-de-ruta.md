@@ -2,7 +2,7 @@
 
 Plan orientativo por versiones: se puede reordenar cuando haga falta. Cada tarea dice **por qué**,
 **dónde** se toca y **cuándo está hecha**. Al fusionar una tarea en `main`, marcarla con `[x]`.
-Las ideas nuevas van al final, en "Ideas sin clasificar", hasta decidir a qué versión pertenecen.
+Las ideas en bruto van a [ideas.md](ideas.md); aquí solo llegan las que ya son una tarea.
 
 Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/2026.
 
