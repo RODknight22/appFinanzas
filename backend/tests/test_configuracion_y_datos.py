@@ -1,11 +1,16 @@
 """Configuración de moneda, categorías por defecto y migraciones."""
 
+import sqlite3
+from contextlib import closing
+from datetime import date
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, inspect, text
 from sqlmodel import Session, SQLModel, select
 
 from app.datos_iniciales import CATEGORIAS_POR_DEFECTO, crear_datos_iniciales
-from app.migraciones import aplicar_migraciones
+from app.migraciones import aplicar_migraciones, copia_antes_de_migrar, hay_columnas_pendientes
 from app.models import Categoria
 
 
@@ -51,6 +56,30 @@ def test_migracion_anade_columnas_y_renombra_tipos() -> None:
         assert conexion.execute(text("SELECT tipo FROM cuenta")).scalar() == "DEBITO"
 
 
+def test_columna_migrada_recibe_su_indice() -> None:
+    # Una BD que ganó `transaccion.transferencia_id` por migración: la columna sin su índice.
+    engine = create_engine("sqlite://")
+    SQLModel.metadata.create_all(engine)
+    with engine.begin() as conexion:
+        conexion.execute(text("DROP INDEX ix_transaccion_transferencia_id"))
+    with engine.begin() as conexion:
+        aplicar_migraciones(conexion)
+    indices = {i["name"] for i in inspect(engine).get_indexes("transaccion")}
+    assert "ix_transaccion_transferencia_id" in indices
+
+
+def test_copia_antes_de_migrar(tmp_path: Path) -> None:
+    ruta = tmp_path / "finance.db"
+    with closing(sqlite3.connect(ruta)) as bd:
+        bd.execute("CREATE TABLE t (a INTEGER)")
+        bd.execute("INSERT INTO t VALUES (7)")
+        bd.commit()
+    copia = copia_antes_de_migrar(ruta, hoy=date(2026, 10, 23))
+    assert copia.name == "finance.antes-de-migrar-2026-10-23.db"
+    with closing(sqlite3.connect(copia)) as bd:
+        assert bd.execute("SELECT a FROM t").fetchone() == (7,)
+
+
 def test_primeros_pasos_por_defecto_y_desactivar_consejos(client: TestClient) -> None:
     configuracion = client.get("/configuracion").json()
     assert (configuracion["tutorial_visto"], configuracion["bienvenida_cerrada"]) == (False, False)
@@ -89,6 +118,8 @@ def test_quien_ya_usaba_la_app_no_ve_el_tutorial() -> None:
 def test_una_bd_sin_cuentas_si_ve_el_tutorial() -> None:
     engine = _bd_sin_columnas_de_primeros_pasos(con_cuentas=False)
     with engine.begin() as conexion:
+        assert hay_columnas_pendientes(conexion)  # al arrancar, se copiaría la BD antes
         aplicar_migraciones(conexion)
+        assert not hay_columnas_pendientes(conexion)
     with engine.connect() as conexion:
         assert conexion.execute(text("SELECT tutorial_visto FROM configuracion")).scalar() is None

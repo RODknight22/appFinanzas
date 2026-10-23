@@ -223,10 +223,25 @@ def _tasa_del_dia(session: Session, moneda: Moneda, fecha: date) -> TasaCambio |
     ).first()
 
 
+def _tiene_cambios_propios(session: Session) -> bool:
+    """¿Lleva la sesión cambios sin confirmar de quien la usa (p. ej. una importación a medias)?"""
+    if session.new or session.dirty or session.deleted:
+        return True
+    # Cambios ya enviados a SQLite (flush) pero sin commit: los delata la transacción abierta.
+    conexion = session.connection().connection.dbapi_connection
+    return bool(getattr(conexion, "in_transaction", False))
+
+
 def actualizar_desde_internet(session: Session, hoy: date | None = None) -> None:
-    """Descarga las tasas y las guarda como las de hoy."""
+    """Descarga las tasas y las guarda como las de hoy.
+
+    Si quien llama ya tiene cambios a medio hacer, no se hace commit: confirmaría también
+    esos cambios aunque luego su operación falle (una importación rechazada dejaría
+    borrado el movimiento que iba a unir). Las tasas se confirman o se deshacen con ellos.
+    """
     global _ultimo_fallo
     hoy = hoy or date.today()
+    con_cambios = _tiene_cambios_propios(session)
     try:
         tasas = descargar_tasas()
     except ServicioExternoError:
@@ -234,7 +249,10 @@ def actualizar_desde_internet(session: Session, hoy: date | None = None) -> None
         raise
     for moneda, por_usd in tasas.items():
         _guardar_tasa(session, moneda, por_usd, hoy, OrigenTasa.API)
-    session.commit()
+    if con_cambios:
+        session.flush()
+    else:
+        session.commit()
     _ultimo_fallo = None
 
 
