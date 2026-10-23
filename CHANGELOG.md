@@ -3,6 +3,37 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [SemVer](https://semver.org/lang/es/).
 
+## [1.1.0] - 2026-10-23
+
+### Añadido
+- Importar extractos del banco en CSV o Excel (.xlsx) sin configurar columnas: detecta
+  duplicados y aprende la categoría de cada concepto.
+- Ingresos fijos (sueldo, rentas) con calendario flexible, junto a las suscripciones en
+  "Pagos fijos".
+- Efectivo como pestaña de Cuentas, con subcuentas que se pliegan.
+- Deudas (quién te debe y a quién debes), lista de deseos y campana de avisos.
+- Copia de seguridad y exportación: descarga la base de datos o tus movimientos en CSV desde
+  Ajustes → Seguridad y datos.
+- Tasas históricas del BCE para fechas pasadas, con recálculo de lo ya guardado.
+- Apariencia: 5 estilos visuales (cada uno con versión clara y oscura) con vista previa, 12
+  colores de acento y un fundido suave al cambiarlos.
+- Ver la contraseña al escribirla, selector de fecha, bienvenida y consejos de uso.
+
+### Cambiado
+- Menú más corto: Metas agrupa la lista de deseos; Pagos fijos agrupa suscripciones e ingresos.
+  Las direcciones antiguas siguen funcionando.
+- Ajustes en pestañas: Perfil, Apariencia, Monedas y Seguridad y datos.
+- Navegación más fluida: las páginas se descargan en segundo plano y, al volver a una, se
+  muestran al instante los últimos datos mientras se actualizan.
+- El patrimonio se calcula unas 40 veces más rápido con muchos movimientos.
+
+### Seguridad
+- Importación con límite real de 1 MB y freno a archivos comprimidos maliciosos ("bombas ZIP").
+- En el CSV exportado, las celdas que empiezan por `=`, `+`, `-` o `@` no se ejecutan como
+  fórmulas al abrirlo en Excel.
+- Release: cada paso de GitHub Actions tiene solo los permisos que necesita y las acciones van
+  fijadas por su huella (SHA).
+
 ## [1.0.0] - 2026-10-19
 
 Primera versión pública.
