@@ -29,6 +29,11 @@ export async function iniciar({ ancho = 1280, alto = 900 } = {}) {
       if (!r.ok()) throw new Error(`PUT ${ruta}: ${r.status()} ${await r.text()}`);
       return r.json();
     },
+    async patch(ruta, datos) {
+      const r = await contexto.request.patch(`${BASE}/api${ruta}`, { data: datos });
+      if (!r.ok()) throw new Error(`PATCH ${ruta}: ${r.status()} ${await r.text()}`);
+      return r.json();
+    },
   };
   await api.post("/auth/registro", { usuario: "prueba", contrasena: "prueba1234" });
   return { navegador, pagina, api, errores };

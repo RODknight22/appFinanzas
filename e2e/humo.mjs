@@ -27,6 +27,8 @@ const rutas = leerRutas(readFileSync("/rutas/App.tsx", "utf8"));
 
 await prueba("humo", async ({ pagina, api }) => {
   comprobar(rutas.length >= 5, `${rutas.length} rutas encontradas en App.tsx`);
+  // La bienvenida del primer uso taparía todas las capturas: se da por vista (se prueba en bienvenida.mjs).
+  await api.patch("/configuracion", { tutorial_visto: true });
   // Algo de datos para que las páginas no estén todas vacías.
   const cuenta = await api.post("/cuentas", { nombre: "BBVA", tipo: "debito", balance_inicial: "1000" });
   const gasto = (await api.get("/categorias")).find((c) => c.tipo === "gasto");
