@@ -609,6 +609,8 @@ class ConfiguracionRead(SQLModel):
     avatar: str | None
     color_acento: ColorAcento
     estilo_visual: EstiloVisual
+    tinte_personal: int
+    viveza_personal: int
     pagina_inicio: PaginaInicio
     dia_inicio_mes: int
     # null = el frontend usa su disposición por defecto
@@ -636,6 +638,8 @@ class ConfiguracionUpdate(SQLModel):
     avatar: str | None = Field(default=None, max_length=8)
     color_acento: ColorAcento | None = None
     estilo_visual: EstiloVisual | None = None
+    tinte_personal: int | None = Field(default=None, ge=0, le=360)
+    viveza_personal: int | None = Field(default=None, ge=0, le=400)
     pagina_inicio: PaginaInicio | None = None
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)

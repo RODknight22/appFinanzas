@@ -173,7 +173,7 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
   recalculan las transacciones. Hace falta saber qué lado se estimó (`destino_estimado` no lo
   dice): columna opcional nueva con el lado. *Hecho cuando:* una transferencia estimada se
   corrige al llegar la tasa de su día (test), sin tocar los lados reales.
-- [ ] **Estilo personalizado:** elegir tinte y viveza propios además de los 5 estilos. index.css
+- [x] **Estilo personalizado:** elegir tinte y viveza propios además de los 5 estilos. index.css
   ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración (columnas
   opcionales) y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar
   y con buen contraste en claro y oscuro (E2E con capturas).

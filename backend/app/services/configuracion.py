@@ -14,6 +14,10 @@ from app.services import divisas
 from app.services.comun import guardar
 from app.services.errores import ReglaDeNegocioError
 
+# El estilo personalizado empieza con el tono y la intensidad de Fintech (index.css).
+TINTE_POR_DEFECTO = 275
+VIVEZA_POR_DEFECTO = 100
+
 
 def _obtener_fila(session: Session) -> Configuracion:
     """Hay una única fila (id = 1); se crea si aún no existe."""
@@ -55,6 +59,9 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         avatar=configuracion.avatar,
         color_acento=configuracion.color_acento or ColorAcento.ESMERALDA,
         estilo_visual=configuracion.estilo_visual or EstiloVisual.FINTECH,
+        # `is None`: 0 es un valor válido (rojo / gris puro), no "sin elegir".
+        tinte_personal=TINTE_POR_DEFECTO if configuracion.tinte_personal is None else configuracion.tinte_personal,
+        viveza_personal=VIVEZA_POR_DEFECTO if configuracion.viveza_personal is None else configuracion.viveza_personal,
         pagina_inicio=configuracion.pagina_inicio or PaginaInicio.DASHBOARD,
         dia_inicio_mes=configuracion.dia_inicio_mes or 1,
         widgets=widgets,
@@ -112,7 +119,8 @@ def actualizar(session: Session, cambios: ConfiguracionUpdate) -> ConfiguracionR
             setattr(configuracion, campo, (enviados[campo] or "").strip() or None)
 
     for campo in (
-        "color_acento", "estilo_visual", "pagina_inicio", "dia_inicio_mes", "tutorial_visto", "bienvenida_cerrada",
+        "color_acento", "estilo_visual", "tinte_personal", "viveza_personal", "pagina_inicio", "dia_inicio_mes",
+        "tutorial_visto", "bienvenida_cerrada",
         "mostrar_consejos", "recordatorio_diario", "hora_recordatorio",
     ):
         if enviados.get(campo) is not None:
