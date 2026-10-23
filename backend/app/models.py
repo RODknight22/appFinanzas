@@ -263,6 +263,10 @@ class TransferenciaBase(SQLModel):
 
 class Transferencia(TransferenciaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    # True si `monto_destino` lo estimó la app con la tasa del día porque no se dijo lo que
+    # llegó: entonces no refleja el tipo de cambio real y no cuenta en el coste de los envíos.
+    # None entre cuentas de la misma moneda y en las anteriores a este campo.
+    destino_estimado: bool | None = None
 
 
 # ---------------------------------------------------------------------------

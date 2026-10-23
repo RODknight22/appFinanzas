@@ -179,6 +179,20 @@ class TransferenciaCreate(TransferenciaBase):
 class TransferenciaRead(TransferenciaBase):
     id: int
     monto_destino: Decimal  # siempre relleno al guardar
+    # Coste del envío entre monedas frente a la tasa del BCE de su fecha, en la moneda
+    # principal (tipo de cambio + comisión). None si no aplica (misma moneda o estimada).
+    coste: Decimal | None = None
+    coste_porcentaje: Decimal | None = None
+
+
+class CosteEnviosAnio(SQLModel):
+    """Lo que costaron los envíos entre monedas de un año, en la moneda principal."""
+
+    anio: int
+    moneda: Moneda
+    total: Decimal
+    envios: int
+    porcentaje_medio: Decimal | None  # sobre todo lo enviado; None sin envíos
 
 
 class TransferenciaUpdate(SQLModel):

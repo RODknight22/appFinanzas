@@ -24,6 +24,11 @@ export async function iniciar({ ancho = 1280, alto = 900 } = {}) {
       if (!r.ok()) throw new Error(`POST ${ruta}: ${r.status()} ${await r.text()}`);
       return r.status() === 204 ? null : r.json();
     },
+    async put(ruta, datos) {
+      const r = await contexto.request.put(`${BASE}/api${ruta}`, { data: datos });
+      if (!r.ok()) throw new Error(`PUT ${ruta}: ${r.status()} ${await r.text()}`);
+      return r.json();
+    },
   };
   await api.post("/auth/registro", { usuario: "prueba", contrasena: "prueba1234" });
   return { navegador, pagina, api, errores };

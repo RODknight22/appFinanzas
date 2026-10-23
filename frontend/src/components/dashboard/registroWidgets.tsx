@@ -2,12 +2,13 @@
  * Registro de widgets del panel. Para añadir uno nuevo basta con añadirlo a
  * WIDGETS: aparecerá en el panel y en la lista de widgets que se pueden mostrar.
  */
-import { ArrowDownRight, ArrowUpRight, Scale, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, Scale, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import type {
   Categoria,
+  CosteEnviosAnio,
   FlujoMensual,
   GastoDiario,
   GastoPorCategoria,
@@ -22,7 +23,7 @@ import type {
   WidgetDisposicion,
 } from "../../types";
 import type { PagoProximo } from "../../utils/cuentas";
-import { formatearDinero } from "../../utils/formato";
+import { formatearDinero, formatearNumero } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
 import { BarraMeta } from "../metas/BarraMeta";
 import { Tarjeta } from "../ui/Tarjeta";
@@ -53,6 +54,8 @@ export interface DatosPanel {
   metas: Meta[];
   patrimonio: PuntoPatrimonio[];
   diarios: GastoDiario[];
+  /** Coste de los envíos entre monedas del año del mes que se está viendo. */
+  costeEnvios: CosteEnviosAnio;
 }
 
 interface DefinicionWidget {
@@ -176,6 +179,23 @@ export const WIDGETS = {
           </div>
         )}
       </Tarjeta>
+    ),
+  },
+  coste_envios: {
+    titulo: "Coste de tus envíos entre monedas",
+    tamanoPorDefecto: "pequeno",
+    pintar: ({ costeEnvios: { anio, total, moneda, envios, porcentaje_medio } }) => (
+      <TarjetaMetrica
+        titulo={`Coste envíos ${anio}`}
+        valor={formatearDinero(total, moneda)}
+        icono={ArrowRightLeft}
+        tono={Number(total) > 0 ? "negativo" : "neutral"}
+        detalle={
+          envios === 0
+            ? "Indica lo que llegó en tus transferencias entre monedas"
+            : `${envios} ${envios === 1 ? "envío" : "envíos"} · ${formatearNumero(Number(porcentaje_medio), 1)} % frente al BCE`
+        }
+      />
     ),
   },
   saldos: {

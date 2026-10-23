@@ -94,9 +94,10 @@ da tiempo; si no, pasan a la v1.3.
   apartado (efectivo, deudas, deseos y copias incluidos). Se salta con un botón o Esc y se repite
   desde Ajustes. *Dónde:* components/bienvenida/ y `data-tutorial` en Layout.tsx.
 - [ ] **Flecha de las subcuentas a la izquierda** (idea de Rodrigo), más cómoda de pulsar.
-- [ ] **Coste real de cada envío MXN↔EUR:** en transferencias entre monedas, comparar la tasa
-  obtenida con la del BCE de ese día ("perdiste X € (Y %)") y un widget con el total del año.
-  *Dónde:* services/transferencias.py (los datos ya existen), registroWidgets.tsx.
+- [x] **Coste real de cada envío MXN↔EUR:** en transferencias entre monedas, lo que no llegó
+  frente a la tasa del BCE de ese día más la comisión ("Te costó X (Y %)") y un widget con el
+  total del año. Solo cuenta si se indicó lo que llegó (columna `destino_estimado`).
+  *Dónde:* services/transferencias.py, ListaTransferencias.tsx, registroWidgets.tsx.
 - [ ] **Poder adquisitivo:** cuántos euros rindió el ingreso en pesos este mes frente a la media
   de 12 meses. *Dónde:* dashboard + tasas históricas.
 - [ ] **Más monedas** (COP, ARS, GBP, CHF…). Aditivo: el enum `Moneda` se guarda como texto.

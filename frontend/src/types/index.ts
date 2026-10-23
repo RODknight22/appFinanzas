@@ -145,6 +145,22 @@ export interface Transferencia {
   comision: Dinero | null;
   fecha: FechaISO;
   notas: string | null;
+  /**
+   * Coste del envío entre monedas frente a la tasa del BCE de su fecha (tipo de cambio +
+   * comisión), en la moneda principal; negativo si salió mejor. Solo de lectura: null si
+   * es entre la misma moneda o si no se indicó lo que llegó.
+   */
+  coste?: Dinero | null;
+  coste_porcentaje?: string | null;
+}
+
+/** Lo que costaron los envíos entre monedas de un año, en la moneda principal. */
+export interface CosteEnviosAnio {
+  anio: number;
+  moneda: Moneda;
+  total: Dinero;
+  envios: number;
+  porcentaje_medio: string | null;
 }
 
 export interface Presupuesto {

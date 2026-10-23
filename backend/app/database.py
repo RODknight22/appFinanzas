@@ -85,14 +85,16 @@ def init_db() -> None:
 
 
 def _descargar_tasas() -> None:
-    from app.models import Transaccion
+    from app.models import Transaccion, Transferencia
     from app.services import divisas
 
     with Session(engine) as session:
         divisas.asegurar_tasas_del_dia(session)
         # Rellena los días pasados sin tasa (p. ej. lo anotado antes de instalar la app)
         # y corrige lo que se convirtió con una tasa aproximada.
-        primera = session.exec(select(func.min(Transaccion.fecha))).one()
+        # También las transferencias: el coste de un envío se mide con la tasa de su fecha.
+        fechas = [session.exec(select(func.min(modelo.fecha))).one() for modelo in (Transaccion, Transferencia)]
+        primera = min((fecha for fecha in fechas if fecha is not None), default=None)
         if primera is not None:
             divisas.asegurar_tasas_historicas(session, primera)
             session.commit()
