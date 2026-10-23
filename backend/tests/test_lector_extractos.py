@@ -39,6 +39,21 @@ def test_importes_en_cualquier_formato(texto: str, esperado: str | None) -> None
     assert (str(resultado) if resultado is not None else None) == esperado
 
 
+def test_fila_con_miles_de_columnas_no_cuelga_la_lectura() -> None:
+    # 120.000 columnas con cualquier separador: antes montaba una tabla de miles de millones
+    # de celdas al buscar qué columna es cada dato.
+    lineas = ["Fecha;Concepto;Importe", ";,|\t" * 120_000]
+    lineas += [f"0{d}/03/2026;Compra {d};-1{d},00" for d in range(1, 10)] * 2_000
+    contenido = "\n".join(lineas).encode()
+    assert len(contenido) < 1_000_000  # cabe en el límite de subida
+    assert len(leer_extracto(contenido).movimientos) == 18_000
+
+
+def test_csv_con_una_celda_gigante_da_un_error_claro() -> None:
+    with pytest.raises(ReglaDeNegocioError, match="dañado"):
+        leer_extracto(b"Fecha;Concepto;Importe\n01/03/2026;" + b"x" * 200_000 + b";-5,00\n")
+
+
 def test_banco_espanol_con_titular_antes_de_la_tabla_y_latin1() -> None:
     """Separador `;`, coma decimal, fecha valor, saldo, y en Windows-1252 (no UTF-8)."""
     contenido = (
