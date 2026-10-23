@@ -22,7 +22,7 @@ export function ListaSaldos({ cuentas }: { cuentas: SaldoCuenta[] }) {
               <span className="ml-2 text-xs text-tenue">{TIPOS_CUENTA[cuenta.tipo].etiqueta}</span>
             </span>
             <span className="text-right">
-              <span className={`block font-semibold tabular-nums ${Number(cuenta.saldo) < 0 ? "text-rose-600" : ""}`}>
+              <span className={`block font-semibold tabular-nums ${Number(cuenta.saldo) < 0 ? "text-gasto" : ""}`}>
                 {formatearDinero(cuenta.saldo, cuenta.moneda)}
               </span>
               {/* Si la cuenta está en otra divisa, su equivalente en la principal */}

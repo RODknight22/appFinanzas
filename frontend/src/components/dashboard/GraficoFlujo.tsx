@@ -13,9 +13,9 @@ import type { FlujoMensual } from "../../types";
 import { formatearDinero, formatearMes } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
 
-// Tonos 400: menos saturados que los 500, se ven más suaves sobre fondo oscuro.
-const COLOR_INGRESOS = "#34d399";
-const COLOR_GASTOS = "#fb7185";
+// Los colores de index.css: siguen al modo claro u oscuro sin que el gráfico lo sepa.
+const COLOR_INGRESOS = "var(--color-ingreso)";
+const COLOR_GASTOS = "var(--color-gasto)";
 
 /** Tooltip propio con clases de Tailwind, para que respete el modo oscuro. */
 function TooltipFlujo({ active, payload, label }: TooltipProps<number, string>) {

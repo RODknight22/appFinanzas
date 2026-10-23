@@ -122,7 +122,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
             onClick={() => cambiarTipo(opcion)}
             className={`rounded-lg py-2 text-sm font-medium capitalize transition ${
               tipo === opcion
-                ? opcion === "gasto" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                ? opcion === "gasto" ? "bg-gasto-fuerte text-white" : "bg-ingreso-fuerte text-white"
                 : "text-tenue"
             }`}
           >

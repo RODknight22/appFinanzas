@@ -56,7 +56,7 @@ export function CelebracionHito({ celebracion, onCerrar }: { celebracion: Celebr
               fill="none"
               strokeWidth="10"
               strokeLinecap="round"
-              className={`transition-[stroke-dashoffset] duration-1000 ease-out ${hito === 100 ? "stroke-emerald-400" : "stroke-acento-400"}`}
+              className={`transition-[stroke-dashoffset] duration-1000 ease-out ${hito === 100 ? "stroke-exito" : "stroke-acento-400"}`}
               strokeDasharray={CIRCUNFERENCIA}
               strokeDashoffset={CIRCUNFERENCIA * (1 - lleno / 100)}
             />

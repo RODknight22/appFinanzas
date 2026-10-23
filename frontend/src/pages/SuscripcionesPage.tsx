@@ -81,7 +81,7 @@ export function SuscripcionesPage() {
                     {suscripciones.map((suscripcion) => {
                       const dias = diasHasta(suscripcion.fecha_proximo_pago);
                       // Rojo si está atrasada, ámbar si vence en una semana.
-                      const colorFecha = dias < 0 ? "text-rose-600" : dias <= 7 ? "text-amber-600" : "text-tenue";
+                      const colorFecha = dias < 0 ? "text-peligro" : dias <= 7 ? "text-amber-600" : "text-tenue";
                       return (
                         <li key={suscripcion.id} className="flex flex-wrap items-center gap-3 py-3">
                           <span className="rounded-lg bg-superficie-2 p-2.5 text-tenue">

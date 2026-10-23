@@ -101,13 +101,13 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
                       <span className="min-w-0 flex-1 truncate text-tenue">
                         {formatearFecha(a.fecha)}{a.notas && ` · ${a.notas}`}
                       </span>
-                      <span className={`tabular-nums font-medium ${negativa ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                      <span className={`tabular-nums font-medium ${negativa ? "text-gasto" : "text-ingreso"}`}>
                         {negativa ? "−" : "+"}{formatearDinero(Math.abs(Number(a.monto)), meta.moneda)}
                       </span>
                       <button
                         type="button"
                         aria-label="Eliminar aportación"
-                        className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-rose-600"
+                        className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-peligro"
                         onClick={() => confirmarYEliminar("¿Eliminar esta aportación?", () => metasApi.eliminarAportacion(meta.id, a.id), despuesDeCambiar)}
                       >
                         <Trash2 size={14} />

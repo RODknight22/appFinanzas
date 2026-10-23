@@ -20,7 +20,7 @@ export function ListaCobros({ cobros }: { cobros: IngresoRecurrente[] }) {
               {textoVencimiento(cobro.fecha_proximo_cobro)} · {formatearFecha(cobro.fecha_proximo_cobro)}
             </span>
           </span>
-          <span className="font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+          <span className="font-medium tabular-nums text-ingreso">
             +{formatearDinero(cobro.monto, cobro.moneda)}
           </span>
         </li>

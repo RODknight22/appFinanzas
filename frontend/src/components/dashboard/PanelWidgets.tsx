@@ -108,7 +108,7 @@ function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar, solitar
               </button>
             ))}
           </div>
-          <button type="button" onClick={onOcultar} aria-label={`Ocultar ${definicion.titulo}`} title="Ocultar" className="rounded p-1 text-tenue hover:bg-realce hover:text-rose-600">
+          <button type="button" onClick={onOcultar} aria-label={`Ocultar ${definicion.titulo}`} title="Ocultar" className="rounded p-1 text-tenue hover:bg-realce hover:text-peligro">
             <EyeOff size={16} />
           </button>
         </div>

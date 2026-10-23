@@ -36,7 +36,7 @@ function Toast({ aviso }: { aviso: Aviso }) {
       <Icono
         size={18}
         aria-hidden="true"
-        className={`mt-0.5 shrink-0 ${esError ? "text-rose-600 dark:text-rose-400" : "text-acento-600 dark:text-acento-400"}`}
+        className={`mt-0.5 shrink-0 ${esError ? "text-peligro" : "text-acento-600 dark:text-acento-400"}`}
       />
       <p className="min-w-0 flex-1 break-words">{aviso.texto}</p>
       <button

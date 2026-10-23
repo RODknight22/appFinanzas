@@ -32,7 +32,7 @@ export function AccionesFila({ onEditar, onEliminar, nombre, motivoNoEliminar }:
           <Trash2 size={16} />
         </button>
       ) : (
-        <button type="button" onClick={onEliminar} aria-label={`Eliminar${sufijo}`} className={`${clase} hover:text-rose-600`}>
+        <button type="button" onClick={onEliminar} aria-label={`Eliminar${sufijo}`} className={`${clase} hover:text-peligro`}>
           <Trash2 size={16} />
         </button>
       )}

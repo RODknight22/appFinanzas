@@ -3,9 +3,9 @@ import { formatearDinero, formatearPorcentaje } from "../../utils/formato";
 
 /** Verde hasta el 75 %, ámbar hasta el 100 % y rojo si se excede. */
 function colorBarra(porcentaje: number): string {
-  if (porcentaje > 100) return "bg-rose-500";
+  if (porcentaje > 100) return "bg-peligro";
   if (porcentaje >= 75) return "bg-amber-500";
-  return "bg-emerald-500";
+  return "bg-exito";
 }
 
 /** Barra de progreso de un presupuesto: cuánto se ha gastado del límite. */
@@ -35,7 +35,7 @@ export function BarraPresupuesto({ progreso }: { progreso: ProgresoPresupuesto }
       >
         <div className={`h-full rounded-full transition-all ${colorBarra(progreso.porcentaje)}`} style={{ width: `${ancho}%` }} />
       </div>
-      <p className={`mt-1 text-xs ${progreso.excedido ? "text-rose-600 dark:text-rose-400" : "text-tenue"}`}>
+      <p className={`mt-1 text-xs ${progreso.excedido ? "text-peligro" : "text-tenue"}`}>
         {progreso.excedido
           ? `Excedido en ${formatearDinero(-restante, progreso.moneda)} (${formatearPorcentaje(progreso.porcentaje)})`
           : `Quedan ${formatearDinero(restante, progreso.moneda)} (${formatearPorcentaje(progreso.porcentaje)} usado)`}

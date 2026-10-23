@@ -25,7 +25,7 @@ export function ListaUltimas({ transacciones, categorias }: ListaUltimasProps) {
               <span className="block truncate font-medium">{transaccion.notas || categoria?.nombre}</span>
               <span className="text-xs text-tenue">{formatearFecha(transaccion.fecha)}</span>
             </span>
-            <span className={`font-medium tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+            <span className={`font-medium tabular-nums ${esGasto ? "text-gasto" : "text-ingreso"}`}>
               {esGasto ? "−" : "+"}
               {formatearDinero(transaccion.monto, transaccion.moneda)}
             </span>

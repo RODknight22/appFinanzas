@@ -151,7 +151,7 @@ export function FormularioRegistroRapido({ categorias, cuentas, cuentaInicial, o
             onClick={() => setTipo(opcion)}
             className={`rounded-lg py-2 text-sm font-medium capitalize transition ${
               tipo === opcion
-                ? opcion === "gasto" ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                ? opcion === "gasto" ? "bg-gasto-fuerte text-white" : "bg-ingreso-fuerte text-white"
                 : "text-tenue"
             }`}
           >
@@ -242,8 +242,8 @@ export function FormularioRegistroRapido({ categorias, cuentas, cuentaInicial, o
 
       {ultima && (
         // key: la animación se repite con cada movimiento nuevo.
-        <div key={ultima.id} role="status" className="flex animate-pop items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-2 text-sm">
-          <Check size={16} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <div key={ultima.id} role="status" className="flex animate-pop items-center gap-2 rounded-xl bg-exito/10 px-3 py-2 text-sm">
+          <Check size={16} className="shrink-0 text-exito" />
           <span className="min-w-0 flex-1 truncate">
             {ultima.tipo === "gasto" ? "Gasto" : "Ingreso"} de <strong className="tabular-nums">{formatearDinero(ultima.monto, ultima.moneda)}</strong>{" "}
             en {nombreCategoria(ultima.categoria_id)}

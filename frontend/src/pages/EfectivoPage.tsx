@@ -166,7 +166,7 @@ export function EfectivoPage() {
                     <p className="flex items-center gap-2 text-sm font-semibold text-tenue">
                       <Banknote size={16} /> {s.nombre}
                     </p>
-                    <p className={`mt-1 text-2xl font-bold tabular-nums ${Number(s.saldo) < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
+                    <p className={`mt-1 text-2xl font-bold tabular-nums ${Number(s.saldo) < 0 ? "text-gasto" : ""}`}>
                       {formatearDinero(s.saldo, s.moneda)}
                     </p>
                     {/* Saldo negativo: faltan movimientos por anotar (no se puede deber efectivo). */}
@@ -305,7 +305,7 @@ function FilaMovimientoCartera({ transferencia: t, origen, destino }: FilaMovimi
           {t.notas && ` · ${t.notas}`}
         </p>
       </div>
-      <span className={`font-semibold tabular-nums ${esRetiro ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+      <span className={`font-semibold tabular-nums ${esRetiro ? "text-ingreso" : "text-gasto"}`}>
         {esRetiro ? "+" : "−"}
         {cartera && formatearDinero(monto, cartera.moneda)}
       </span>

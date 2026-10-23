@@ -26,7 +26,7 @@ export function BarraMeta({ meta, conNombre = false }: { meta: Meta; conNombre?:
         aria-label={`Progreso de ${meta.nombre}`}
       >
         <div
-          className={`h-full rounded-full transition-all duration-700 ${meta.cumplida ? "bg-emerald-500" : "bg-acento-500"}`}
+          className={`h-full rounded-full transition-all duration-700 ${meta.cumplida ? "bg-exito" : "bg-acento-500"}`}
           style={{ width: `${ancho}%` }}
         />
       </div>

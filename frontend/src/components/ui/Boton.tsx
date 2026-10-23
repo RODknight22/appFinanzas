@@ -6,7 +6,7 @@ const ESTILOS: Record<Variante, string> = {
   primario: "bg-acento-600 text-white hover:bg-acento-500",
   secundario:
     "bg-superficie-2 text-texto ring-1 ring-linea hover:bg-realce",
-  peligro: "bg-rose-600 text-white hover:bg-rose-700",
+  peligro: "bg-peligro-fuerte text-white hover:bg-peligro-fuerte/85",
   fantasma:
     "text-tenue hover:bg-realce hover:text-texto",
 };

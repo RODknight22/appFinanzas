@@ -14,7 +14,7 @@ export function Cargando({ conRetraso = false }: { conRetraso?: boolean }) {
 
 export function MensajeError({ mensaje, onReintentar }: { mensaje: string; onReintentar?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-rose-600 dark:text-rose-400">
+    <div className="flex flex-col items-center gap-3 py-10 text-center text-sm text-peligro">
       <AlertTriangle size={24} />
       <p>{mensaje}</p>
       {onReintentar && (

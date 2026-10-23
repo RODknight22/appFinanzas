@@ -8,14 +8,14 @@ type Tono = "neutral" | "positivo" | "negativo";
 
 const TONOS: Record<Tono, string> = {
   neutral: "bg-superficie-2 text-suave",
-  positivo: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
-  negativo: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+  positivo: "bg-ingreso/15 text-ingreso",
+  negativo: "bg-gasto/15 text-gasto",
 };
 
 const COLOR_SERIE: Record<Tono, string> = {
   neutral: "text-acento-500",
-  positivo: "text-emerald-500",
-  negativo: "text-rose-500",
+  positivo: "text-ingreso",
+  negativo: "text-gasto",
 };
 
 interface TarjetaMetricaProps {
@@ -42,8 +42,8 @@ function Variacion({ serie, subirEsMalo, destacada }: { serie: number[]; subirEs
   const color = destacada
     ? "bg-white/15 text-white"
     : buena
-      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-      : "bg-rose-500/15 text-rose-600 dark:text-rose-400";
+      ? "bg-ingreso/15 text-ingreso"
+      : "bg-gasto/15 text-gasto";
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${color}`} title="Respecto al mes anterior">
       <Icono size={12} /> {formatearPorcentaje(Math.abs(cambio))}

@@ -73,8 +73,8 @@ export function TransaccionesPage() {
 
               {pagina && (
                 <div className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                  <span>Ingresos: <strong className="text-emerald-600 tabular-nums">{formatearDinero(pagina.total_ingresos)}</strong></span>
-                  <span>Gastos: <strong className="text-rose-600 tabular-nums">{formatearDinero(pagina.total_gastos)}</strong></span>
+                  <span>Ingresos: <strong className="text-ingreso tabular-nums">{formatearDinero(pagina.total_ingresos)}</strong></span>
+                  <span>Gastos: <strong className="text-gasto tabular-nums">{formatearDinero(pagina.total_gastos)}</strong></span>
                   <span className="text-tenue">{pagina.total} movimiento{pagina.total === 1 ? "" : "s"}</span>
                 </div>
               )}
