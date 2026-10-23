@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronDown, CornerDownRight, CreditCard, Pin, PinOff, Sparkles } from "lucide-react";
+import { CalendarClock, ChevronRight, CornerDownRight, CreditCard, Pin, PinOff, Sparkles } from "lucide-react";
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
@@ -102,6 +102,25 @@ export function FilaCuenta(props: FilaCuentaProps) {
     <li className={subcuenta ? "py-3 pl-6 sm:pl-10" : "py-4"}>
       <div className="flex items-start gap-3 sm:gap-4">
         {subcuenta && <CornerDownRight size={16} className="mt-3 -mr-1 shrink-0 text-tenue-2 sm:-mr-2" aria-hidden />}
+        {/* Hueco fijo para la flecha en todas las cuentas madre: así los nombres quedan en la
+            misma columna tengan subcuentas o no. */}
+        {!subcuenta && (
+          <span className="flex w-6 shrink-0 justify-center">
+            {plegado && (
+              <button
+                type="button"
+                onClick={plegado.onAlternar}
+                aria-expanded={!plegado.plegada}
+                aria-label={`${plegado.plegada ? "Mostrar" : "Ocultar"} ${plegado.cantidad} subcuentas`}
+                title={`${plegado.plegada ? "Mostrar" : "Ocultar"} subcuentas (${plegado.cantidad})`}
+                className="flex min-h-10 w-full flex-col items-center justify-center rounded-lg text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+              >
+                <ChevronRight size={16} className={`transition-transform ${plegado.plegada ? "" : "rotate-90"}`} />
+                {plegado.plegada && <span className="text-[10px] font-semibold leading-none tabular-nums">{plegado.cantidad}</span>}
+              </button>
+            )}
+          </span>
+        )}
         <span className="rounded-xl bg-superficie-2 p-2.5 text-suave">
           <Icono size={subcuenta ? 16 : 20} />
         </span>
@@ -129,19 +148,6 @@ export function FilaCuenta(props: FilaCuentaProps) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          {plegado && (
-            <button
-              type="button"
-              onClick={plegado.onAlternar}
-              aria-expanded={!plegado.plegada}
-              aria-label={`${plegado.plegada ? "Mostrar" : "Ocultar"} ${plegado.cantidad} subcuentas`}
-              title={`${plegado.plegada ? "Mostrar" : "Ocultar"} subcuentas (${plegado.cantidad})`}
-              className="flex items-center gap-0.5 rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
-            >
-              {plegado.plegada && <span className="text-xs font-semibold tabular-nums">{plegado.cantidad}</span>}
-              <ChevronDown size={16} className={`transition-transform ${plegado.plegada ? "-rotate-90" : ""}`} />
-            </button>
-          )}
           <button
             type="button"
             onClick={onFijar}
@@ -154,9 +160,9 @@ export function FilaCuenta(props: FilaCuentaProps) {
           <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
         </div>
       </div>
-      {/* Detalles debajo y alineados con el nombre (pl-14 = ancho del icono + hueco):
-          así en móvil usan todo el ancho en vez de una columna estrecha. */}
-      <div className="sm:pl-14">
+      {/* Detalles debajo y alineados con el nombre (pl-14 = icono + hueco; pl-24 suma la columna
+          de la flecha): así en móvil usan todo el ancho en vez de una columna estrecha. */}
+      <div className={subcuenta ? "sm:pl-14" : "sm:pl-24"}>
         {esCredito && <DetalleCredito cuenta={cuenta} saldo={saldo} onPagar={onPagar} />}
         {cuenta.tipo === "rendimientos" && (
           <DetalleRendimientos cuenta={cuenta} saldo={saldo} onRegistrar={onRegistrarRendimientos} />
