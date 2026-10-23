@@ -68,8 +68,8 @@ export function useDatos<T>(cargar: () => Promise<T>, dependencias: unknown[], c
     return () => {
       vigente = false;
     };
-    // claveCache no hace falta en la lista: se deriva de `dependencias`, que ya están en cargarMemo.
-  }, [cargarMemo, version]);
+    // claveCache es un texto: cambia justo cuando cambian `dependencias` (no añade recargas).
+  }, [cargarMemo, claveCache, version]);
 
   const recargar = useCallback(() => setVersion((v) => v + 1), []);
 
