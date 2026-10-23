@@ -1,6 +1,7 @@
 import { MONEDAS } from "../../config";
 import { useConfiguracion } from "../../hooks/useConfiguracion";
 import type { Moneda } from "../../types";
+import { confirmar } from "../ui/tablonAvisos";
 import { Tarjeta } from "../ui/Tarjeta";
 import { avisarError } from "./avisarError";
 
@@ -22,7 +23,7 @@ export function SeccionMonedas() {
       `¿Usar ${codigo} como moneda principal?\n\n` +
       "Los totales, gráficos y presupuestos pasarán a mostrarse en esta moneda. " +
       "Cada transacción se reconvertirá con la tasa de su fecha.";
-    if (!window.confirm(aviso)) return;
+    if (!(await confirmar(aviso, { textoAceptar: `Usar ${codigo}` }))) return;
     await actualizarConfiguracion({ moneda: codigo }).catch(avisarError);
   }
 

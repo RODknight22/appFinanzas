@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+import { avisarError } from "../components/ajustes/avisarError";
+import { confirmar } from "../components/ui/tablonAvisos";
+
 /**
  * Gestiona el envío de un formulario: desactiva el botón mientras se guarda
  * y guarda el mensaje de error de la API para mostrarlo.
@@ -32,11 +35,11 @@ export async function confirmarYEliminar(
   eliminar: () => Promise<void>,
   alTerminar: () => void,
 ): Promise<void> {
-  if (!window.confirm(mensaje)) return;
+  if (!(await confirmar(mensaje, { textoAceptar: "Eliminar", peligro: true }))) return;
   try {
     await eliminar();
     alTerminar();
   } catch (e) {
-    window.alert(e instanceof Error ? e.message : String(e));
+    avisarError(e);
   }
 }
