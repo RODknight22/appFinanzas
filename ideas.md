@@ -43,17 +43,25 @@ Ejemplo:
 
 ## 📥 Bandeja de entrada
 
-- [ ] En el Dashboard la parte donde aparece el mes y el año mejoralo para que puedas regresar al mes actual facil e ir a meses que estan muy atras mas facil tambie. Implementa esto a ka pestaña de transacciones
+<!-- Vacía: Claude movió tus ideas a su sección. Sigue escribiendo aquí. -->
 
-- [ ] Me gustaria mejorar los widgets y su personalizacion (Tamaño y como muestr los datos, tambien agregar mas widgets)
-
-- [ ] Actualizar el paso a paso de cuado inicias la app para explicar las nuevas funciones tambien, lo quiero hacer rapido y entretenido para que metan los datos basicos
-
-- [ ] Mejorar la pestaña de personalizacion y no me gustaron los iconos que tienen los fondos ni la descripcion de la primera
+- [ ]
 
 ## ✨ Funciones nuevas
 
 <!-- Cosas que la app aún no hace. -->
+
+- [>] Selector de mes más ágil en Dashboard y Transacciones: volver al mes actual fácil y
+  saltar a meses lejanos #funcion → hoja de ruta v1.2
+  - 💬 Claude: propuesta: botón "Hoy" que aparece cuando no estás en el mes actual, y al pulsar
+    el nombre del mes, una cuadrícula con los 12 meses y flechas para cambiar de año.
+  - 🗣️ Rodrigo:
+- [>] Bienvenida al día: explicar lo nuevo, rápida y entretenida, para meter los datos básicos
+  #funcion → hoja de ruta v1.2
+  - 💬 Claude: ¿qué datos básicos son imprescindibles para ti? Propongo: moneda principal,
+    primera cuenta con su saldo y, opcional, el sueldo como ingreso fijo. Con eso el panel ya
+    tiene sentido desde el primer minuto.
+  - 🗣️ Rodrigo:
 
 ## 🐛 Arreglos (fixes)
 
@@ -71,7 +79,7 @@ Ejemplo:
   - 💬 Claude: hecho. Menú: "Metas" (Metas | Deseos) y "Pagos fijos"
     (Suscripciones | Ingresos fijos). El menú pasa de 10 a 8 entradas. Las direcciones
     viejas (/deseos, /suscripciones, /ingresos) siguen funcionando.
-- [ ] Ordenar Ajustes y hacerlo más bonito #mejora
+- [>] Ordenar Ajustes y hacerlo más bonito #mejora → hoja de ruta v1.1 (tarea 1 del plan)
   - 💬 Claude: con pestañas, como elegiste. Va después de fusionar la PR #8, porque reutiliza
     su componente de pestañas. Propuesta de grupos:
     - **Perfil:** foto y nombre, preferencias (página de inicio, mes), recordatorios.
@@ -80,6 +88,18 @@ Ejemplo:
     - **Seguridad y datos:** contraseña y copia de seguridad.
   - 💬 Claude: ¿te cuadra así o moverías algo? Si no contestas, lo hago tal cual.
   - 🗣️ Rodrigo:
+  - 💬 Claude (23/10): sin respuesta, así que va con estos grupos. Si quieres mover algo,
+    escríbelo aquí antes de que empiece la tarea.
+- [>] Mejorar la pestaña de personalización: no gustan los iconos de los estilos ni la
+  descripción del primero #mejora → v1.1, dentro de la tarea de Ajustes
+  - 💬 Claude: ¿qué te gustaría en lugar de los iconos? Opciones: una mini vista previa de los
+    colores de cada estilo (recomendada: se ve el resultado antes de elegir), un icono distinto
+    o nada. Y de la descripción del primero, ¿qué no te gustó, el texto o el tono?
+  - 🗣️ Rodrigo:
+- [>] Widgets más personalizables: tamaños, cómo muestran los datos y widgets nuevos
+  #mejora → hoja de ruta v1.3
+  - 💬 Claude: es grande, así que va después de publicar. Cuando llegue, dime qué widgets
+    echas de menos y qué datos quieres ver distinto.
 
 ## 🧭 Siguientes pasos
 
@@ -88,9 +108,10 @@ Ejemplo:
 - [x] ~~Desarrollo con BD propia (data-dev/) y defensas en el puerto 8000~~ → hecho (PR #6)
   - 💬 Claude: de la hoja de ruta v1.1. Tras fusionarla, `docker compose` arranca con la app
     vacía: si quieres tus datos de prueba, copia data/finance.db a data-dev/ con la app parada.
-- [~] CI completo: E2E y linters (ruff, eslint) en GitHub → PR #9
-- [ ] Lo que queda de v1.1: release más seguro y publicar la v1.1.0.
-- [ ] Ajustes con pestañas: espera a que se fusione la sesión de apariencia (tocan lo mismo).
+- [x] ~~CI completo: E2E y linters (ruff, eslint) en GitHub~~ → hecho (PR #9)
+- [x] ~~Release más seguro~~ → hecho (PR #11)
+- [ ] Terminar la v1.1: Ajustes con pestañas → publicar v1.1.0 → probar el release en la
+  laptop. El plan completo está en docs/hoja-de-ruta.md (PR #14).
 
 ## 💭 Conceptos e ideas abstractas
 
