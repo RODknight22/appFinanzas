@@ -49,8 +49,6 @@ Ejemplo:
 
 - [ ] Me gusta, pero la parte del tutorial donde te dice donde esta cada cosa estaria mejor que te la explicara con glovos de texto y la parte de los "desafios" haz que si ellos abren la cuenta, ponen una meta, etc se marque sola como completada. Tambien me gustaria que la parte de donde metes la transacciones cuando las importas, tengan un boton de aceptarlas mas rapido ya que los estados de cuenta podrian tener muchas transacciones y estar picando y bajando es tedioso, igual no se si haya alguna foma de darle una categoria por defecto sin que el usuario la tenga que elegir forzosamente o sea que el programa identifique en que categoria entra "Solo si es posible"
 
-- [ ] Conexion con Drive y otras aplicaciones como claude, chatgpt, gemini, etc MCP server. 
-
 ## ✨ Funciones nuevas
 
 <!-- Cosas que la app aún no hace. -->
@@ -140,6 +138,15 @@ Ejemplo:
   laptop. El plan completo está en docs/hoja-de-ruta.md (PR #14).
 
 ## 💭 Conceptos e ideas abstractas
+
+- [ ] Conexión con Drive y con asistentes (Claude, ChatGPT, Gemini…) mediante un servidor MCP
+  #concepto
+  - 💬 Claude (23/10): buena idea y encaja: un servidor MCP dejaría que un asistente consulte tus
+    finanzas ("¿cuánto gasté en restaurantes este mes?"). Es grande y toca la privacidad (hoy
+    nada sale de tu ordenador), así que la propongo para después de la v1.3. Dos preguntas:
+    1. ¿Para qué la quieres? ¿Preguntar a un asistente, guardar copias en Drive o las dos?
+    2. ¿Solo leer o también que el asistente apunte gastos por ti?
+  - 🗣️ Rodrigo:
 
 <!-- Ideas grandes o difusas: "¿y si la app...?", modelos de negocio, visión a largo plazo. -->
 
