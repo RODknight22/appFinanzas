@@ -123,6 +123,13 @@ Ejemplo:
   #mejora → hoja de ruta v1.3
   - 💬 Claude: es grande, así que va después de publicar. Cuando llegue, dime qué widgets
     echas de menos y qué datos quieres ver distinto.
+  - 💬 Claude (23/10): entra en la v1.3 (tarea 5). Para diseñarlo necesito tres cosas:
+    1. ¿Qué widgets echas de menos? Ideas: gasto por cuenta, comparar este mes con el anterior,
+       próximo cobro destacado, top 5 comercios del mes, ahorro del año.
+    2. ¿Qué quieres ver distinto en los que ya hay? (p. ej. categorías en barras en vez de
+       dona, el calendario por semanas…)
+    3. ¿Qué tamaños te faltan? Hoy hay pequeño, mediano y ancho.
+  - 🗣️ Rodrigo:
 
 ## 🧭 Siguientes pasos
 
