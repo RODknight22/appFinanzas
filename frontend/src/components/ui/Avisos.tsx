@@ -57,14 +57,17 @@ function DialogoConfirmar({ confirmacion }: { confirmacion: Confirmacion }) {
   const [anterior] = useState(() => document.activeElement as HTMLElement | null);
 
   // Al abrir, el foco pasa a "Aceptar" (Intro confirma); al cerrar vuelve a donde estaba.
+  // Si la acción es peligrosa (borrar), empieza en "Cancelar": un Intro por inercia no borra nada.
+  const peligro = confirmacion.peligro;
   useEffect(() => {
-    dialogo.current?.querySelector<HTMLButtonElement>("[data-aceptar]")?.focus();
+    dialogo.current?.querySelector<HTMLButtonElement>(peligro ? "[data-cancelar]" : "[data-aceptar]")?.focus();
     return () => anterior?.focus();
-  }, [anterior]);
+  }, [anterior, peligro]);
 
   function alPulsarTecla(evento: KeyboardEvent) {
     if (evento.key === "Escape") {
       evento.preventDefault();
+      evento.stopPropagation(); // que no cierre también el modal de debajo (escucha en window)
       confirmacion.responder(false);
     } else if (evento.key === "Enter" && !(evento.target instanceof HTMLButtonElement)) {
       // Sobre un botón, Intro ya lo pulsa (así Intro en "Cancelar" cancela).
@@ -107,7 +110,7 @@ function DialogoConfirmar({ confirmacion }: { confirmacion: Confirmacion }) {
           </p>
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-2">
-          <Boton variante="secundario" onClick={() => confirmacion.responder(false)}>
+          <Boton data-cancelar variante="secundario" onClick={() => confirmacion.responder(false)}>
             Cancelar
           </Boton>
           <Boton data-aceptar variante={confirmacion.peligro ? "peligro" : "primario"} onClick={() => confirmacion.responder(true)}>
