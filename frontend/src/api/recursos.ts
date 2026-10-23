@@ -3,6 +3,7 @@
  * Las páginas usan esto en lugar de escribir URLs a mano.
  */
 import type {
+  AjusteSaldo,
   AportacionMeta,
   Categoria,
   CobroIngreso,
@@ -73,6 +74,11 @@ export const cuentasApi = {
   ...crearRecurso<Cuenta>("/cuentas"),
   registrarRendimientos: (id: number) =>
     http.post<Transaccion>(`/cuentas/${id}/registrar-rendimientos`, {}),
+  listarAjustes: (id: number) => http.get<AjusteSaldo[]>(`/cuentas/${id}/ajustes`),
+  /** `saldo_real` en la moneda de la cuenta (negativo en una tarjeta con deuda). */
+  ajustarSaldo: (id: number, datos: { saldo_real: string; notas: string | null }) =>
+    http.post<AjusteSaldo>(`/cuentas/${id}/ajustes`, datos),
+  deshacerAjuste: (id: number, ajusteId: number) => http.delete(`/cuentas/${id}/ajustes/${ajusteId}`),
 };
 
 export const categoriasApi = crearRecurso<Categoria, { tipo?: TipoMovimiento }>("/categorias");

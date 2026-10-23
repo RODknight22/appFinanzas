@@ -1,9 +1,10 @@
-import { ArrowDownToLine, ArrowRight, ArrowUpFromLine, Banknote, Plus, Zap } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpFromLine, Banknote, Plus, Scale, Zap } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
 import { dashboardApi } from "../api/dashboard";
 import { categoriasApi, cuentasApi, transaccionesApi, transferenciasApi } from "../api/recursos";
+import { PanelAjusteSaldo } from "../components/cuentas/PanelAjusteSaldo";
 import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { FormularioGastoRapido } from "../components/formularios/FormularioGastoRapido";
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
@@ -14,9 +15,10 @@ import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { avisar } from "../components/ui/tablonAvisos";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
-import type { Cuenta, Transaccion, Transferencia } from "../types";
+import type { AjusteSaldo, Cuenta, Transaccion, Transferencia } from "../types";
 import { ordenarPorUso } from "../utils/categorias";
 import { formatearDinero, formatearFecha, mesActual, rangoDelMes } from "../utils/formato";
 
@@ -28,7 +30,8 @@ type EstadoModal =
   | { modo: "gasto" }
   | { modo: "cartera" }
   | { modo: "transferir"; titulo: string; sentido: SentidoTransferencia }
-  | { modo: "editar"; transaccion: Transaccion };
+  | { modo: "editar"; transaccion: Transaccion }
+  | { modo: "ajustar"; cartera: Cuenta };
 
 /** Un movimiento de efectivo: una transacción (gasto/ingreso) o un retiro/depósito. */
 type Movimiento =
@@ -77,7 +80,13 @@ export function EfectivoPage() {
     estado.recargar();
   }
 
+  function alAjustar(cartera: Cuenta, ajuste: AjusteSaldo) {
+    avisar(`Cartera «${cartera.nombre}» cuadrada (${formatearDinero(ajuste.diferencia, cartera.moneda)}).`);
+    alGuardar();
+  }
+
   const datos = estado.datos;
+  const saldoDe = (cartera: Cuenta) => datos?.saldos.find((s) => s.cuenta_id === cartera.id)?.saldo ?? "0";
   const cartera = datos?.carteras[0];
   const banco = datos && bancoPorDefecto(datos.cuentas);
 
@@ -165,6 +174,17 @@ export function EfectivoPage() {
                     {Number(s.saldo) >= 0 && s.moneda !== saldos[0]?.moneda && (
                       <p className="mt-2 text-xs text-tenue tabular-nums">≈ {formatearDinero(s.saldo_principal)}</p>
                     )}
+                    {/* Contar los billetes y escribir lo que hay: lo más rápido para que cuadre. */}
+                    <Boton
+                      variante="fantasma"
+                      className="mt-2 -ml-2 px-2 py-1 text-xs"
+                      onClick={() => {
+                        const cartera = carteras.find((c) => c.id === s.cuenta_id);
+                        if (cartera) setModal({ modo: "ajustar", cartera });
+                      }}
+                    >
+                      <Scale size={14} /> Cuadrar con lo que hay
+                    </Boton>
                   </Tarjeta>
                 ))}
               </div>
@@ -235,6 +255,17 @@ export function EfectivoPage() {
             onCancelar={() => setModal(null)}
           />
         )}
+        {datos && modal?.modo === "ajustar" && (
+          <PanelAjusteSaldo
+            // Con el saldo en la key: al deshacer un ajuste, el campo empieza de nuevo con el saldo nuevo.
+            key={`${modal.cartera.id}:${saldoDe(modal.cartera)}`}
+            cuenta={modal.cartera}
+            saldo={Number(saldoDe(modal.cartera))}
+            onAjustado={(ajuste) => alAjustar(modal.cartera, ajuste)}
+            onCambio={estado.recargar}
+            onCancelar={() => setModal(null)}
+          />
+        )}
       </Modal>
     </>
   );
@@ -244,6 +275,7 @@ function tituloModal(modal: NonNullable<EstadoModal>): string {
   if (modal.modo === "gasto") return "Gasto rápido en efectivo";
   if (modal.modo === "transferir") return modal.titulo;
   if (modal.modo === "editar") return "Editar movimiento";
+  if (modal.modo === "ajustar") return `Cuadrar · ${modal.cartera.nombre}`;
   return "Nueva cartera";
 }
 

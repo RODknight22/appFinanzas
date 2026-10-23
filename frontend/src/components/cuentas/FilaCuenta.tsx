@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, CornerDownRight, CreditCard, Pin, PinOff, Sparkles } from "lucide-react";
+import { CalendarClock, ChevronRight, CornerDownRight, CreditCard, Pin, PinOff, Scale, Sparkles } from "lucide-react";
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
@@ -18,6 +18,8 @@ export interface FilaCuentaProps {
   /** Abre una transferencia hacia la tarjeta con la deuda ya escrita. */
   onPagar: () => void;
   onFijar: () => void;
+  /** Abre el ajuste para que el saldo cuadre con el del banco. */
+  onAjustar: () => void;
   /** Se pinta sangrada, debajo de su cuenta madre. */
   subcuenta?: boolean;
   /** Solo en una cuenta madre: su saldo más el de sus subcuentas, en la moneda principal. */
@@ -95,7 +97,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
 
 /** Una cuenta de la lista, con la información propia de su tipo. */
 export function FilaCuenta(props: FilaCuentaProps) {
-  const { cuenta, saldo, onEditar, onEliminar, motivoNoEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas, plegado } = props;
+  const { cuenta, saldo, onEditar, onEliminar, motivoNoEliminar, onRegistrarRendimientos, onPagar, onFijar, onAjustar, subcuenta = false, totalConSubcuentas, plegado } = props;
   const { etiqueta, icono: Icono } = TIPOS_CUENTA[cuenta.tipo];
   const esCredito = cuenta.tipo === "credito";
   const IconoFijar = cuenta.fijada ? PinOff : Pin;
@@ -150,6 +152,15 @@ export function FilaCuenta(props: FilaCuentaProps) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={onAjustar}
+            aria-label={`Ajustar saldo de ${cuenta.nombre}`}
+            title="Ajustar saldo (que cuadre con el banco)"
+            className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+          >
+            <Scale size={16} />
+          </button>
           <button
             type="button"
             onClick={onFijar}

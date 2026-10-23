@@ -9,6 +9,7 @@ from sqlmodel import Session, col, select
 from app.datos_iniciales import CATEGORIA_RENDIMIENTOS
 from app.models import (
     AbonoDeuda,
+    AjusteSaldo,
     Cuenta,
     CuentaBase,
     Deuda,
@@ -19,10 +20,10 @@ from app.models import (
     Transaccion,
     Transferencia,
 )
-from app.schemas import CuentaCreate, CuentaUpdate
+from app.schemas import AjusteSaldoCreate, CuentaCreate, CuentaUpdate
 from app.services import categorias, configuracion
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404, obtener_referencia
-from app.services.errores import ConflictoError, ReglaDeNegocioError
+from app.services.errores import ConflictoError, NoEncontradoError, ReglaDeNegocioError
 from app.services.saldos import CENTIMOS, saldo_actual
 from app.services.transacciones import completar_montos
 
@@ -135,6 +136,8 @@ def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuent
             raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene transferencias")
         if existe(session, Deuda.cuenta_id, cuenta_id) or existe(session, AbonoDeuda.cuenta_id, cuenta_id):
             raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene deudas o abonos")
+        if existe(session, AjusteSaldo.cuenta_id, cuenta_id):
+            raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene ajustes de saldo")
         configuracion.comprobar_moneda_activa(session, enviados["moneda"])
 
     # Validamos el estado final completo (lo actual + lo que cambia).
@@ -160,7 +163,43 @@ def eliminar(session: Session, cuenta_id: int) -> None:
         raise ConflictoError("No se puede eliminar una cuenta que usa un ingreso recurrente")
     if existe(session, Deuda.cuenta_id, cuenta_id) or existe(session, AbonoDeuda.cuenta_id, cuenta_id):
         raise ConflictoError("No se puede eliminar una cuenta con préstamos o abonos de deudas")
+    # Los ajustes solo corrigen el saldo de esta cuenta: se van con ella (mismo commit).
+    for ajuste in session.exec(select(AjusteSaldo).where(AjusteSaldo.cuenta_id == cuenta_id)).all():
+        session.delete(ajuste)
     session.delete(cuenta)
+    session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Ajustes de saldo
+# ---------------------------------------------------------------------------
+def listar_ajustes(session: Session, cuenta_id: int) -> list[AjusteSaldo]:
+    """Los ajustes de una cuenta, el más reciente primero."""
+    obtener(session, cuenta_id)
+    return list(session.exec(
+        select(AjusteSaldo)
+        .where(AjusteSaldo.cuenta_id == cuenta_id)
+        .order_by(col(AjusteSaldo.fecha).desc(), col(AjusteSaldo.id).desc())
+    ).all())
+
+
+def ajustar_saldo(session: Session, cuenta_id: int, datos: AjusteSaldoCreate) -> AjusteSaldo:
+    """Anota la diferencia entre el saldo real y el de la app, para que pase a ser el real."""
+    cuenta = obtener(session, cuenta_id)
+    diferencia = (datos.saldo_real - saldo_actual(session, cuenta)).quantize(CENTIMOS)
+    if diferencia == 0:
+        raise ReglaDeNegocioError("El saldo ya cuadra: no hace falta ajustarlo")
+    notas = (datos.notas or "").strip() or None
+    ajuste = AjusteSaldo(cuenta_id=cuenta_id, fecha=date.today(), diferencia=diferencia, notas=notas)
+    return guardar(session, ajuste)
+
+
+def deshacer_ajuste(session: Session, cuenta_id: int, ajuste_id: int) -> None:
+    ajuste = session.get(AjusteSaldo, ajuste_id)
+    # Se comprueba la cuenta de la URL: si no, cualquier id borraría el ajuste de otra.
+    if ajuste is None or ajuste.cuenta_id != cuenta_id:
+        raise NoEncontradoError(f"No se encontró el ajuste con id {ajuste_id} en esta cuenta")
+    session.delete(ajuste)
     session.commit()
 
 

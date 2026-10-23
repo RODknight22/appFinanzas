@@ -196,6 +196,21 @@ class Cuenta(CuentaBase, table=True):
     importar_invertido: bool | None = None
 
 
+class AjusteSaldo(SQLModel, table=True):
+    """Corrección para que el saldo cuadre con el del banco (o con lo contado en la cartera).
+
+    No es ingreso ni gasto: solo mueve el saldo. Va aparte en vez de cambiar el balance
+    inicial para no reescribir los saldos de meses pasados y que se vea cuándo se ajustó.
+    """
+
+    id: int | None = Field(default=None, primary_key=True)
+    cuenta_id: int = Field(foreign_key="cuenta.id", index=True)
+    fecha: date = Field(index=True)
+    # Con signo y en la moneda de la cuenta: lo que se sumó (o restó) al saldo.
+    diferencia: Decimal = Field(max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    notas: str | None = Field(default=None, max_length=500)
+
+
 # ---------------------------------------------------------------------------
 # Categorías
 # ---------------------------------------------------------------------------
