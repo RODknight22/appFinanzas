@@ -65,7 +65,8 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
   *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
   *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
   Revolut MX (CSV) probado con su archivo real; Santander (.xls) con uno que imita el real:
-  falta subir el real a la vista previa. Ojo: los `TRANSFER "To MXN"` de Revolut entran como ingreso.
+  falta subir el real a la vista previa. Ojo: los `TRANSFER "To MXN"` de Revolut entran como
+  ingreso.
 - [ ] **Selector de mes más ágil** (Dashboard y Transacciones; idea de Rodrigo): volver al mes
   actual de un clic y saltar a meses lejanos sin pulsar "anterior" muchas veces.
 - [ ] **Bienvenida al día** (idea de Rodrigo): el paso a paso del primer uso explica también lo
