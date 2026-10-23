@@ -5,7 +5,9 @@ from itertools import permutations
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import Session
 
+from app.models import Transferencia
 from tests.conftest import TASAS_EJEMPLO
 
 
@@ -161,3 +163,64 @@ def test_cambiar_la_principal_reconvierte_la_comision(client: TestClient, tasas:
 
     resumen = client.get("/dashboard/resumen", params={"mes_anio": "2026-10"}).json()
     assert resumen["gastos"] == "0.90"
+
+
+# --- Coste de los envíos entre monedas -----------------------------------------
+# Con las tasas de ejemplo, 1 EUR = 20 MXN: 300 MXN deberían ser 15 EUR.
+
+
+def test_coste_del_envio_frente_a_la_tasa_del_dia(client: TestClient, cuenta: dict, cuenta_eur: dict) -> None:
+    # Llegaron 14.50 EUR en vez de 15 (0.50 EUR = 10 MXN) y hubo 5 MXN de comisión.
+    envio = _transferir(client, cuenta, cuenta_eur, monto_destino="14.50", comision="5")
+    assert (envio["coste"], envio["coste_porcentaje"]) == ("15.00", "5.00")
+    # Mejor que el de referencia: el coste sale negativo (ganaste con el cambio).
+    mejor = _transferir(client, cuenta, cuenta_eur, monto_destino="15.50")
+    assert (mejor["coste"], mejor["coste_porcentaje"]) == ("-10.00", "-3.33")
+    listadas = {t["id"]: t["coste"] for t in client.get("/transferencias").json()}
+    assert listadas == {envio["id"]: "15.00", mejor["id"]: "-10.00"}
+
+
+def test_sin_lo_que_llego_no_hay_coste(client: TestClient, cuenta: dict, cuenta_eur: dict, ahorro: dict) -> None:
+    """Si la app estimó lo que llegó con la tasa del día, el coste sería siempre 0: no se da."""
+    estimada = _transferir(client, cuenta, cuenta_eur)
+    misma_moneda = _transferir(client, cuenta, ahorro)
+    assert estimada["coste"] is None and misma_moneda["coste"] is None
+
+
+def test_editar_conserva_o_recalcula_si_lo_que_llego_es_real(client: TestClient, cuenta: dict, cuenta_eur: dict) -> None:
+    envio = _transferir(client, cuenta, cuenta_eur, monto_destino="14.50")
+    # Cambiar solo las notas no convierte en estimado lo que el banco dio de verdad.
+    notas = client.patch(f"/transferencias/{envio['id']}", json={"notas": "Envío a casa"}).json()
+    assert notas["coste"] == "10.00"
+    # Cambiar lo que sale sin decir lo que llegó: se estima de nuevo y deja de haber coste.
+    otro = client.patch(f"/transferencias/{envio['id']}", json={"monto_origen": "400"}).json()
+    assert (otro["monto_destino"], otro["coste"]) == ("20.00", None)
+    # Y al indicar lo que llegó vuelve a haberlo.
+    real = client.patch(f"/transferencias/{envio['id']}", json={"monto_destino": "19"}).json()
+    assert real["coste"] == "20.00"
+
+
+def test_coste_de_los_envios_del_anio(client: TestClient, cuenta: dict, cuenta_eur: dict) -> None:
+    _transferir(client, cuenta, cuenta_eur, monto_destino="14.50", comision="5")  # 15 de 300
+    _transferir(client, cuenta, cuenta_eur, monto_destino="29", monto_origen="600")  # 20 de 600
+    _transferir(client, cuenta, cuenta_eur)  # estimada: no cuenta
+    _transferir(client, cuenta, cuenta_eur, monto_destino="14", fecha="2025-12-31")  # otro año
+
+    resumen = client.get("/transferencias/costes", params={"anio": 2026}).json()
+    assert resumen == {"anio": 2026, "moneda": "MXN", "total": "35.00", "envios": 2, "porcentaje_medio": "3.89"}
+    vacio = client.get("/transferencias/costes", params={"anio": 2024}).json()
+    assert (vacio["total"], vacio["envios"], vacio["porcentaje_medio"]) == ("0.00", 0, None)
+
+
+def test_las_anteriores_al_campo_solo_cuentan_si_no_coinciden_con_la_tasa(
+    client: TestClient, session: Session, cuenta: dict, cuenta_eur: dict
+) -> None:
+    """Sin `destino_estimado` (guardadas antes de este campo) no se sabe si lo que llegó era real."""
+    estimada = _transferir(client, cuenta, cuenta_eur)
+    real = _transferir(client, cuenta, cuenta_eur, monto_destino="14.50")
+    for id_ in (estimada["id"], real["id"]):
+        session.get(Transferencia, id_).destino_estimado = None
+    session.commit()
+
+    costes = {t["id"]: t["coste"] for t in client.get("/transferencias").json()}
+    assert costes == {estimada["id"]: None, real["id"]: "10.00"}
