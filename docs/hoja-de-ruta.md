@@ -196,9 +196,9 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
   foco en los diálogos, carreras al cambiar de cuenta al importar, formato de % y €, contraste,
   chunks.
 - [ ] **Resto de la auditoría** (P2, una PR pequeña cada uno):
-  - Pagar una suscripción o cobrar un ingreso fijo dos veces con un doble clic (idempotencia).
-  - Un mismo movimiento a unir en dos filas de una importación; `IntegrityError` → 409.
-  - `assets/` inexistente devuelve index.html cacheado un año: debe ser 404.
+  - ✓ Pagar una suscripción o cobrar un ingreso fijo dos veces con un doble clic (idempotencia).
+  - ✓ Un mismo movimiento a unir en dos filas de una importación; `IntegrityError` → 409.
+  - ✓ `assets/` inexistente devuelve index.html cacheado un año: debe ser 404.
   - Navegación móvil con los mismos nombres que en escritorio y una pestaña "Más".
   - Un único recorrido de bienvenida (hoy hay modal, tarjeta y globos que se solapan).
   - Colores de ingreso/gasto propios, separados del acento elegido (22 archivos con `emerald`).
