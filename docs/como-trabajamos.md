@@ -19,7 +19,8 @@ Antes de empezar una versión, su sección de la hoja de ruta lleva una tabla de
 de qué depende cada tarea y qué **zona** del código toca (ver v1.1). Así se evita lo que más
 frenó en octubre: dos trabajos en los mismos archivos o una PR esperando a otra sin saberlo.
 
-- **Tareas del tamaño de una PR**, que se fusionan el mismo día. Una rama vieja acumula conflictos.
+- **Tareas del tamaño de una PR**, que se fusionan el mismo día: una rama vieja acumula
+  conflictos.
 - **Una zona, una sesión.** Solo hay sesiones en paralelo si sus zonas no se cruzan.
 - **Lo que depende de Rodrigo se dice en el plan** (p. ej. extractos del banco). Si bloquea, la
   tarea pasa a la versión siguiente en vez de frenar la publicación.
