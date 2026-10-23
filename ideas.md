@@ -166,6 +166,61 @@ Ejemplo:
 
 <!-- Dudas tuyas o de Claude que bloquean alguna idea. -->
 
+### Preguntas de Claude (23/10) para conocer tus gustos y a dónde llevar la app
+
+Contesta debajo de cada una con `🗣️ Rodrigo:`. Una palabra basta; sáltate las que no tengas
+claras. Con tus respuestas Claude ajusta la hoja de ruta.
+
+**Cómo la usas**
+1. ¿Cuántas veces a la semana abres la app y para qué: anotar, revisar o importar?
+2. ¿Anotas cada gasto al momento o prefieres importar el extracto cada cierto tiempo?
+3. ¿Desde dónde querrías anotar: PC, laptop o móvil? ¿Echas de menos el móvil?
+4. ¿Qué pantalla te gusta más y cuál menos? ¿Por qué?
+5. ¿Qué te da pereza hoy, algún paso que repites siempre?
+6. ¿Miras las gráficas o solo los números?
+
+**Gustos**
+7. ¿Claro u oscuro? ¿Qué estilo y acento usas?
+8. ¿El tono de los textos (cercano, tuteando) te gusta o lo quieres más serio?
+9. Animaciones y celebraciones (metas, "días sin gastar"): ¿más, igual o menos?
+10. ¿Una app que le cabe a todo el mundo o muy hecha a tu medida aunque a otros les sobre?
+
+**Tu dinero entre dos monedas**
+11. ¿Cómo mandas hoy dinero de MXN a EUR (Revolut, Wise, banco…) y cada cuánto?
+12. ¿Usarías un aviso de "buen momento para cambiar" para decidir cuándo enviar?
+13. Para el peso, ¿qué tasa de referencia prefieres: BCE o Banxico (FIX)?
+14. ¿Tienes inversiones o ahorro (CETES, fondos, cripto, plan de pensiones) que quieras ver?
+15. ¿Compartes gastos con alguien (pareja, piso)? ¿Te serviría dividirlos?
+16. ¿Qué otros bancos usas o usarás, aunque sean PDF? (para preparar sus lectores)
+17. ¿Haces la declaración en México, en España o en las dos? ¿Un resumen anual por país?
+
+**El futuro**
+18. Dentro de un año, ¿para quién es la app: solo tú, tu familia y amigos, o cualquiera?
+19. Recomiendo seguir con el código abierto público. ¿Qué te preocupa de que sea público?
+20. ¿Quieres ganar algo de dinero con ella o es aprendizaje y portafolio?
+21. ¿Hacemos la interfaz en inglés (v1.5) o no te importa?
+22. Móvil: ¿app instalada conectada a tu PC de casa, o copia cifrada en tu Drive?
+23. ¿Conectar el banco automáticamente (solo España, con tu clave) o te basta importar?
+24. Si pudieras preguntarle a Claude por tus finanzas (v2.0), ¿qué le preguntarías?
+25. ¿Cuántas horas a la semana quieres dedicarle? ¿Fecha que te gustaría para la v1.3?
+
+**Aprender y trabajar juntos**
+26. ¿Qué quieres aprender: leer código, escribir cosas pequeñas tú, arquitectura, git?
+27. ¿Te sirvió docs/como-funciona.md? ¿Qué parte no entendiste?
+28. ¿Quieres más o menos explicaciones mientras trabajo?
+29. ¿Te va bien tener 2-3 sesiones a la vez o te satura revisar tantas PR?
+30. ¿Me dejas fusionar yo las PR de solo documentación con el CI en verde, o siempre tú?
+
+**Lo que a mí (Claude) me gustaría dejar en tu app** (¿sí, no, más adelante?)
+31. **Un "¿de dónde sale?" en cada número:** tocar un total y ver cómo se calculó (qué
+    movimientos, qué tasa y de qué día). Da confianza y, de paso, enseña cómo funciona por dentro.
+32. **Una nota del mes en palabras**, sin IA ni internet, con plantillas: "gastaste un 12 % menos en
+    restaurantes; el envío de marzo te costó 40 $ menos que el de febrero".
+33. **Las promesas de la app** en un documento (tus datos no salen de tu equipo, nada se pierde a
+    medias, cada importe con la tasa de su día…) y un test que vigile cada una.
+34. **Una página de créditos** con la historia: hecha por Rodrigo, que aprendió a programar
+    haciéndola, con ayuda de Claude.
+
 ---
 
 ## 📦 Archivo
