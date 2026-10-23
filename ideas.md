@@ -186,10 +186,10 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
      - **Móvil y laptop:** confirma la app instalable de la v1.5.
 
 **Gustos**
-7. ¿Claro u oscuro? ¿Qué estilo y acento usas?
-8. ¿El tono de los textos (cercano, tuteando) te gusta o lo quieres más serio?
-9. Animaciones y celebraciones (metas, "días sin gastar"): ¿más, igual o menos?
-10. ¿Una app que le cabe a todo el mundo o muy hecha a tu medida aunque a otros les sobre?
+7. ¿Claro u oscuro? ¿Qué estilo y acento usas? 🗣️ Rodrigo: Oscuros
+8. ¿El tono de los textos (cercano, tuteando) te gusta o lo quieres más serio? 🗣️ Rodrigo: Me gusta como estan quiero algo serio pero calido
+9. Animaciones y celebraciones (metas, "días sin gastar"): ¿más, igual o menos? 🗣️ Rodrigo: Mas igual, quiero que motiven
+10. ¿Una app que le cabe a todo el mundo o muy hecha a tu medida aunque a otros les sobre? 🗣️ Rodrigo: Prefiero que les sobre y que despues puedan desactivar o quitar funciones "personalizable"
 
 **Tu dinero entre dos monedas**
 11. ¿Cómo mandas hoy dinero de MXN a EUR (Revolut, Wise, banco…) y cada cuánto?
