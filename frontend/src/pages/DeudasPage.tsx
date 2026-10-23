@@ -10,10 +10,12 @@ import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { TotalConvertido } from "../components/ui/TotalConvertido";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Cuenta, Deuda, SentidoDeuda } from "../types";
+import { sumarConvertidos } from "../utils/divisas";
 import { formatearDinero, formatearFecha, textoVencimiento } from "../utils/formato";
 
 type EstadoModal = null | { modo: "nueva" } | { modo: "editar"; deuda: Deuda } | { modo: "abonar"; deuda: Deuda };
@@ -49,7 +51,10 @@ export function DeudasPage() {
           const cuentaPorId = new Map(cuentas.map((c) => [c.id, c]));
           // Pendiente total de cada lado, en la moneda principal (tasa de hoy).
           const pendiente = (lado: SentidoDeuda) =>
-            deudas.filter((d) => d.sentido === lado).reduce((suma, d) => suma + (convertir(Number(d.pendiente), d.moneda) ?? 0), 0);
+            sumarConvertidos(
+              deudas.filter((d) => d.sentido === lado).map((d) => ({ monto: Number(d.pendiente), moneda: d.moneda })),
+              convertir,
+            );
           const visibles = deudas.filter((d) => d.sentido === sentido && (verSaldadas || d.fecha_saldada === null));
           const saldadas = deudas.filter((d) => d.sentido === sentido && d.fecha_saldada !== null).length;
 
@@ -68,7 +73,7 @@ export function DeudasPage() {
                   >
                     <p className="text-sm font-semibold text-tenue">{PESTANAS[lado].titulo}</p>
                     <p className={`mt-1 text-2xl font-bold tabular-nums ${lado === "me_deben" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                      {formatearDinero(pendiente(lado))}
+                      <TotalConvertido suma={pendiente(lado)} />
                     </p>
                   </button>
                 ))}
