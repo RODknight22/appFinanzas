@@ -172,12 +172,12 @@ Contesta debajo de cada una con `🗣️ Rodrigo:`. Una palabra basta; sáltate 
 claras. Con tus respuestas Claude ajusta la hoja de ruta.
 
 **Cómo la usas**
-1. ¿Cuántas veces a la semana abres la app y para qué: anotar, revisar o importar?
-2. ¿Anotas cada gasto al momento o prefieres importar el extracto cada cierto tiempo?
-3. ¿Desde dónde querrías anotar: PC, laptop o móvil? ¿Echas de menos el móvil?
-4. ¿Qué pantalla te gusta más y cuál menos? ¿Por qué?
-5. ¿Qué te da pereza hoy, algún paso que repites siempre?
-6. ¿Miras las gráficas o solo los números?
+1. ¿Cuántas veces a la semana abres la app y para qué: anotar, revisar o importar? 🗣️ Rodrigo: Solo la uso para ver como va, todavia no la implemento
+2. ¿Anotas cada gasto al momento o prefieres importar el extracto cada cierto tiempo? 🗣️ Rodrigo: Al incio al momentl pero despues cada cierto tiempo yo creo
+3. ¿Desde dónde querrías anotar: PC, laptop o móvil? ¿Echas de menos el móvil? 🗣️ Rodrigo: Si el monil pero tambien desde la laptop
+4. ¿Qué pantalla te gusta más y cuál menos? ¿Por qué? 🗣️ Rodrigo: El Dashboard a la vez me gusta y a la vez no siento que esta bloated
+5. ¿Qué te da pereza hoy, algún paso que repites siempre? 🗣️ Rodrigo: Anotar todos mis gastos y que mi salgo cuadre (Que se pueda editar el saldo actual para hacer ajustes)
+6. ¿Miras las gráficas o solo los números? 🗣️ Rodrigo: Las graficas me gustan. me gusta ver la telemetria y los datos
 
 **Gustos**
 7. ¿Claro u oscuro? ¿Qué estilo y acento usas?
