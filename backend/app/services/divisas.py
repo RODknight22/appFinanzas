@@ -32,14 +32,14 @@ from app.version import VERSION
 
 log = logging.getLogger(__name__)
 
-# Servicio gratuito sin clave que incluye MXN, USD, EUR, GTQ y HNL.
+# Servicio gratuito sin clave que incluye todas las monedas de la app (y muchas más).
 # Sus condiciones piden citar la fuente (lo hace la pantalla de Ajustes).
 URL_TASAS = "https://open.er-api.com/v6/latest/USD"
 _SEGUNDOS_ENTRE_REINTENTOS = 3600
 
 # Tasas de días pasados: las del Banco Central Europeo (vía Frankfurter, gratis y sin
-# clave), que publica cada día laborable desde 1999. No incluye GTQ ni HNL: para esas
-# se sigue usando la tasa guardada más cercana.
+# clave), que publica cada día laborable desde 1999. No incluye GTQ, HNL, COP, ARS, CLP ni
+# PEN: para esas se sigue usando la tasa guardada más cercana.
 URL_HISTORICAS = "https://api.frankfurter.dev/v1/{desde}..{hasta}?base=USD&symbols={monedas}"
 MONEDAS_HISTORICAS = (Moneda.EUR, Moneda.MXN)
 PRIMER_DIA_HISTORICO = date(1999, 1, 4)
@@ -165,7 +165,11 @@ def _pedir_json() -> object:
 
 
 def _validar_tasas(datos: object) -> dict[Moneda, Decimal]:
-    """Extrae las tasas de la respuesta; lanza ValueError si algo no cuadra."""
+    """Extrae las tasas de la respuesta; lanza ValueError si algo no cuadra.
+
+    Si falta una moneda, se guardan las demás (y esa sigue con su última tasa): que el
+    servicio deje de publicar una no debe dejar a todas sin actualizar.
+    """
     if not isinstance(datos, dict) or datos.get("result") != "success":
         raise ValueError("respuesta inesperada del servicio de tasas")
     rates = datos.get("rates")
@@ -175,7 +179,10 @@ def _validar_tasas(datos: object) -> dict[Moneda, Decimal]:
     for moneda in Moneda:
         if moneda == Moneda.USD:
             continue
-        valor = rates[moneda.value]  # KeyError si falta la moneda
+        if moneda.value not in rates:
+            log.warning("El servicio de tasas no trae %s: se mantiene la última guardada", moneda.value)
+            continue
+        valor = rates[moneda.value]
         # bool es subclase de int: se descarta a mano.
         if isinstance(valor, bool) or not isinstance(valor, (int, float)) or not math.isfinite(valor):
             raise ValueError(f"tasa no numérica para {moneda.value}")
@@ -184,6 +191,8 @@ def _validar_tasas(datos: object) -> dict[Moneda, Decimal]:
         if not _TASA_MINIMA <= tasa <= _TASA_MAXIMA:
             raise ValueError(f"tasa fuera de rango para {moneda.value}")
         tasas[moneda] = tasa
+    if not tasas:
+        raise ValueError("la respuesta no trae ninguna moneda de la app")
     return tasas
 
 
