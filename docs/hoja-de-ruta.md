@@ -2,7 +2,8 @@
 
 Plan orientativo por versiones: se puede reordenar cuando haga falta. Cada tarea dice **por qué**,
 **dónde** se toca y **cuándo está hecha**. Al fusionar una tarea en `main`, marcarla con `[x]`.
-Las ideas en bruto van al cuaderno `ideas.md` de la rama `ideas`; aquí solo llegan las que ya son tarea.
+Las ideas en bruto van al cuaderno `ideas.md` de la rama `ideas`; aquí solo llegan las que ya son
+tarea.
 
 Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/2026.
 
@@ -29,9 +30,19 @@ Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/20
 **Objetivo:** publicar todo lo anterior con red de seguridad. Ninguna función grande nueva salvo
 las copias de seguridad, que una app de dinero necesita antes de que nadie más la use.
 
-- [ ] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
-  *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
-  *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
+**Plan (23/10/2026):** en este orden, una PR cada vez. La importación con extractos reales pasó
+a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicación.
+
+| Orden | Tarea | Depende de | Zona que toca |
+| --- | --- | --- | --- |
+| 1 | Ajustes con pestañas y personalización | — | AjustesPage.tsx, components/ajustes/ |
+| 2 | Publicar v1.1.0 | 1 | version.py, package.json, CHANGELOG, README |
+| 3 | Probar el release en la laptop (Rodrigo) | 2 | — |
+
+- [ ] **Ajustes con pestañas** (idea de Rodrigo): Perfil · Apariencia · Monedas · Seguridad y
+  datos, con `SeccionConPestanas` (una ruta por pestaña). En Apariencia, rehacer los iconos de los
+  estilos y la descripción del primero. *Por qué:* Ajustes es un muro de tarjetas que no para de
+  crecer. *Hecho cuando:* cada pestaña tiene su ruta, sin scroll horizontal a 390 px (E2E).
 - [x] **Copia de seguridad y exportación.** Botón en Ajustes que descarga la BD y un CSV.
   *Por qué:* hoy no hay forma segura de guardar los datos. *Dónde:* nuevo services/copias.py +
   Ajustes. *Ojo:* con WAL no basta copiar el archivo: usar `VACUUM INTO` o la API de backup de
@@ -49,6 +60,13 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
 
 ## v1.2: Multidivisa a fondo (lo que distingue a la app)
 
+- [ ] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
+  *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
+  *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
+- [ ] **Selector de mes más ágil** (Dashboard y Transacciones; idea de Rodrigo): volver al mes
+  actual de un clic y saltar a meses lejanos sin pulsar "anterior" muchas veces.
+- [ ] **Bienvenida al día** (idea de Rodrigo): el paso a paso del primer uso explica también lo
+  nuevo (efectivo, deudas, deseos, copias) y lleva a meter los datos básicos, rápido y ameno.
 - [ ] **Coste real de cada envío MXN↔EUR:** en transferencias entre monedas, comparar la tasa
   obtenida con la del BCE de ese día ("perdiste X € (Y %)") y un widget con el total del año.
   *Dónde:* services/transferencias.py (los datos ya existen), registroWidgets.tsx.
@@ -73,6 +91,8 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
 - [ ] **Limpieza:** `#64748b` repetido → constante o token; manejo de errores duplicado; atajo
   ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35× más rápido).
 - [ ] Recordatorios por correo (`correo_recordatorios`) y seguir precios de los deseos.
+- [ ] **Widgets más personalizables** (idea de Rodrigo): más tamaños, elegir cómo muestran los
+  datos y widgets nuevos. *Dónde:* components/dashboard/registroWidgets.tsx.
 - [ ] **Estilo personalizado:** elegir tinte y viveza propios (o un acento libre). *Dónde:*
   index.css ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración
   y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar (E2E).

@@ -13,6 +13,19 @@ Guía para Rodrigo y para cualquier sesión de Claude que trabaje en este repo.
    Cuando el CI está en verde, se fusiona la PR (lo dices tú o pulsas "Merge" en GitHub).
 6. **Aprender:** `/explicame` sobre lo que no haya quedado claro.
 
+## Planear una versión
+
+Antes de empezar una versión, su sección de la hoja de ruta lleva una tabla de **plan**: orden,
+de qué depende cada tarea y qué **zona** del código toca (ver v1.1). Así se evita lo que más
+frenó en octubre: dos trabajos en los mismos archivos o una PR esperando a otra sin saberlo.
+
+- **Tareas del tamaño de una PR**, que se fusionan el mismo día. Una rama vieja acumula conflictos.
+- **Una zona, una sesión.** Solo hay sesiones en paralelo si sus zonas no se cruzan.
+- **Lo que depende de Rodrigo se dice en el plan** (p. ej. extractos del banco). Si bloquea, la
+  tarea pasa a la versión siguiente en vez de frenar la publicación.
+- **Los momentos de Rodrigo:** aprueba el plan, prueba en la laptop y fusiona. Las ideas nuevas
+  van al cuaderno (rama `ideas`); al revisarlo se reparten en las versiones.
+
 ## Varias sesiones a la vez
 
 Cada sesión en su carpeta (worktree) y su rama. La carpeta principal `appFinanzas` se queda en
