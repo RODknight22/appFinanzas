@@ -39,10 +39,11 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
 | 2 | Publicar v1.1.0 | 1 | version.py, package.json, CHANGELOG, README |
 | 3 | Probar el release en la laptop (Rodrigo) | 2 | — |
 
-- [ ] **Ajustes con pestañas** (idea de Rodrigo): Perfil · Apariencia · Monedas · Seguridad y
-  datos, con `SeccionConPestanas` (una ruta por pestaña). En Apariencia, rehacer los iconos de los
-  estilos y la descripción del primero. *Por qué:* Ajustes es un muro de tarjetas que no para de
-  crecer. *Hecho cuando:* cada pestaña tiene su ruta, sin scroll horizontal a 390 px (E2E).
+- [x] **Ajustes con pestañas** (idea de Rodrigo): Perfil · Apariencia · Monedas · Seguridad y
+  datos, con `SeccionConPestanas` (una ruta por pestaña). En Apariencia, los iconos de los estilos
+  pasan a ser una vista previa clara y oscura, y el primero tiene descripción de verdad.
+  *Por qué:* Ajustes es un muro de tarjetas que no para de crecer. *Hecho cuando:* cada pestaña
+  tiene su ruta, sin scroll horizontal a 390 px (E2E).
 - [x] **Copia de seguridad y exportación.** Botón en Ajustes que descarga la BD y un CSV.
   *Por qué:* hoy no hay forma segura de guardar los datos. *Dónde:* nuevo services/copias.py +
   Ajustes. *Ojo:* con WAL no basta copiar el archivo: usar `VACUUM INTO` o la API de backup de
