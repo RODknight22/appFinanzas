@@ -37,7 +37,8 @@ MAX_PIEZAS_EXCEL = 200
 # Nombres de columna habituales en bancos de España y México, ya normalizados
 # (minúsculas, sin tildes ni signos). Basta con que la cabecera empiece por uno de ellos.
 SINONIMOS: dict[str, tuple[str, ...]] = {
-    "fecha": ("fecha", "f operacion", "f valor", "dia", "date"),
+    # Revolut da dos fechas: la de la compra ("started") va antes que la del cargo.
+    "fecha": ("fecha", "f operacion", "f valor", "dia", "date", "started date", "completed date"),
     "concepto": (
         "concepto", "descripcion", "movimiento", "detalle", "description", "comercio",
         "establecimiento", "beneficiario", "observaciones", "referencia",
@@ -45,6 +46,8 @@ SINONIMOS: dict[str, tuple[str, ...]] = {
     "importe": ("importe", "monto", "cantidad", "amount", "valor"),
     "cargo": ("cargo", "cargos", "debe", "retiro", "retiros", "debito", "salida", "salidas"),
     "abono": ("abono", "abonos", "haber", "deposito", "depositos", "credito", "entrada", "entradas"),
+    # Comisión aparte del importe (Revolut): también sale de la cuenta, así que se resta.
+    "comision": ("comision", "comisiones", "fee", "fees"),
 }
 # Columnas numéricas que no son el movimiento: nunca se toman como importe.
 NO_IMPORTE = ("saldo", "balance", "disponible")
@@ -343,6 +346,9 @@ def leer_extracto(contenido: bytes) -> ExtractoLeido:
             # Cargo y abono por separado: unos bancos los ponen en positivo y otros el cargo en negativo.
             cargo, abono = _a_importe(celda(fila, "cargo")), _a_importe(celda(fila, "abono"))
             importe = None if cargo is None and abono is None else abs(abono or 0) - abs(cargo or 0)
+        comision = _a_importe(celda(fila, "comision"))
+        if importe is not None and comision:
+            importe -= abs(comision)  # así entra la cuota del plan, que llega con importe 0
         if fecha is None or not importe:  # totales, notas al pie, líneas vacías o importe 0
             if any(_texto(c) for c in fila):
                 ignoradas += 1

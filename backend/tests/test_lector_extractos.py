@@ -71,6 +71,30 @@ def test_banco_mexicano_con_cargo_y_abono_separados() -> None:
     ]
 
 
+def test_revolut_mexico_fecha_de_inicio_y_comision_aparte() -> None:
+    """Formato real de Revolut (datos inventados): dos fechas con hora y la comisión en `Fee`.
+
+    La cuota del plan viene con importe 0 y todo en `Fee`: sin restarla se perdería el gasto.
+    """
+    contenido = (
+        b"Type,Started Date,Completed Date,Description,Amount,Fee,Balance\n"
+        b"CHARGE,2026-06-15 22:25:22,2026-06-15 22:25:22,Premium plan fee,0.00,99.00,-99.00\n"
+        b"CARD_PAYMENT,2026-06-15 23:40:55,2026-06-17 07:50:21,Tienda Ejemplo,-150.50,0.00,-249.50\n"
+        b"CARD_PAYMENT,2026-06-16 10:00:00,2026-06-18 09:00:00,Compra en USD,-100.00,2.50,-352.00\n"
+        b"CARD_REFUND,2026-06-18 18:00:00,2026-06-20 05:53:08,Tienda Ejemplo,5.00,0.00,-347.00\n"
+    )
+    extracto = leer_extracto(contenido)
+    assert _resumen(contenido) == [
+        (date(2026, 6, 15), "-99.00", "Premium plan fee"),
+        (date(2026, 6, 15), "-150.50", "Tienda Ejemplo"),  # la fecha de la compra, no la del cargo
+        (date(2026, 6, 16), "-102.50", "Compra en USD"),
+        (date(2026, 6, 18), "5.00", "Tienda Ejemplo"),
+    ]
+    assert extracto.columnas == {
+        "fecha": "Started Date", "concepto": "Description", "importe": "Amount", "comision": "Fee",
+    }
+
+
 def test_csv_sin_cabecera_detecta_las_columnas_por_su_contenido() -> None:
     contenido = b"2026-10-05,Spotify,-10.99\n2026-10-06,Amazon Marketplace,-23.50\n2026-10-07,Bizum de Ana,15\n"
     assert _resumen(contenido) == [
