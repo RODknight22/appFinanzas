@@ -234,8 +234,9 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   release.yml. *Hecho cuando:* el .exe publicado abre con el control activado.
 - [x] **Colores de ingreso y gasto propios**, separados del acento: tokens `ingreso`, `gasto`,
   `exito` y `peligro` en index.css (claro y oscuro) en lugar de `emerald`/`rose` fijos.
-- [ ] **Diseño de la auditoría** (P2): navegación móvil con los mismos nombres que en escritorio y
-  una pestaña "Más"; un único recorrido de bienvenida (hoy modal, tarjeta y globos se solapan).
+- [x] **Navegación móvil** con los mismos nombres que en escritorio: barra con Dashboard,
+  Transacciones, Presupuestos, Cuentas y "Más" (el resto, Ajustes, modo y salir).
+- [ ] **Un único recorrido de bienvenida** (P2): hoy modal, tarjeta y globos se solapan.
 - [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía (Revolut,
   banco, Wise…) frente a la tasa oficial, y cuál conviene. *Antes:* Rodrigo dice qué vías usa.
 - [ ] **Tasa de Banxico (FIX)** para las fechas pasadas de MXN (P1): hoy solo hay BCE, que mide

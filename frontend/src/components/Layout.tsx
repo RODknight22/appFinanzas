@@ -3,6 +3,7 @@ import {
   Handshake,
   LayoutDashboard,
   LogOut,
+  Menu,
   Moon,
   PiggyBank,
   Repeat,
@@ -13,7 +14,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { Suspense, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 
 import { useAcceso } from "../hooks/useAcceso";
@@ -23,29 +24,35 @@ import { useTema } from "../hooks/useTema";
 import { precarga, precargarEnReposo } from "../paginas";
 import { AsistenteBienvenida } from "./bienvenida/AsistenteBienvenida";
 import { CampanaNotificaciones } from "./CampanaNotificaciones";
+import { MenuMas } from "./MenuMas";
 import { Avatar } from "./ui/Avatar";
 import { Cargando } from "./ui/Estados";
 
 interface ItemMenu {
   ruta: string;
   etiqueta: string;
-  /** Versión corta para la barra inferior del móvil, donde hay poco espacio. */
-  corta: string;
   icono: LucideIcon;
-  /** En la barra inferior del móvil solo caben 6: el resto va como icono en la cabecera. */
-  soloEscritorio?: boolean;
+  /** En la barra inferior del móvil caben 4 (más «Más»): los de uso diario. El resto, en «Más». */
+  enBarra?: boolean;
 }
 
+// Los mismos nombres en escritorio y en móvil: así el recorrido y la ayuda valen para los dos.
 const MENU: ItemMenu[] = [
-  { ruta: "/dashboard", etiqueta: "Dashboard", corta: "Panel", icono: LayoutDashboard },
-  { ruta: "/transacciones", etiqueta: "Transacciones", corta: "Movimientos", icono: ArrowLeftRight },
-  { ruta: "/presupuestos", etiqueta: "Presupuestos", corta: "Límites", icono: PiggyBank },
-  { ruta: "/metas", etiqueta: "Metas", corta: "Metas", icono: Target },
-  { ruta: "/deudas", etiqueta: "Deudas", corta: "Deudas", icono: Handshake, soloEscritorio: true },
-  { ruta: "/pagos-fijos", etiqueta: "Pagos fijos", corta: "Fijos", icono: Repeat },
-  { ruta: "/cuentas", etiqueta: "Cuentas", corta: "Cuentas", icono: Wallet },
-  { ruta: "/categorias", etiqueta: "Categorías", corta: "Categorías", icono: Tags, soloEscritorio: true },
+  { ruta: "/dashboard", etiqueta: "Dashboard", icono: LayoutDashboard, enBarra: true },
+  { ruta: "/transacciones", etiqueta: "Transacciones", icono: ArrowLeftRight, enBarra: true },
+  { ruta: "/presupuestos", etiqueta: "Presupuestos", icono: PiggyBank, enBarra: true },
+  { ruta: "/metas", etiqueta: "Metas", icono: Target },
+  { ruta: "/deudas", etiqueta: "Deudas", icono: Handshake },
+  { ruta: "/pagos-fijos", etiqueta: "Pagos fijos", icono: Repeat },
+  { ruta: "/cuentas", etiqueta: "Cuentas", icono: Wallet, enBarra: true },
+  { ruta: "/categorias", etiqueta: "Categorías", icono: Tags },
 ];
+
+// En el móvil, «Más» lleva los apartados que no van en la barra y, al final, Ajustes.
+const EN_MAS = [...MENU.filter((item) => !item.enBarra), { ruta: "/ajustes", etiqueta: "Ajustes", icono: Settings }];
+
+// tracking-tight: así «Transacciones» cabe entero hasta en móviles de 360 px.
+const CLASE_BARRA = "flex min-w-0 flex-col items-center gap-0.5 py-2 text-[10px] font-medium tracking-tight";
 
 /** Clases de un enlace del menú lateral según esté activo o no. */
 function claseEnlace({ isActive }: { isActive: boolean }): string {
@@ -70,6 +77,10 @@ export function Layout() {
   const IconoTema = tema === "oscuro" ? Sun : Moon;
   const location = useLocation();
   const notificaciones = useNotificaciones();
+  const [masAbierto, setMasAbierto] = useState(false);
+  const cerrarMas = useCallback(() => setMasAbierto(false), []);
+  // «Más» se marca como activo si la página actual es una de las suyas.
+  const enMas = EN_MAS.some(({ ruta }) => location.pathname.startsWith(ruta));
 
   // Con la app ya abierta y el navegador libre, se traen las demás páginas.
   useEffect(() => precargarEnReposo(), []);
@@ -120,30 +131,13 @@ export function Layout() {
         </button>
       </aside>
 
-      {/* Cabecera móvil con ajustes y botón de tema */}
+      {/* Cabecera móvil: quién eres y los avisos. El resto del menú, abajo. */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-linea bg-fondo/80 px-4 py-3 backdrop-blur-lg md:hidden">
         <span className="flex min-w-0 items-center gap-2">
           <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
-          {/* En móviles estrechos no cabe junto a los iconos: queda el avatar. */}
-          <span className="hidden truncate font-semibold min-[480px]:inline">Hola, {nombre}</span>
+          <span className="truncate font-semibold">Hola, {nombre}</span>
         </span>
-        <div className="flex items-center gap-1">
-          <CampanaNotificaciones {...notificaciones} />
-          {MENU.filter((item) => item.soloEscritorio).map(({ ruta, etiqueta, icono: Icono }) => (
-            <Link key={ruta} to={ruta} aria-label={etiqueta} className="rounded-lg p-2 text-tenue" data-tutorial={ruta} {...precarga(ruta)}>
-              <Icono size={18} />
-            </Link>
-          ))}
-          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue" data-tutorial="/ajustes" {...precarga("/ajustes")}>
-            <Settings size={18} />
-          </Link>
-          <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-tenue">
-            <IconoTema size={18} />
-          </button>
-          <button type="button" onClick={cerrarSesion} aria-label="Cerrar sesión" className="rounded-lg p-2 text-tenue">
-            <LogOut size={18} />
-          </button>
-        </div>
+        <CampanaNotificaciones {...notificaciones} />
       </header>
 
       {/* key: al cambiar de página se vuelve a montar y se repite la animación de entrada */}
@@ -158,25 +152,41 @@ export function Layout() {
       {!configuracion.tutorial_visto && <AsistenteBienvenida />}
 
       {/* Barra inferior en móvil */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-linea bg-superficie/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden">
-        {MENU.filter((item) => !item.soloEscritorio).map(({ ruta, etiqueta, corta, icono: Icono }) => (
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-linea bg-superficie/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden">
+        {MENU.filter((item) => item.enBarra).map(({ ruta, etiqueta, icono: Icono }) => (
           <NavLink
             key={ruta}
             to={ruta}
-            aria-label={etiqueta}
             data-tutorial={ruta}
             {...precarga(ruta)}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 py-2 text-[10px] ${
-                isActive ? "text-acento-600 dark:text-acento-400" : "text-tenue"
-              }`
-            }
+            className={({ isActive }) => `${CLASE_BARRA} ${isActive ? "text-acento-600 dark:text-acento-400" : "text-tenue"}`}
           >
             <Icono size={20} />
-            <span className="max-w-full truncate px-0.5">{corta}</span>
+            <span className="max-w-full truncate">{etiqueta}</span>
           </NavLink>
         ))}
+        <button
+          type="button"
+          onClick={() => setMasAbierto(true)}
+          aria-haspopup="dialog"
+          aria-expanded={masAbierto}
+          data-tutorial="/mas"
+          className={`${CLASE_BARRA} ${enMas || masAbierto ? "text-acento-600 dark:text-acento-400" : "text-tenue"}`}
+        >
+          <Menu size={20} />
+          <span>Más</span>
+        </button>
       </nav>
+      {masAbierto && (
+        <MenuMas
+          enlaces={EN_MAS}
+          tema={tema}
+          onAlternarTema={alternar}
+          onCerrarSesion={cerrarSesion}
+          usuario={usuario}
+          onCerrar={cerrarMas}
+        />
+      )}
     </div>
   );
 }
