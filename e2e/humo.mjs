@@ -4,7 +4,26 @@ import { readFileSync } from "node:fs";
 
 import { BASE, CAPTURAS, comprobar, prueba } from "./comun.mjs";
 
-const rutas = [...readFileSync("/rutas/App.tsx", "utf8").matchAll(/path="([a-z-]+)"/g)].map((m) => m[1]);
+/**
+ * Rutas de App.tsx con su ruta completa: una pestaña anidada ("apariencia" dentro de
+ * "ajustes") es "ajustes/apariencia". Se sigue qué <Route> están abiertos, línea a línea.
+ */
+function leerRutas(codigo) {
+  const abiertas = [];
+  const rutas = [];
+  for (const linea of codigo.split("\n")) {
+    const apertura = linea.match(/<Route\s(?:[^>]*?path="([a-z-]+)")?/);
+    if (apertura) {
+      const completa = [...abiertas, apertura[1]].filter(Boolean).join("/");
+      if (apertura[1]) rutas.push(completa);
+      if (!linea.trimEnd().endsWith("/>")) abiertas.push(apertura[1] ?? "");
+    }
+    if (linea.includes("</Route>")) abiertas.pop();
+  }
+  return rutas;
+}
+
+const rutas = leerRutas(readFileSync("/rutas/App.tsx", "utf8"));
 
 await prueba("humo", async ({ pagina, api }) => {
   comprobar(rutas.length >= 5, `${rutas.length} rutas encontradas en App.tsx`);
@@ -21,6 +40,6 @@ await prueba("humo", async ({ pagina, api }) => {
     await pagina.waitForLoadState("networkidle");
     const titulo = await pagina.locator("h1").first().textContent({ timeout: 5000 }).catch(() => null);
     comprobar(Boolean(titulo?.trim()), `/${ruta} carga (“${titulo?.trim()}”)`);
-    await pagina.screenshot({ path: `${CAPTURAS}/humo-${ruta}.png` });
+    await pagina.screenshot({ path: `${CAPTURAS}/humo-${ruta.replaceAll("/", "-")}.png` });
   }
 });
