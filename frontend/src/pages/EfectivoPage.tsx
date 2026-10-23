@@ -16,7 +16,8 @@ import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
-import type { Categoria, Cuenta, Transaccion, Transferencia } from "../types";
+import type { Cuenta, Transaccion, Transferencia } from "../types";
+import { ordenarPorUso } from "../utils/categorias";
 import { formatearDinero, formatearFecha, mesActual, rangoDelMes } from "../utils/formato";
 
 /** Movimientos que se muestran en la página (el resto, en Transacciones). */
@@ -59,15 +60,6 @@ async function cargar() {
     transferencias: [...new Map(transferencias.flat().map((t) => [t.id, t])).values()],
     gastadoEsteMes: gastosDelMes.reduce((total, pagina) => total + Number(pagina.total_gastos), 0),
   };
-}
-
-/** Las categorías de gasto más usadas en la cartera, primero; el resto, en el orden en que se crearon. */
-function ordenarPorUso(categorias: Categoria[], transacciones: Transaccion[]): Categoria[] {
-  const usos = new Map<number, number>();
-  for (const t of transacciones) usos.set(t.categoria_id, (usos.get(t.categoria_id) ?? 0) + 1);
-  return categorias
-    .filter((c) => c.tipo === "gasto")
-    .sort((a, b) => (usos.get(b.id) ?? 0) - (usos.get(a.id) ?? 0) || a.id - b.id);
 }
 
 /** Banco "habitual" para retirar o depositar: el primero que no sea efectivo ni tarjeta. */
@@ -225,7 +217,7 @@ export function EfectivoPage() {
         {datos && modal?.modo === "gasto" && (
           <FormularioGastoRapido
             carteras={datos.carteras}
-            categorias={ordenarPorUso(datos.categorias, datos.transacciones)}
+            categorias={ordenarPorUso(datos.categorias, datos.transacciones, "gasto")}
             onGuardado={alGuardar}
             onCancelar={() => setModal(null)}
           />

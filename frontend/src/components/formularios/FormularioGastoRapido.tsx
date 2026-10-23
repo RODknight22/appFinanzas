@@ -6,7 +6,7 @@ import type { Categoria, Cuenta } from "../../types";
 import { hoyISO } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
-import { IconoCategoria } from "../ui/IconoCategoria";
+import { RejillaCategorias } from "./RejillaCategorias";
 
 interface FormularioGastoRapidoProps {
   /** Cuentas de efectivo; la primera es la elegida por defecto. */
@@ -88,20 +88,7 @@ export function FormularioGastoRapido({ carteras, categorias, onGuardado, onCanc
 
       <div>
         <p className="mb-2 text-sm font-medium text-suave">Toca la categoría para guardar</p>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {categorias.map((categoria) => (
-            <button
-              key={categoria.id}
-              type="button"
-              disabled={enviando}
-              onClick={() => guardar(categoria.id)}
-              className="flex flex-col items-center gap-1.5 rounded-xl p-2 text-xs font-medium ring-1 ring-linea transition hover:bg-realce active:scale-95 disabled:opacity-50"
-            >
-              <IconoCategoria icono={categoria.icono} color={categoria.color} tamano="sm" />
-              <span className="line-clamp-2 text-center">{categoria.nombre}</span>
-            </button>
-          ))}
-        </div>
+        <RejillaCategorias categorias={categorias} deshabilitada={enviando} onElegir={(categoria) => guardar(categoria.id)} />
       </div>
 
       <Campo etiqueta="Nota (opcional)">
