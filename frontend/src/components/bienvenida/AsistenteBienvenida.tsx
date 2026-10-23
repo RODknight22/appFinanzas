@@ -1,15 +1,4 @@
-import {
-  ArrowLeftRight,
-  HandCoins,
-  LayoutDashboard,
-  Lightbulb,
-  PiggyBank,
-  Repeat,
-  Sparkles,
-  Target,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { cuentasApi } from "../../api/recursos";
@@ -21,26 +10,20 @@ import { Boton } from "../ui/Boton";
 import { Campo } from "../ui/Campo";
 import { Modal } from "../ui/Modal";
 import { SelectMoneda } from "../ui/SelectMoneda";
+import { PasoSueldo } from "./PasoSueldo";
+import { RecorridoGlobos } from "./RecorridoGlobos";
 
-const PASOS = ["Hola", "Moneda", "Cuenta", "Recorrido"] as const;
-
-const RECORRIDO: { icono: LucideIcon; nombre: string; texto: string }[] = [
-  { icono: LayoutDashboard, nombre: "Dashboard", texto: "Tu resumen del mes, con widgets que puedes reordenar." },
-  { icono: ArrowLeftRight, nombre: "Transacciones", texto: "Cada gasto e ingreso. También importas extractos del banco." },
-  { icono: PiggyBank, nombre: "Presupuestos", texto: "Un límite al mes por categoría, en la moneda que quieras." },
-  { icono: Target, nombre: "Metas", texto: "Ahorra para algo concreto y mira cómo avanzas." },
-  { icono: Repeat, nombre: "Suscripciones", texto: "Lo que pagas cada cierto tiempo y cuándo vence el próximo cobro." },
-  { icono: HandCoins, nombre: "Ingresos fijos", texto: "Tu nómina o tus envíos: regístralos en un clic." },
-  { icono: Wallet, nombre: "Cuentas", texto: "Bancos, tarjetas, subcuentas por divisa y tu efectivo." },
-];
+const PASOS = ["Hola", "Moneda", "Cuenta", "Sueldo"] as const;
 
 /**
- * Asistente de la primera vez: moneda principal, primera cuenta y un recorrido
- * por el menú. Cerrarlo o saltarlo cuenta como visto (se puede repetir desde Ajustes).
+ * Asistente de la primera vez: moneda principal, primera cuenta, sueldo (opcional) y,
+ * al cerrar la ventana, un recorrido con globos por el menú. Cerrarlo o saltarlo cuenta
+ * como visto (se puede repetir desde Ajustes).
  */
 export function AsistenteBienvenida() {
   const { configuracion, moneda, actualizarConfiguracion } = useConfiguracion();
   const [paso, setPaso] = useState(0);
+  const [recorrido, setRecorrido] = useState(false);
   const [monedaElegida, setMonedaElegida] = useState(moneda);
   const cuentas = useDatos(() => cuentasApi.listar(), []);
   const nombre = configuracion.nombre;
@@ -61,6 +44,8 @@ export function AsistenteBienvenida() {
   const siguiente = () => setPaso((p) => p + 1);
   const cuentasExistentes = cuentas.datos?.length ?? 0;
 
+  if (recorrido) return <RecorridoGlobos onTerminar={terminar} />;
+
   return (
     <Modal titulo="Primeros pasos" abierto onCerrar={terminar}>
       <ol className="mb-5 flex gap-1.5" aria-label={`Paso ${paso + 1} de ${PASOS.length}`}>
@@ -78,7 +63,7 @@ export function AsistenteBienvenida() {
           </span>
           <h3 className="text-xl font-bold">¡Hola{nombre ? `, ${nombre}` : ""}! Te damos la bienvenida</h3>
           <p className="text-sm text-suave">
-            En un minuto dejamos lista la app: eliges tu moneda, creas tu primera cuenta y te enseñamos dónde está cada cosa.
+            En un minuto dejamos lista la app: eliges tu moneda, creas tu primera cuenta, apuntas tu sueldo si quieres y te enseñamos dónde está cada cosa.
           </p>
           <div className="flex justify-between gap-2 pt-2">
             <Boton variante="fantasma" onClick={terminar}>Saltar</Boton>
@@ -135,29 +120,7 @@ export function AsistenteBienvenida() {
       )}
 
       {paso === 3 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold">Dónde está cada cosa</h3>
-          <ul className="space-y-2.5">
-            {RECORRIDO.map(({ icono: Icono, nombre: seccion, texto }) => (
-              <li key={seccion} className="flex items-start gap-3 text-sm">
-                <span className="rounded-lg bg-superficie-2 p-1.5 text-acento-600 dark:text-acento-400">
-                  <Icono size={16} />
-                </span>
-                <span>
-                  <strong className="font-semibold">{seccion}</strong> <span className="text-suave">— {texto}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="flex items-start gap-2 rounded-xl bg-superficie-2 p-3 text-xs text-suave">
-            <Lightbulb size={16} className="shrink-0 text-amber-500" />
-            Busca las bombillas junto a los títulos: tienen consejos de cada apartado. Puedes ocultarlas o repetir este tutorial desde Ajustes.
-          </p>
-          <div className="flex justify-between gap-2 pt-2">
-            <Boton variante="fantasma" onClick={() => setPaso(2)}>Atrás</Boton>
-            <Boton onClick={terminar}>¡Listo!</Boton>
-          </div>
-        </div>
+        <PasoSueldo cuentas={cuentas.datos ?? []} cargandoCuentas={cuentas.cargando} onAtras={() => setPaso(2)} onSiguiente={() => setRecorrido(true)} />
       )}
     </Modal>
   );
