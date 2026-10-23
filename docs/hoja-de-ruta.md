@@ -136,10 +136,9 @@ dos tocan services/divisas.py.
 
 Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y pasa a la v1.4.
 
-- [ ] **react-router 7 y limpieza.** Actualizar `react-router-dom` 6 → `react-router` 7 (quita
-  2 avisos moderados de `npm audit`), con la versión fijada. Y limpieza: `#64748b` repetido →
-  constante o token, y manejo de errores duplicado. *Hecho cuando:* `npm audit` sin esos avisos
-  y todas las E2E en verde sin cambiar lo que se ve.
+- [x] **react-router 7 y limpieza.** `react-router-dom` 6.30.6 → `react-router` 7.18.4 (la 8
+  exige React 19: queda para la v1.4); `npm audit` sin vulnerabilidades. `#64748b` →
+  `COLOR_CATEGORIA_POR_DEFECTO` y el mensaje de error repetido → `utils/errores.ts`.
 - [ ] **Monedas de Latinoamérica:** COP, ARS, CLP y PEN (elegidas por Rodrigo). Aditivo: el enum
   `Moneda` se guarda como texto. Revisar `_validar_tasas` (que falte una no debe tumbar la
   descarga de las demás), `SelectMoneda`, `MONEDAS` en config.ts y las tasas de ejemplo de los
@@ -172,6 +171,8 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
 - [ ] Monedas de Europa (GBP, CHF: tienen tasas históricas del BCE) y fuente histórica para
   GTQ/HNL.
 - [ ] Atajo ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35×).
+- [ ] **React 19 y react-router 8** (la 8 exige React ≥ 19.2): revisar Recharts, dnd-kit y los
+  tipos antes de subir.
 
 ## v2.0: Conectada
 
