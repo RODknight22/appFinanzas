@@ -66,6 +66,9 @@ Ejemplo:
     primera cuenta con su saldo y, opcional, el sueldo como ingreso fijo. Con eso el panel ya
     tiene sentido desde el primer minuto.
   - 🗣️ Rodrigo: Perfecto, pero puedes añadir una especie de tutorial que explique todos los apartados pero no quiero que sea tedioso ni aburrido
+  - 💬 Claude (23/10): propuesta: un tutorial de globos de texto que señalan cada zona de la
+    pantalla, con una frase por globo (5 o 6 en total). Se puede saltar en cualquier momento y
+    se repite desde Ajustes. Va en la v1.2 junto a la bienvenida.
 
 ## 🐛 Arreglos (fixes)
 
@@ -74,6 +77,25 @@ Ejemplo:
 ## 🎨 Mejoras y pulido
 
 <!-- Algo que ya existe pero podría ser más cómodo, rápido o bonito. -->
+
+- [ ] Mover la flecha de desplegar/plegar las subcuentas a la izquierda, para más comodidad
+  #mejora
+  - 💬 Claude (23/10): ¿te refieres a la flecha que está a la derecha del nombre de la cuenta?
+    Propongo ponerla a la izquierda, antes del nombre. ¿Te cuadra?
+  - 🗣️ Rodrigo:
+- [ ] Primeros pasos: que se tachen solos al abrir una cuenta, poner una meta, etc. #fix
+  - 💬 Claude (23/10): el código ya los tacha solos (cuenta, movimiento, presupuesto y meta).
+    Si alguno no se tachó, dime cuál y qué hiciste. Puede que la tarjeta solo se actualice al
+    recargar la página, y eso lo arreglamos.
+  - 🗣️ Rodrigo:
+- [~] Aceptar los movimientos importados más rápido, con una categoría por defecto #mejora
+  → hecho en la PR #18 (ya en `main`, aún no en un release)
+  - 💬 Claude (23/10): esto lo hizo otra sesión una hora antes de que lo escribieras: ✓ en
+    cada fila para aceptar su sugerencia, "Dar por buenas las sugerencias" para todas a la vez
+    (las que no tienen categoría clara se quedan en "Otros") y una barra "Revisa N de M". La
+    categoría ya se adivina sola por el historial. Si probaste el .exe de la v1.1.0, no lo
+    viste: pruébalo con `docker compose` y dime si sigue siendo pesado.
+  - 🗣️ Rodrigo:
 
 - [x] ~~Botón para desplegar y plegar las subcuentas~~ #mejora → hecho (PR #7)
   - 💬 Claude: hecho. Flecha en la cuenta madre; plegada muestra cuántas oculta ("2 ›").
