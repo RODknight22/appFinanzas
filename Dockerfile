@@ -18,7 +18,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     APP_MODO=produccion \
     SQLITE_WAL=true \
     DATA_DIR=/data \
-    FRONTEND_DIR=/app/web
+    FRONTEND_DIR=/app/web     TZ=Europe/Madrid
+# La app usa la fecha local ("hoy", el mes actual, los avisos de las 21 h). Sin zona horaria el
+# contenedor vive en UTC y de 00:00 a 02:00 en España "hoy" sería ayer. Otra zona:
+# `docker run -e TZ=America/Mexico_City ...`.
+RUN apt-get update && apt-get install -y --no-install-recommends tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY backend/requirements.txt backend/constraints.txt ./
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt -c constraints.txt
