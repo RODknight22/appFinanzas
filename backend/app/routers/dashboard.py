@@ -9,6 +9,7 @@ from app.schemas import (
     FlujoMensual,
     GastoDiario,
     GastoPorCategoria,
+    PoderAdquisitivo,
     ProgresoPresupuesto,
     PuntoPatrimonio,
     ResumenMes,
@@ -63,3 +64,9 @@ def patrimonio(
 def gastos_diarios(session: SessionDep, mes_anio: MesParam = None):
     """Gasto de cada día del mes (para el calendario de gastos)."""
     return servicio.gastos_diarios(session, mes_anio or servicio.mes_actual(session))
+
+
+@router.get("/poder-adquisitivo", response_model=PoderAdquisitivo)
+def poder_adquisitivo(session: SessionDep, mes_anio: MesParam = None):
+    """Cuánto rinden tus ingresos de una moneda al gastar en otra, este mes frente a 12."""
+    return servicio.poder_adquisitivo(session, mes_anio or servicio.mes_actual(session))
