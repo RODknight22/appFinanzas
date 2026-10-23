@@ -178,6 +178,12 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
 4. ¿Qué pantalla te gusta más y cuál menos? ¿Por qué? 🗣️ Rodrigo: El Dashboard a la vez me gusta y a la vez no siento que esta bloated
 5. ¿Qué te da pereza hoy, algún paso que repites siempre? 🗣️ Rodrigo: Anotar todos mis gastos y que mi salgo cuadre (Que se pueda editar el saldo actual para hacer ajustes)
 6. ¿Miras las gráficas o solo los números? 🗣️ Rodrigo: Las graficas me gustan. me gusta ver la telemetria y los datos
+   - 💬 Claude (23/10): gracias. Lo que cambia en el plan de la v1.4 (PR #39):
+     - **Ajustar el saldo** entra como tarea nueva: escribes lo que dice el banco y la app
+       apunta un "Ajuste de saldo" por la diferencia, para que el historial siga cuadrando.
+     - **Dashboard recargado:** va con los widgets. Menos widgets a la vista por defecto y
+       más para elegir, sin quitar gráficas.
+     - **Móvil y laptop:** confirma la app instalable de la v1.5.
 
 **Gustos**
 7. ¿Claro u oscuro? ¿Qué estilo y acento usas?
@@ -187,6 +193,8 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
 
 **Tu dinero entre dos monedas**
 11. ¿Cómo mandas hoy dinero de MXN a EUR (Revolut, Wise, banco…) y cada cuánto?
+   - 💬 Claude (23/10): esta es la que más necesito para la v1.4 ("Comparar vías de envío").
+     Basta con la lista: p. ej. "Revolut casi siempre, a veces Santander, una vez al mes".
 12. ¿Usarías un aviso de "buen momento para cambiar" para decidir cuándo enviar?
 13. Para el peso, ¿qué tasa de referencia prefieres: BCE o Banxico (FIX)?
 14. ¿Tienes inversiones o ahorro (CETES, fondos, cripto, plan de pensiones) que quieras ver?
@@ -198,6 +206,9 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
 18. Dentro de un año, ¿para quién es la app: solo tú, tu familia y amigos, o cualquiera?
 19. Recomiendo seguir con el código abierto público. ¿Qué te preocupa de que sea público?
 20. ¿Quieres ganar algo de dinero con ella o es aprendizaje y portafolio?
+   - 💬 Claude (23/10): importa para la firma del .exe. SignPath es gratis pero exige no
+     vender la app con otra licencia (doble licencia). Si algún día quieres venderla, habría
+     que pagar un certificado propio. Para firmar ahora: ¿te vale seguir solo con código abierto?
 21. ¿Hacemos la interfaz en inglés (v1.5) o no te importa?
 22. Móvil: ¿app instalada conectada a tu PC de casa, o copia cifrada en tu Drive?
 23. ¿Conectar el banco automáticamente (solo España, con tu clave) o te basta importar?
