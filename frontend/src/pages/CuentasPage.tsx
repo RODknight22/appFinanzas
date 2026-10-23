@@ -5,6 +5,7 @@ import { dashboardApi } from "../api/dashboard";
 import { cuentasApi, transferenciasApi } from "../api/recursos";
 import { FilaCuenta, type FilaCuentaProps } from "../components/cuentas/FilaCuenta";
 import { ListaTransferencias } from "../components/cuentas/ListaTransferencias";
+import { PanelAjusteSaldo } from "../components/cuentas/PanelAjusteSaldo";
 import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { FormularioTransferencia, type PagoTarjeta } from "../components/formularios/FormularioTransferencia";
 import { avisar } from "../components/ui/tablonAvisos";
@@ -18,7 +19,7 @@ import { avisarError } from "../components/ajustes/avisarError";
 import { useCuentasPlegadas } from "../hooks/useCuentasPlegadas";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
-import type { Cuenta, Transferencia } from "../types";
+import type { AjusteSaldo, Cuenta, Transferencia } from "../types";
 import { agruparCuentas } from "../utils/cuentas";
 import { formatearDinero, mesActual } from "../utils/formato";
 
@@ -33,6 +34,7 @@ type EstadoTransferencia = null | { inicial?: Transferencia; pago?: PagoTarjeta 
 export function CuentasPage() {
   const [modal, setModal] = useState<EstadoModal>(null);
   const [transferencia, setTransferencia] = useState<EstadoTransferencia>(null);
+  const [ajustando, setAjustando] = useState<Cuenta | null>(null);
   const { estaPlegada, alternar: alternarPlegada } = useCuentasPlegadas();
   // Las cuentas vienen con su saldo actual calculado en el resumen del dashboard.
   const estado = useDatos(
@@ -44,6 +46,12 @@ export function CuentasPage() {
   function alGuardar() {
     setModal(null);
     setTransferencia(null);
+    estado.recargar();
+  }
+
+  function alAjustar(ajustada: AjusteSaldo) {
+    if (ajustando) avisar(`Saldo de «${ajustando.nombre}» ajustado (${formatearDinero(ajustada.diferencia, ajustando.moneda)}).`);
+    setAjustando(null);
     estado.recargar();
   }
 
@@ -67,6 +75,8 @@ export function CuentasPage() {
   }
 
   const cuentas = estado.datos?.[0] ?? [];
+  // Del resumen recién cargado: tras deshacer un ajuste, el panel ve el saldo nuevo.
+  const saldoAjustando = ajustando && estado.datos?.[1].cuentas.find((c) => c.cuenta_id === ajustando.id)?.saldo;
 
   return (
     <>
@@ -118,6 +128,7 @@ export function CuentasPage() {
                 // En una tarjeta, el saldo negativo es la deuda.
                 onPagar={() => setTransferencia({ pago: { cuentaId: cuenta.id, monto: -saldo } })}
                 onFijar={() => alternarFijada(cuenta)}
+                onAjustar={() => setAjustando(cuenta)}
               />
             );
           };
@@ -199,6 +210,20 @@ export function CuentasPage() {
             cuentas={cuentas}
             onGuardado={alGuardar}
             onCancelar={() => setTransferencia(null)}
+          />
+        )}
+      </Modal>
+
+      <Modal titulo={ajustando ? `Ajustar saldo · ${ajustando.nombre}` : ""} abierto={ajustando !== null} onCerrar={() => setAjustando(null)}>
+        {ajustando && (
+          <PanelAjusteSaldo
+            // Con el saldo en la key: al deshacer un ajuste, el campo empieza de nuevo con el saldo nuevo.
+            key={`${ajustando.id}:${saldoAjustando}`}
+            cuenta={ajustando}
+            saldo={Number(saldoAjustando ?? ajustando.balance_inicial)}
+            onAjustado={alAjustar}
+            onCambio={estado.recargar}
+            onCancelar={() => setAjustando(null)}
           />
         )}
       </Modal>

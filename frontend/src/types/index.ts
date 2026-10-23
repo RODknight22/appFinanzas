@@ -40,6 +40,16 @@ export interface Cuenta {
   readonly fecha_ultimo_rendimiento: FechaISO | null;
 }
 
+/** Corrección para que el saldo cuadre con el del banco: no es ingreso ni gasto. */
+export interface AjusteSaldo {
+  id: number;
+  cuenta_id: number;
+  fecha: FechaISO;
+  /** Con signo, en la moneda de la cuenta: lo que se sumó (o restó) al saldo. */
+  diferencia: Dinero;
+  notas: string | null;
+}
+
 export interface Categoria {
   id: number;
   nombre: string;
