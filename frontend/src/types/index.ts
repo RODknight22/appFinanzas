@@ -366,6 +366,8 @@ export interface DatosCobro {
   fecha?: FechaISO;
   cuenta_id?: number;
   notas?: string;
+  /** El cobro que se ve en pantalla: si ya no es el próximo, el servidor no lo repite. */
+  fecha_prevista?: FechaISO;
 }
 
 export interface CobroIngreso {

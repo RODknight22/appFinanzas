@@ -28,6 +28,8 @@ export function FormularioPagoSuscripcion({ suscripcion, cuentas, categoriasGast
       suscripcionesApi.registrarPago(suscripcion.id, {
         cuenta_id: Number(cuentaId),
         categoria_id: Number(categoriaId),
+        // La fecha que ves: si ya se pagó (doble clic, otra pestaña), el servidor no lo repite.
+        fecha_prevista: suscripcion.fecha_proximo_pago,
       }),
     );
     if (ok) onGuardado();
