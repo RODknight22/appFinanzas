@@ -183,6 +183,13 @@ export interface CosteEnviosAnio {
   porcentaje_medio: string | null;
 }
 
+/** Presupuestos que se pueden copiar (o se copiaron) desde el último mes que los tiene. */
+export interface CopiaPresupuestos {
+  /** El mes de origen; null si no hay ninguno anterior con presupuestos. */
+  desde: MesAnio | null;
+  cantidad: number;
+}
+
 export interface Presupuesto {
   id: number;
   categoria_id: number;
