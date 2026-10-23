@@ -1,7 +1,7 @@
 import { CheckCircle2, PiggyBank, RotateCcw, Wallet } from "lucide-react";
 
 import type { Cuenta, Meta } from "../../types";
-import { formatearDinero, formatearFecha, formatearMes } from "../../utils/formato";
+import { formatearDinero, formatearFecha, formatearMes, formatearPorcentaje } from "../../utils/formato";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Boton } from "../ui/Boton";
 import { BarraMeta } from "./BarraMeta";
@@ -60,7 +60,7 @@ export function TarjetaMeta({ meta, cuenta, onAportar, onEditar, onEliminar, onM
 
       <div>
         <BarraMeta meta={meta} />
-        <p className="mt-1 text-right text-xs tabular-nums text-tenue">{meta.porcentaje}%</p>
+        <p className="mt-1 text-right text-xs tabular-nums text-tenue">{formatearPorcentaje(meta.porcentaje)}</p>
       </div>
 
       <div className="text-sm text-suave">

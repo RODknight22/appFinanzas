@@ -1,6 +1,6 @@
 import { TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 
-import { formatearNumero } from "../../utils/formato";
+import { formatearPorcentaje } from "../../utils/formato";
 import { variacion } from "../../utils/tendencias";
 import { Sparkline } from "../ui/Sparkline";
 
@@ -46,7 +46,7 @@ function Variacion({ serie, subirEsMalo, destacada }: { serie: number[]; subirEs
       : "bg-rose-500/15 text-rose-600 dark:text-rose-400";
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${color}`} title="Respecto al mes anterior">
-      <Icono size={12} /> {formatearNumero(Math.abs(cambio), 1)} %
+      <Icono size={12} /> {formatearPorcentaje(Math.abs(cambio))}
     </span>
   );
 }

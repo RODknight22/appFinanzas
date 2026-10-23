@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 
 import type { Celebracion } from "../../hooks/useHitosMetas";
 import { lanzarConfeti, lanzarFiesta } from "../../utils/confeti";
-import { formatearDinero } from "../../utils/formato";
+import { formatearDinero, formatearPorcentaje } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 
 const MENSAJES: Record<number, { titulo: string; texto: (faltan: string) => string }> = {
@@ -63,7 +63,7 @@ export function CelebracionHito({ celebracion, onCerrar }: { celebracion: Celebr
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-4xl" aria-hidden>{meta.icono}</span>
-            <span className="text-lg font-bold tabular-nums">{hito} %</span>
+            <span className="text-lg font-bold tabular-nums">{formatearPorcentaje(hito)}</span>
           </div>
         </div>
 

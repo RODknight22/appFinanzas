@@ -2,7 +2,7 @@ import { CalendarClock, ChevronRight, CornerDownRight, CreditCard, Pin, PinOff, 
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
-import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../../utils/formato";
+import { diasHasta, formatearDinero, formatearFecha, formatearPorcentaje, textoVencimiento } from "../../utils/formato";
 import { TIPOS_CUENTA } from "../formularios/FormularioCuenta";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Boton } from "../ui/Boton";
@@ -56,7 +56,7 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
             />
           </div>
           <p className="mt-1">
-            Disponible {formatearDinero(Math.max(limite - deuda, 0), cuenta.moneda)} de {formatearDinero(limite, cuenta.moneda)} ({Math.round(usado)}% usado)
+            Disponible {formatearDinero(Math.max(limite - deuda, 0), cuenta.moneda)} de {formatearDinero(limite, cuenta.moneda)} ({formatearPorcentaje(usado, 0)} usado)
           </p>
         </div>
       )}
@@ -77,7 +77,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-tenue">
       <span>
-        {tasa}% anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1), cuenta.moneda)} al día · ≈{" "}
+        {formatearPorcentaje(tasa, 2)} anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1), cuenta.moneda)} al día · ≈{" "}
         {formatearDinero(rendimientoEstimado(saldo, tasa, 30), cuenta.moneda)} al mes
       </span>
       {diasPendientes > 0 ? (

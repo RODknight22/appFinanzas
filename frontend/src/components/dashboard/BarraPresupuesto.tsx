@@ -1,5 +1,5 @@
 import type { ProgresoPresupuesto } from "../../types";
-import { formatearDinero } from "../../utils/formato";
+import { formatearDinero, formatearPorcentaje } from "../../utils/formato";
 
 /** Verde hasta el 75 %, ámbar hasta el 100 % y rojo si se excede. */
 function colorBarra(porcentaje: number): string {
@@ -37,8 +37,8 @@ export function BarraPresupuesto({ progreso }: { progreso: ProgresoPresupuesto }
       </div>
       <p className={`mt-1 text-xs ${progreso.excedido ? "text-rose-600 dark:text-rose-400" : "text-tenue"}`}>
         {progreso.excedido
-          ? `Excedido en ${formatearDinero(-restante, progreso.moneda)} (${progreso.porcentaje}%)`
-          : `Quedan ${formatearDinero(restante, progreso.moneda)} (${progreso.porcentaje}% usado)`}
+          ? `Excedido en ${formatearDinero(-restante, progreso.moneda)} (${formatearPorcentaje(progreso.porcentaje)})`
+          : `Quedan ${formatearDinero(restante, progreso.moneda)} (${formatearPorcentaje(progreso.porcentaje)} usado)`}
       </p>
     </div>
   );

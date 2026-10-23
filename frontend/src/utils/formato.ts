@@ -11,18 +11,28 @@ const formateadores = new Map<Moneda, Intl.NumberFormat>();
 
 /**
  * Todas las monedas se formatean con la región de la moneda principal: así la
- * principal usa su símbolo ("$") y las demás su código ("USD 15.00"). Si cada
- * una usara su propia región, MXN y USD saldrían ambas como "$".
+ * principal usa su símbolo ("$") y las demás, el suyo si no se confunde ("€102.00",
+ * "Q50.00") o su código si también sería "$" ("USD 15.00"). Si cada una usara su
+ * propia región, MXN y USD saldrían ambas como "$".
  */
 function formateador(moneda: Moneda): Intl.NumberFormat {
   let existente = formateadores.get(moneda);
   if (!existente) {
     // useGrouping "always": en español Intl no separa los miles en números de 4 cifras
     // ("9835,05 €"); en una app de dinero se lee mejor "9.835,05 €".
-    existente = new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda, useGrouping: "always" });
+    const opciones: Intl.NumberFormatOptions = { style: "currency", currency: moneda, useGrouping: "always" };
+    if (moneda !== monedaPrincipal && simboloEstrecho(moneda) !== "$") opciones.currencyDisplay = "narrowSymbol";
+    existente = new Intl.NumberFormat(localeActual, opciones);
     formateadores.set(moneda, existente);
   }
   return existente;
+}
+
+/** El símbolo corto de una moneda ("€", "$", "Q"…) en la región de la app. */
+function simboloEstrecho(moneda: Moneda): string | undefined {
+  return new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda, currencyDisplay: "narrowSymbol" })
+    .formatToParts(0)
+    .find((parte) => parte.type === "currency")?.value;
 }
 
 /** Cambia la moneda principal (y el formato regional de fechas) de toda la app. */
@@ -40,6 +50,12 @@ export function formatearDinero(valor: Dinero | number, moneda: Moneda = monedaP
 /** Número sin moneda con el formato regional de la app (p. ej. un tipo de cambio). */
 export function formatearNumero(valor: number, maxDecimales = 4): string {
   return valor.toLocaleString(localeActual, { maximumFractionDigits: maxDecimales });
+}
+
+/** Un porcentaje (45.5 = 45,5 %) con el formato regional de la app: "45.5%", "45,5 %"… */
+export function formatearPorcentaje(valor: number, maxDecimales = 1): string {
+  // Intl espera la fracción (0.455), no el número de "por cientos".
+  return (valor / 100).toLocaleString(localeActual, { style: "percent", maximumFractionDigits: maxDecimales, useGrouping: "always" });
 }
 
 /**

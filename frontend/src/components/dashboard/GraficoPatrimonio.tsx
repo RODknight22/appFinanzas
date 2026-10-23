@@ -2,7 +2,7 @@ import { useId } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from "recharts";
 
 import type { PuntoPatrimonio } from "../../types";
-import { formatearDinero, formatearMes, formatearNumero } from "../../utils/formato";
+import { formatearDinero, formatearMes, formatearPorcentaje } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
 
 function TooltipPatrimonio({ active, payload, label }: TooltipProps<number, string>) {
@@ -35,7 +35,7 @@ export function GraficoPatrimonio({ datos }: { datos: PuntoPatrimonio[] }) {
         <p className={`text-sm font-semibold ${sube ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
           {sube ? "+" : "−"}
           {formatearDinero(Math.abs(cambio))}
-          {porcentaje !== null && ` (${formatearNumero(Math.abs(porcentaje), 1)} %)`}
+          {porcentaje !== null && ` (${formatearPorcentaje(Math.abs(porcentaje))})`}
           <span className="font-normal text-tenue"> en {filas.length} meses</span>
         </p>
       </div>
