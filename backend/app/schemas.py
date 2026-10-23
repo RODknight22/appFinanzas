@@ -364,6 +364,9 @@ class PagoSuscripcionCreate(SQLModel):
 
     cuenta_id: int
     categoria_id: int
+    # La fecha del pago que se ve en pantalla: si ya no es la próxima, ese pago ya se anotó
+    # (doble clic, otra pestaña). Opcional para no romper a quien no la mande.
+    fecha_prevista: date | None = None
 
 
 class PagoSuscripcionRead(SQLModel):
@@ -517,6 +520,14 @@ class CobroIngresoCreate(SQLModel):
     fecha: date | None = None
     cuenta_id: int | None = None
     notas: str | None = Field(default=None, max_length=500)
+    # Como en PagoSuscripcionCreate: el cobro que se ve en pantalla, para no anotarlo dos veces.
+    fecha_prevista: date | None = None
+
+
+class OmitirCobro(SQLModel):
+    """El cobro que se salta (la fecha que se ve en pantalla), para no saltar dos periodos."""
+
+    fecha_prevista: date | None = None
 
 
 class CobroIngresoRead(SQLModel):

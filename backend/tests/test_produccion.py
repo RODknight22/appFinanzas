@@ -43,6 +43,13 @@ def test_assets_con_cache_larga(web: TestClient) -> None:
     assert "immutable" in web.get("/assets/app-abc123.js").headers["cache-control"]
 
 
+def test_asset_que_no_existe_da_404(web: TestClient) -> None:
+    # De una versión anterior: no debe llegar index.html guardado un año como si fuera JS.
+    respuesta = web.get("/assets/app-viejo999.js")
+    assert respuesta.status_code == 404
+    assert "immutable" not in respuesta.headers.get("cache-control", "")
+
+
 def test_cabeceras_de_seguridad(web: TestClient) -> None:
     cabeceras = web.get("/").headers
     assert "script-src 'self'" in cabeceras["content-security-policy"]

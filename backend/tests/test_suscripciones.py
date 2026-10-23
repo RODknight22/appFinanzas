@@ -56,3 +56,17 @@ def test_registrar_pago_rechaza_categoria_de_ingreso(
     # La fecha no debe avanzar si el pago falló.
     actual = client.get(f"/suscripciones/{suscripcion['id']}").json()
     assert actual["fecha_proximo_pago"] == "2026-10-20"
+
+
+def test_un_doble_clic_no_paga_dos_veces(client: TestClient, cuenta: dict, categoria_gasto: dict) -> None:
+    suscripcion = client.post("/suscripciones", json={
+        "nombre": "Netflix", "monto": "15.99", "periodicidad": "mensual", "fecha_proximo_pago": "2026-10-20",
+    }).json()
+    pago = {"cuenta_id": cuenta["id"], "categoria_id": categoria_gasto["id"], "fecha_prevista": "2026-10-20"}
+    url = f"/suscripciones/{suscripcion['id']}/registrar-pago"
+
+    assert client.post(url, json=pago).status_code == 201
+    repetido = client.post(url, json=pago)  # el segundo clic llega con la misma fecha
+    assert repetido.status_code == 409
+    assert "20/11/2026" in repetido.json()["detail"]
+    assert len(client.get("/transacciones").json()) == 1

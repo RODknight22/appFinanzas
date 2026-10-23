@@ -5,11 +5,17 @@ from datetime import date, timedelta
 from sqlmodel import Session, col, select
 
 from app.models import Cuenta, IngresoRecurrente, IngresoRecurrenteBase, TipoMovimiento, Transaccion
-from app.schemas import CobroIngresoCreate, IngresoRecurrenteCreate, IngresoRecurrenteUpdate
+from app.schemas import CobroIngresoCreate, IngresoRecurrenteCreate, IngresoRecurrenteUpdate, OmitirCobro
 from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404
 from app.services.errores import ReglaDeNegocioError
-from app.services.periodicidad import DIA_QUINCENA, ULTIMO_DIA, Calendario, siguiente_fecha
+from app.services.periodicidad import (
+    DIA_QUINCENA,
+    ULTIMO_DIA,
+    Calendario,
+    comprobar_fecha_prevista,
+    siguiente_fecha,
+)
 from app.services.transacciones import completar_montos, validar_relaciones
 
 # Ajustes del calendario: un null explícito vuelve al comportamiento clásico.
@@ -88,6 +94,7 @@ def registrar_cobro(
 ) -> tuple[Transaccion, IngresoRecurrente]:
     """Anota el ingreso que llegó y mueve el recurrente a su siguiente fecha."""
     ingreso = obtener(session, ingreso_id)
+    comprobar_fecha_prevista(datos.fecha_prevista, ingreso.fecha_proximo_cobro, "cobro")
     cuenta_id = datos.cuenta_id or ingreso.cuenta_id
     cuenta = validar_relaciones(session, cuenta_id, ingreso.categoria_id, TipoMovimiento.INGRESO)
 
@@ -113,9 +120,10 @@ def registrar_cobro(
     return transaccion, ingreso
 
 
-def omitir_cobro(session: Session, ingreso_id: int) -> IngresoRecurrente:
+def omitir_cobro(session: Session, ingreso_id: int, datos: OmitirCobro | None = None) -> IngresoRecurrente:
     """Salta un periodo sin anotar nada (p. ej. un mes en que no hubo pago)."""
     ingreso = obtener(session, ingreso_id)
+    comprobar_fecha_prevista(datos.fecha_prevista if datos else None, ingreso.fecha_proximo_cobro, "cobro")
     _avanzar(ingreso)
     return guardar(session, ingreso)
 

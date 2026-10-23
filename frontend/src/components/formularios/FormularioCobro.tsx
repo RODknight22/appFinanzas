@@ -29,13 +29,16 @@ export function FormularioCobro({ ingreso, cuentas, onGuardado, onCancelar }: Fo
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
     const ok = await ejecutar(() =>
-      ingresosApi.registrarCobro(ingreso.id, { monto, fecha, cuenta_id: Number(cuentaId) }),
+      // fecha_prevista: la que ves; si ya se anotó (doble clic, otra pestaña), no se repite.
+      ingresosApi.registrarCobro(ingreso.id, {
+        monto, fecha, cuenta_id: Number(cuentaId), fecha_prevista: ingreso.fecha_proximo_cobro,
+      }),
     );
     if (ok) onGuardado();
   }
 
   async function omitir() {
-    const ok = await ejecutar(() => ingresosApi.omitir(ingreso.id));
+    const ok = await ejecutar(() => ingresosApi.omitir(ingreso.id, ingreso.fecha_proximo_cobro));
     if (ok) onGuardado();
   }
 

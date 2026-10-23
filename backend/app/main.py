@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse
+from sqlalchemy.exc import IntegrityError
 
 from app.database import init_db
 from app.dependencias import requiere_sesion
@@ -65,6 +66,13 @@ if os.getenv("PROTECCION_LOCAL") == "true":
 async def manejar_error_de_dominio(_request: Request, exc: ErrorDeDominio) -> JSONResponse:
     """Traduce los errores de los servicios a HTTP con el mismo formato que FastAPI."""
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.mensaje})
+
+
+@app.exception_handler(IntegrityError)
+async def manejar_choque_en_la_bd(_request: Request, _exc: IntegrityError) -> JSONResponse:
+    """Los servicios comprueban antes de guardar ("¿ya existe esa categoría?"), pero dos
+    peticiones a la vez pueden pasar las dos la comprobación: la BD frena a la segunda."""
+    return JSONResponse(status_code=409, content={"detail": "Eso choca con algo que ya existe. Recarga y vuelve a intentarlo."})
 
 
 # Público: lo necesario para iniciar sesión.

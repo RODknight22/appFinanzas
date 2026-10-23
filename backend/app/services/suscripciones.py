@@ -8,7 +8,7 @@ from app.models import Suscripcion, TipoMovimiento, Transaccion
 from app.schemas import PagoSuscripcionCreate, SuscripcionCreate, SuscripcionUpdate
 from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404
-from app.services.periodicidad import siguiente_fecha
+from app.services.periodicidad import comprobar_fecha_prevista, siguiente_fecha
 from app.services.transacciones import completar_montos, validar_relaciones
 
 
@@ -56,6 +56,7 @@ def registrar_pago(
 ) -> tuple[Transaccion, Suscripcion]:
     """Anota el cobro como gasto y mueve la suscripción a su siguiente fecha."""
     suscripcion = obtener(session, suscripcion_id)
+    comprobar_fecha_prevista(datos.fecha_prevista, suscripcion.fecha_proximo_pago, "pago")
     cuenta = validar_relaciones(session, datos.cuenta_id, datos.categoria_id, TipoMovimiento.GASTO)
 
     transaccion = Transaccion(

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from app.models import Periodicidad
+from app.services.errores import ConflictoError
 
 DIA_QUINCENA = 15
 # Un día 31 significa "el último del mes": se recorta al 30, 28 o 29 según el mes.
@@ -74,6 +75,13 @@ def _siguiente_nominal(fecha: date, periodicidad: Periodicidad, ajustes: Calenda
     if periodicidad == Periodicidad.MENSUAL:
         return _sumar_meses(fecha, n, ajustes.dia_del_mes)
     return _sumar_meses(fecha, 12 * n)
+
+
+def comprobar_fecha_prevista(prevista: date | None, actual: date, que: str) -> None:
+    """Rechaza repetir un pago o cobro: si la fecha que se ve en pantalla ya no es la próxima,
+    ese periodo ya se anotó (doble clic, otra pestaña, un reintento)."""
+    if prevista is not None and prevista != actual:
+        raise ConflictoError(f"Ese {que} ya se había registrado: el siguiente es el {actual.strftime('%d/%m/%Y')}")
 
 
 def siguiente_fecha(fecha: date, periodicidad: Periodicidad, ajustes: Calendario = Calendario()) -> date:
