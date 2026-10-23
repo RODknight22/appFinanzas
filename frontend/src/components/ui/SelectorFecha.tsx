@@ -1,15 +1,14 @@
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
+import { usePanelFlotante } from "../../hooks/usePanelFlotante";
 import type { FechaISO } from "../../types";
 import { aISO, fechaLocal, formatearFecha, formatearMes, hoyISO, nombreMesCorto, sumarDias } from "../../utils/formato";
 import { CLASE_ENTRADA } from "./Campo";
 
 const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
 const ANCHO_PANEL = 288;
-const MARGEN = 8; // distancia mínima a los bordes de la ventana
-const SEPARACION = 6; // entre el campo y el calendario
 
 /** Suma meses conservando el día si existe: 31 oct + 1 mes = 30 nov. */
 function sumarMeses(fecha: FechaISO, meses: number): FechaISO {
@@ -111,43 +110,8 @@ function PanelCalendario({ disparador, etiqueta, valor, opcional, onElegir, onCe
   // Día con el foco: decide qué mes se ve y se mueve con las flechas del teclado.
   const [enfocada, setEnfocada] = useState(valor || hoy);
   const [vista, setVista] = useState<"dias" | "meses">("dias");
-  const [posicion, setPosicion] = useState<{ top: number; left: number; ancho: number } | null>(null);
   const refPanel = useRef<HTMLDivElement>(null);
-
-  // Debajo del campo; encima si abajo no cabe. Se recoloca al hacer scroll (el modal también se desplaza).
-  useLayoutEffect(() => {
-    function colocar() {
-      const boton = disparador.current;
-      const panel = refPanel.current;
-      if (!boton || !panel) return;
-      const rect = boton.getBoundingClientRect();
-      const ancho = Math.min(ANCHO_PANEL, window.innerWidth - 2 * MARGEN);
-      const alto = panel.offsetHeight;
-      const left = Math.min(Math.max(MARGEN, rect.left), window.innerWidth - ancho - MARGEN);
-      const cabeAbajo = rect.bottom + SEPARACION + alto <= window.innerHeight - MARGEN;
-      const cabeArriba = rect.top - SEPARACION - alto >= MARGEN;
-      const top = cabeAbajo || !cabeArriba ? rect.bottom + SEPARACION : rect.top - SEPARACION - alto;
-      setPosicion({ top, left, ancho });
-    }
-    colocar();
-    window.addEventListener("resize", colocar);
-    window.addEventListener("scroll", colocar, true);
-    return () => {
-      window.removeEventListener("resize", colocar);
-      window.removeEventListener("scroll", colocar, true);
-    };
-  }, [disparador, vista]);
-
-  // Un clic fuera (ni en el calendario ni en el campo) lo cierra sin cambiar nada.
-  // En captura: el modal detiene la propagación de sus clics y no llegarían al document.
-  useEffect(() => {
-    function alPulsar(evento: MouseEvent) {
-      const objetivo = evento.target as Node;
-      if (!refPanel.current?.contains(objetivo) && !disparador.current?.contains(objetivo)) onCerrar();
-    }
-    document.addEventListener("mousedown", alPulsar, true);
-    return () => document.removeEventListener("mousedown", alPulsar, true);
-  }, [disparador, onCerrar]);
+  const posicion = usePanelFlotante(disparador, refPanel, ANCHO_PANEL, onCerrar);
 
   // El foco sigue al día enfocado (para el teclado), una vez el panel ya es visible.
   const visible = posicion !== null;
