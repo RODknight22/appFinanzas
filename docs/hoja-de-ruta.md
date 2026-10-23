@@ -89,10 +89,10 @@ da tiempo; si no, pasan a la v1.3.
 - [x] **Selector de mes más ágil** (Dashboard, Transacciones y Presupuestos; idea de Rodrigo):
   botón "Hoy" fuera del mes en curso y, al tocar el nombre del mes, una cuadrícula de 12 meses
   con flechas de año. *Dónde:* ui/SelectorMes.tsx y el hook compartido usePanelFlotante.
-- [ ] **Bienvenida al día** (idea de Rodrigo): el paso a paso del primer uso explica también lo
-  nuevo (efectivo, deudas, deseos, copias) y lleva a meter los datos básicos, rápido y ameno.
-  El "Recorrido" pasa a ser un tutorial de globos de texto sobre la pantalla real (una frase
-  por globo, se puede saltar y se repite desde Ajustes).
+- [x] **Bienvenida al día** (idea de Rodrigo): moneda, primera cuenta y sueldo opcional (ingreso
+  fijo mensual); después, un recorrido de 9 globos de texto sobre el menú real, una frase por
+  apartado (efectivo, deudas, deseos y copias incluidos). Se salta con un botón o Esc y se repite
+  desde Ajustes. *Dónde:* components/bienvenida/ y `data-tutorial` en Layout.tsx.
 - [ ] **Flecha de las subcuentas a la izquierda** (idea de Rodrigo), más cómoda de pulsar.
 - [ ] **Coste real de cada envío MXN↔EUR:** en transferencias entre monedas, comparar la tasa
   obtenida con la del BCE de ese día ("perdiste X € (Y %)") y un widget con el total del año.
