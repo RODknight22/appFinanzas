@@ -4,6 +4,7 @@ import { accesoApi, type Credenciales, type EstadoAcceso } from "../api/acceso";
 import { registrarAlPerderSesion } from "../api/cliente";
 import { PantallaAcceso } from "../components/acceso/PantallaAcceso";
 import { MensajeError } from "../components/ui/Estados";
+import { mensajeDeError } from "../utils/errores";
 import { vaciarCacheDatos } from "./useDatos";
 
 interface ContextoAcceso {
@@ -28,7 +29,7 @@ export function AccesoProvider({ children }: { children: ReactNode }) {
     accesoApi
       .estado()
       .then(setEstado)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e: unknown) => setError(mensajeDeError(e)));
   }
 
   useEffect(() => {

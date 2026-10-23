@@ -14,6 +14,9 @@ export const MONEDAS: Record<Moneda, { nombre: string; locale: string }> = {
 
 export const MONEDA_POR_DEFECTO: Moneda = "MXN";
 
+/** Gris pizarra: el de "Otros" y el de una categoría sin color propio (igual que el backend). */
+export const COLOR_CATEGORIA_POR_DEFECTO = "#64748b";
+
 /** Colores de acento, en orden de arcoíris. `muestra` es el tono 500 para pintar el selector. */
 export const ACENTOS: Record<ColorAcento, { nombre: string; muestra: string }> = {
   esmeralda: { nombre: "Esmeralda", muestra: "#10b981" },

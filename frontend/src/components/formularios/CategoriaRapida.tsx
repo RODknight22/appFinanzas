@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
 
 import { categoriasApi } from "../../api/recursos";
+import { COLOR_CATEGORIA_POR_DEFECTO } from "../../config";
 import { useEnvio } from "../../hooks/useEnvio";
 import type { Categoria, TipoMovimiento } from "../../types";
 import { Boton } from "../ui/Boton";
@@ -26,7 +27,7 @@ export function CategoriaRapida({ tipo, onCreada, onCancelar }: CategoriaRapidaP
     if (!nombre.trim()) return;
     let creada: Categoria | undefined;
     const ok = await ejecutar(async () => {
-      creada = await categoriasApi.crear({ nombre: nombre.trim(), tipo, icono: "circle", color: "#64748b" });
+      creada = await categoriasApi.crear({ nombre: nombre.trim(), tipo, icono: "circle", color: COLOR_CATEGORIA_POR_DEFECTO });
     });
     if (ok && creada) onCreada(creada);
   }

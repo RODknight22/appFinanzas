@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import type { EstadoNotificaciones } from "../hooks/useNotificaciones";
 import type { Notificacion, TipoNotificacion } from "../types";

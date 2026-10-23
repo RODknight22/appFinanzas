@@ -1,3 +1,4 @@
+import { COLOR_CATEGORIA_POR_DEFECTO } from "../../../config";
 import type { Categoria, Transaccion } from "../../../types";
 import { formatearDinero, formatearFecha } from "../../../utils/formato";
 import { Vacio } from "../../ui/Estados";
@@ -19,7 +20,7 @@ export function ListaUltimas({ transacciones, categorias }: ListaUltimasProps) {
         const esGasto = transaccion.tipo === "gasto";
         return (
           <li key={transaccion.id} className="flex items-center gap-3 text-sm">
-            <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? "#64748b"} tamano="sm" />
+            <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? COLOR_CATEGORIA_POR_DEFECTO} tamano="sm" />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium">{transaccion.notas || categoria?.nombre}</span>
               <span className="text-xs text-tenue">{formatearFecha(transaccion.fecha)}</span>

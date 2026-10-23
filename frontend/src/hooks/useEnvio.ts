@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { avisarError } from "../components/ajustes/avisarError";
 import { confirmar } from "../components/ui/tablonAvisos";
+import { mensajeDeError } from "../utils/errores";
 
 /**
  * Gestiona el envío de un formulario: desactiva el botón mientras se guarda
@@ -19,7 +20,7 @@ export function useEnvio() {
       await accion();
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(mensajeDeError(e));
       return false;
     } finally {
       setEnviando(false);

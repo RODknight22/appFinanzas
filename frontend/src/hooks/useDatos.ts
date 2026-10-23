@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { mensajeDeError } from "../utils/errores";
+
 interface EstadoDatos<T> {
   datos: T | undefined;
   cargando: boolean;
@@ -63,7 +65,7 @@ export function useDatos<T>(cargar: () => Promise<T>, dependencias: unknown[], c
         if (claveCache) guardarEnCache(claveCache, resultado);
         if (vigente) setDatos(resultado);
       })
-      .catch((e: unknown) => vigente && setError(e instanceof Error ? e.message : String(e)))
+      .catch((e: unknown) => vigente && setError(mensajeDeError(e)))
       .finally(() => vigente && setCargando(false));
     return () => {
       vigente = false;

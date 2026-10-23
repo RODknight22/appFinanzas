@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Suspense, useEffect } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 
 import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
