@@ -61,6 +61,22 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
 
 ## v1.2: Multidivisa a fondo (lo que distingue a la app)
 
+**Plan (23/10/2026):** extractos reales y registro ágil ya están (PRs #17 y #18). El resto, en
+este orden, una PR cada vez. "Más monedas" y "Recalcular transferencias antiguas" entran solo si
+da tiempo; si no, pasan a la v1.3.
+
+| Orden | Tarea | Depende de | Zona que toca |
+| --- | --- | --- | --- |
+| 1 | Selector de mes más ágil | — | ui/SelectorMes.tsx |
+| 2 | Flecha de las subcuentas a la izquierda | Respuesta de Rodrigo (cuaderno) | FilaCuenta.tsx |
+| 3 | Bienvenida al día con tutorial de globos | — | components/bienvenida/, Layout.tsx |
+| 4 | Coste real de cada envío MXN↔EUR | — | services/transferencias.py, widgets |
+| 5 | Poder adquisitivo | 4 (mismo panel) | services/dashboard.py, widgets |
+| 6 | Importación más lista | .xls real de Santander (Rodrigo) | services/importaciones.py |
+| 7 | Presupuestos repetibles | — | services/presupuestos.py |
+| 8 | Publicar v1.2.0 | 1-7 | version.py, package.json, CHANGELOG |
+| 9 | Probar el release en la laptop (Rodrigo) | 8 | — |
+
 - [x] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
   *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
   *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
@@ -70,10 +86,14 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
 - [x] **Registro ágil** (idea de Rodrigo: que anotar no aburra): gasto en dos toques, varios
   seguidos con «Deshacer» y revisión de la importación con progreso. *Dónde:*
   FormularioRegistroRapido.tsx, ImportarExtracto.tsx.
-- [ ] **Selector de mes más ágil** (Dashboard y Transacciones; idea de Rodrigo): volver al mes
-  actual de un clic y saltar a meses lejanos sin pulsar "anterior" muchas veces.
+- [x] **Selector de mes más ágil** (Dashboard, Transacciones y Presupuestos; idea de Rodrigo):
+  botón "Hoy" fuera del mes en curso y, al tocar el nombre del mes, una cuadrícula de 12 meses
+  con flechas de año. *Dónde:* ui/SelectorMes.tsx y el hook compartido usePanelFlotante.
 - [ ] **Bienvenida al día** (idea de Rodrigo): el paso a paso del primer uso explica también lo
   nuevo (efectivo, deudas, deseos, copias) y lleva a meter los datos básicos, rápido y ameno.
+  El "Recorrido" pasa a ser un tutorial de globos de texto sobre la pantalla real (una frase
+  por globo, se puede saltar y se repite desde Ajustes).
+- [ ] **Flecha de las subcuentas a la izquierda** (idea de Rodrigo), más cómoda de pulsar.
 - [ ] **Coste real de cada envío MXN↔EUR:** en transferencias entre monedas, comparar la tasa
   obtenida con la del BCE de ese día ("perdiste X € (Y %)") y un widget con el total del año.
   *Dónde:* services/transferencias.py (los datos ya existen), registroWidgets.tsx.
