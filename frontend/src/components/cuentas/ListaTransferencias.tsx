@@ -1,7 +1,7 @@
 import { ArrowRight, ArrowRightLeft } from "lucide-react";
 
 import type { Cuenta, Transferencia } from "../../types";
-import { formatearDinero, formatearFecha } from "../../utils/formato";
+import { formatearDinero, formatearFecha, formatearNumero } from "../../utils/formato";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Vacio } from "../ui/Estados";
 
@@ -48,11 +48,29 @@ export function ListaTransferencias({ transferencias, cuentas, onEditar, onElimi
               {cambioDeMoneda && t.monto_destino && (
                 <span className="block text-xs text-tenue">→ {formatearDinero(t.monto_destino, destino.moneda)}</span>
               )}
+              {t.coste != null && <CosteEnvio coste={Number(t.coste)} porcentaje={Number(t.coste_porcentaje)} />}
             </span>
             <AccionesFila onEditar={() => onEditar(t)} onEliminar={() => onEliminar(t)} />
           </li>
         );
       })}
     </ul>
+  );
+}
+
+/**
+ * "Te costó 12,30 € (1,4 %)": tipo de cambio peor que el del BCE ese día más la comisión,
+ * en tu moneda principal. Si el banco dio mejor tipo, "Ganaste…".
+ */
+function CosteEnvio({ coste, porcentaje }: { coste: number; porcentaje: number }) {
+  if (Math.abs(coste) < 0.01) return <span className="block text-xs text-tenue">Al tipo del BCE</span>;
+  const gano = coste < 0;
+  return (
+    <span
+      className={`block text-xs ${gano ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
+      title="Frente a la tasa del Banco Central Europeo de ese día, comisión incluida"
+    >
+      {gano ? "Ganaste" : "Te costó"} {formatearDinero(Math.abs(coste))} ({formatearNumero(Math.abs(porcentaje), 1)} %)
+    </span>
   );
 }

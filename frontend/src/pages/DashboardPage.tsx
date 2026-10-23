@@ -2,7 +2,7 @@ import { LayoutGrid, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
-import { categoriasApi, cuentasApi, ingresosApi, metasApi, suscripcionesApi, transaccionesApi } from "../api/recursos";
+import { categoriasApi, cuentasApi, ingresosApi, metasApi, suscripcionesApi, transaccionesApi, transferenciasApi } from "../api/recursos";
 import { avisarError } from "../components/ajustes/avisarError";
 import { TarjetaBienvenida } from "../components/bienvenida/TarjetaBienvenida";
 import { PanelWidgets } from "../components/dashboard/PanelWidgets";
@@ -47,6 +47,7 @@ export function DashboardPage() {
         dashboardApi.patrimonio(mes, 12),
         dashboardApi.gastosDiarios(mes),
         ingresosApi.listar({ proximos_dias: DIAS_PROXIMOS }),
+        transferenciasApi.costes(Number(mes.slice(0, 4))),
       ]),
     [mes],
     "dashboard",
@@ -90,7 +91,7 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar} esqueleto={<EsqueletoPanel />}>
-        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros, costeEnvios]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
             resumen,
@@ -105,6 +106,7 @@ export function DashboardPage() {
             metas,
             patrimonio,
             diarios,
+            costeEnvios,
             mes,
           };
           return (

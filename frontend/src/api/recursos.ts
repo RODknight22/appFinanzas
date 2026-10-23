@@ -6,6 +6,7 @@ import type {
   AportacionMeta,
   Categoria,
   CobroIngreso,
+  CosteEnviosAnio,
   Cuenta,
   DatosAbono,
   DatosCobro,
@@ -77,7 +78,11 @@ export const transaccionesApi = {
   buscar: (filtros: FiltrosTransacciones) =>
     http.get<PaginaTransacciones>("/transacciones/buscar", filtros as Record<string, string>),
 };
-export const transferenciasApi = crearRecurso<Transferencia, { cuenta_id?: number; limit?: number }>("/transferencias");
+export const transferenciasApi = {
+  ...crearRecurso<Transferencia, { cuenta_id?: number; limit?: number }>("/transferencias"),
+  /** Lo que costaron los envíos entre monedas del año, frente a la tasa del BCE. */
+  costes: (anio: number) => http.get<CosteEnviosAnio>("/transferencias/costes", { anio }),
+};
 export const presupuestosApi = crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos");
 
 export const suscripcionesApi = {
