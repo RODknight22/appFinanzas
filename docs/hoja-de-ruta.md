@@ -40,7 +40,7 @@ las copias de seguridad, que una app de dinero necesita antes de que nadie más 
 - [x] **Desarrollo sin datos reales y con defensas.** *Por qué:* `docker compose` usa
   data/finance.db y el puerto 8000 no tiene las defensas de Host/Origin (auditoría M3).
   *Dónde:* docker-compose.yml, main.py. *Hecho cuando:* una web ajena no puede escribir en :8000.
-- [ ] **CI completo:** ejecutar `scripts/verificar.sh --e2e` en GitHub Actions y añadir linters
+- [x] **CI completo:** ejecutar `scripts/verificar.sh --e2e` en GitHub Actions y añadir linters
   (ruff para Python, eslint para TS). *Dónde:* .github/workflows/ci.yml.
 - [x] **Release más seguro** (auditoría B1): permisos por trabajo y acciones fijadas por SHA.
   *Dónde:* .github/workflows/release.yml.

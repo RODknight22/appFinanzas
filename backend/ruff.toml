@@ -1,0 +1,16 @@
+# Linter de Python: `ruff check .` (lo ejecutan scripts/verificar.sh y el CI).
+target-version = "py312"
+# Como el resto del código: las líneas llegan a ~120 caracteres.
+line-length = 120
+
+[lint]
+# E4/E7/E9 y F: errores reales (imports sin usar, nombres sin definir...), las reglas por defecto.
+# I: imports ordenados. B: fallos típicos de Python (p. ej. un valor por defecto mutable).
+select = ["E4", "E7", "E9", "F", "I", "B"]
+
+[lint.flake8-bugbear]
+# Dataclasses congeladas: usarlas como valor por defecto es seguro (nadie puede modificarlas).
+extend-immutable-calls = ["app.services.periodicidad.Calendario"]
+
+[lint.isort]
+known-first-party = ["app", "tests", "benchmarks"]

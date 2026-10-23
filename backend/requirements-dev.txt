@@ -3,3 +3,5 @@
 -c constraints.txt
 pytest==8.3.4
 httpx==0.28.1
+# Linter: detecta imports sin usar, nombres sin definir y fallos típicos (config en ruff.toml).
+ruff==0.8.4

@@ -40,7 +40,7 @@ Capas: routers (HTTP, sin lógica) → services (reglas de negocio) → models/s
 - Lo financiero lleva tests de propiedades (test_propiedades.py: modelo de referencia).
 
 ## Comandos (Git Bash, raíz del repo)
-- Todo: `scripts/verificar.sh`. Solo tests:
+- Todo: `scripts/verificar.sh` (ruff + tests; reglas en ruff.toml). Solo tests:
   `MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend sh -c "pip install -q -r requirements-dev.txt && pytest -q"`
 - Rendimiento: igual, con `python -m benchmarks.rendimiento 10000 50000` (BD temporal).
   Medir antes y después; no optimizar sin una medición que lo pida.

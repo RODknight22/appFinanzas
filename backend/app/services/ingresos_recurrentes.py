@@ -10,12 +10,12 @@ from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404
 from app.services.errores import ReglaDeNegocioError
 from app.services.periodicidad import DIA_QUINCENA, ULTIMO_DIA, Calendario, siguiente_fecha
+from app.services.transacciones import completar_montos, validar_relaciones
 
 # Ajustes del calendario: un null explícito vuelve al comportamiento clásico.
 _CAMPOS_CALENDARIO = frozenset(
     {"intervalo", "dia_quincena_1", "dia_quincena_2", "dia_del_mes", "adelantar_a_habil"}
 )
-from app.services.transacciones import completar_montos, validar_relaciones
 
 
 def listar(session: Session, proximos_dias: int | None = None) -> list[IngresoRecurrente]:
