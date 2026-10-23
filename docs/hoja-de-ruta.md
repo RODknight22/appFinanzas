@@ -92,7 +92,10 @@ da tiempo; si no, pasan a la v1.3.
   fijo mensual); después, un recorrido de 9 globos de texto sobre el menú real, una frase por
   apartado (efectivo, deudas, deseos y copias incluidos). Se salta con un botón o Esc y se repite
   desde Ajustes. *Dónde:* components/bienvenida/ y `data-tutorial` en Layout.tsx.
-- [ ] **Flecha de las subcuentas a la izquierda** (idea de Rodrigo), más cómoda de pulsar.
+- [x] **Flecha de las subcuentas a la izquierda** (idea de Rodrigo), más cómoda de pulsar.
+- [x] **Avisos propios en vez de `alert`/`confirm`** (adelantado de la v1.3): toasts y diálogo de
+  confirmación con el estilo de la app. *Dónde:* components/ui/Avisos.tsx, tablonAvisos.ts.
+- [x] **Publicar v1.2.0:** versión, CHANGELOG, notas del release y README al día; tag `v1.2.0`.
 - [x] **Coste real de cada envío MXN↔EUR:** en transferencias entre monedas, lo que no llegó
   frente a la tasa del BCE de ese día más la comisión ("Te costó X (Y %)") y un widget con el
   total del año. Solo cuenta si se indicó lo que llegó (columna `destino_estimado`).
@@ -100,10 +103,6 @@ da tiempo; si no, pasan a la v1.3.
 - [x] **Poder adquisitivo:** cuántos euros rindió el ingreso en pesos este mes frente a la media
   de 12 meses. Las monedas de ingreso y de gasto se detectan solas (las de más dinero en el
   último año). *Dónde:* services/dashboard.py, widget en registroWidgets.tsx.
-- [ ] **Más monedas** (COP, ARS, GBP, CHF…). Aditivo: el enum `Moneda` se guarda como texto.
-  Revisar `_validar_tasas`, `SelectMoneda` y qué fuente da sus tasas históricas.
-- [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas (hoy solo las
-  transacciones) y fuente histórica para GTQ/HNL.
 - [x] **Presupuestos repetibles:** "¿Repites los de septiembre? [Copiar N]" copia los del último
   mes que los tiene sin pisar los que ya hay. *Dónde:* services/presupuestos.py.
 - [x] **Importación: transferencias propias y signos por cuenta.** Los cambios de divisa ("To
@@ -117,8 +116,12 @@ da tiempo; si no, pasan a la v1.3.
 
 ## v1.3: Pulido
 
-- [ ] **Notificaciones propias en vez de `alert`/`confirm`** (useEnvio.ts, avisarError.ts,
-  SeccionMonedas.tsx, CuentasPage.tsx).
+- [ ] **Más monedas** (COP, ARS, GBP, CHF…; pasa de la v1.2). Aditivo: el enum `Moneda` se
+  guarda como texto. Revisar `_validar_tasas`, `SelectMoneda`, las tasas de ejemplo de los tests y
+  qué fuente da sus tasas históricas. *Antes:* Rodrigo elige qué monedas.
+- [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas (pasa de la v1.2):
+  hoy solo se recalculan las transacciones. Hace falta saber qué lado de cada transferencia se
+  estimó (`destino_estimado` no lo dice). Y fuente histórica para GTQ/HNL.
 - [ ] **react-router 7** (quita 2 avisos moderados de `npm audit`).
 - [ ] **Inversiones y ahorro con valoración:** valor por fecha, aportado frente a valor actual.
 - [ ] **Etiquetas / viajes:** agrupar gastos de varias categorías y monedas ("Viaje CDMX").
