@@ -185,6 +185,13 @@ class TransferenciaRead(TransferenciaBase):
     coste_porcentaje: Decimal | None = None
 
 
+class CopiaPresupuestos(SQLModel):
+    """Presupuestos que se pueden copiar (o que se copiaron) a un mes desde el último que los tiene."""
+
+    desde: str | None  # el mes de origen; None si no hay ninguno anterior con presupuestos
+    cantidad: int
+
+
 class PoderAdquisitivo(SQLModel):
     """Cuánto rindió lo que cobras en una moneda al gastarlo en otra, este mes frente a 12.
 

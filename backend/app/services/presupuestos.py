@@ -1,9 +1,10 @@
 """Lógica de negocio de los presupuestos mensuales."""
 
+from sqlalchemy import func
 from sqlmodel import Session, col, select
 
 from app.models import Categoria, Presupuesto, TipoMovimiento
-from app.schemas import PresupuestoCreate, PresupuestoUpdate
+from app.schemas import CopiaPresupuestos, PresupuestoCreate, PresupuestoUpdate
 from app.services import configuracion
 from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ConflictoError, ReglaDeNegocioError
@@ -69,3 +70,36 @@ def eliminar(session: Session, presupuesto_id: int) -> None:
     presupuesto = obtener(session, presupuesto_id)
     session.delete(presupuesto)
     session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Repetir los presupuestos de un mes en otro
+# ---------------------------------------------------------------------------
+def _copiables(session: Session, mes_anio: str) -> tuple[str | None, list[Presupuesto]]:
+    """El último mes anterior con presupuestos y los suyos cuya categoría aún no tiene en `mes_anio`.
+
+    El último con presupuestos, no el anterior a secas: si un mes se quedó sin ellos,
+    se copian igualmente los de antes.
+    """
+    desde = session.exec(select(func.max(Presupuesto.mes_anio)).where(Presupuesto.mes_anio < mes_anio)).one()
+    if desde is None:
+        return None, []
+    ya_tiene = set(session.exec(select(Presupuesto.categoria_id).where(Presupuesto.mes_anio == mes_anio)).all())
+    origen = session.exec(select(Presupuesto).where(Presupuesto.mes_anio == desde).order_by(col(Presupuesto.id))).all()
+    return desde, [p for p in origen if p.categoria_id not in ya_tiene]
+
+
+def copiables(session: Session, mes_anio: str) -> CopiaPresupuestos:
+    desde, faltan = _copiables(session, mes_anio)
+    return CopiaPresupuestos(desde=desde, cantidad=len(faltan))
+
+
+def copiar(session: Session, mes_anio: str) -> CopiaPresupuestos:
+    """Copia a `mes_anio` los que faltan, con el mismo límite y moneda. Nunca pisa los que ya hay."""
+    desde, faltan = _copiables(session, mes_anio)
+    session.add_all(
+        Presupuesto(categoria_id=p.categoria_id, monto_limite=p.monto_limite, moneda=p.moneda, mes_anio=mes_anio)
+        for p in faltan
+    )
+    session.commit()
+    return CopiaPresupuestos(desde=desde, cantidad=len(faltan))
