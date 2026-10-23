@@ -54,8 +54,8 @@ Ejemplo:
   - 💬 Claude: propuesta: botón "Hoy" que aparece cuando no estás en el mes actual, y al pulsar
     el nombre del mes, una cuadrícula con los 12 meses y flechas para cambiar de año.
   - 🗣️ Rodrigo: Me parece tu idea
-- [~] Bienvenida al día: explicar lo nuevo, rápida y entretenida, para meter los datos básicos
-  #funcion → PR #20
+- [x] ~~Bienvenida al día: explicar lo nuevo, rápida y entretenida, para meter los datos básicos~~
+  #funcion → hecho (PR #20)
   - 💬 Claude: ¿qué datos básicos son imprescindibles para ti? Propongo: moneda principal,
     primera cuenta con su saldo y, opcional, el sueldo como ingreso fijo. Con eso el panel ya
     tiene sentido desde el primer minuto.
@@ -85,8 +85,8 @@ Ejemplo:
     Si alguno no se tachó, dime cuál y qué hiciste. Puede que la tarjeta solo se actualice al
     recargar la página, y eso lo arreglamos.
   - 🗣️ Rodrigo:
-- [~] Aceptar los movimientos importados más rápido, con una categoría por defecto #mejora
-  → hecho en la PR #18 (ya en `main`, aún no en un release)
+- [x] ~~Aceptar los movimientos importados más rápido, con una categoría por defecto~~ #mejora
+  → hecho (PR #18; llega en la v1.2)
   - 💬 Claude (23/10): esto lo hizo otra sesión una hora antes de que lo escribieras: ✓ en
     cada fila para aceptar su sugerencia, "Dar por buenas las sugerencias" para todas a la vez
     (las que no tienen categoría clara se quedan en "Otros") y una barra "Revisa N de M". La
