@@ -87,6 +87,7 @@ class EstiloVisual(str, Enum):
     GRAFITO = "grafito"
     BOSQUE = "bosque"
     ARENA = "arena"
+    PERSONAL = "personal"  # tono e intensidad elegidos por el usuario (tinte/viveza_personal)
 
 
 class PaginaInicio(str, Enum):
@@ -524,6 +525,10 @@ class Configuracion(SQLModel, table=True):
     avatar: str | None = Field(default=None, max_length=8)  # un emoji; null = inicial del nombre
     color_acento: ColorAcento | None = None
     estilo_visual: EstiloVisual | None = None
+    # Estilo "personal": tono (0-360, como en la rueda de color) e intensidad en centésimas
+    # (0 = gris puro, 100 = la de Fintech, 400 = muy teñido). null = los de Fintech.
+    tinte_personal: int | None = Field(default=None, ge=0, le=360)
+    viveza_personal: int | None = Field(default=None, ge=0, le=400)
     pagina_inicio: PaginaInicio | None = None
     # Día en que empieza el "mes financiero" (p. ej. el día de cobro). 1-28 para
     # que exista en todos los meses, febrero incluido.
