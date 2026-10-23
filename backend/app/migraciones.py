@@ -9,6 +9,11 @@ opcionales (nullable). Renombrar o borrar columnas requeriría una herramienta
 como Alembic; si llega ese momento, conviene adoptarla.
 """
 
+import sqlite3
+from contextlib import closing
+from datetime import date
+from pathlib import Path
+
 from sqlalchemy import Connection, inspect, text
 from sqlmodel import SQLModel
 
@@ -37,6 +42,38 @@ def _anadir_columnas_nuevas(conexion: Connection) -> set[str]:
             conexion.execute(text(f"ALTER TABLE {tabla.name} ADD COLUMN {columna.name} {tipo_sql}"))
             anadidas.add(f"{tabla.name}.{columna.name}")
     return anadidas
+
+
+def _crear_indices_que_falten(conexion: Connection) -> None:
+    """`ADD COLUMN` no crea el índice de la columna (`index=True`): sin esto, una BD que
+    ganó `transaccion.transferencia_id` por migración lo buscaría recorriendo la tabla."""
+    for tabla in SQLModel.metadata.sorted_tables:
+        for indice in tabla.indexes:
+            indice.create(conexion, checkfirst=True)
+
+
+def hay_columnas_pendientes(conexion: Connection) -> bool:
+    """¿Le falta a la BD alguna columna del modelo? (es decir, ¿va a migrarse?)."""
+    inspector = inspect(conexion)
+    for tabla in SQLModel.metadata.sorted_tables:
+        if inspector.has_table(tabla.name):
+            existentes = {columna["name"] for columna in inspector.get_columns(tabla.name)}
+            if any(columna.name not in existentes for columna in tabla.columns):
+                return True
+    return False
+
+
+def copia_antes_de_migrar(ruta_bd: Path, hoy: date | None = None) -> Path:
+    """Copia la BD junto a ella antes de cambiar su estructura.
+
+    SQLite no deshace un `ALTER TABLE` a medias dentro de la transacción de pysqlite: si
+    una migración fallara, esta copia es la vuelta atrás. Se usa la API de copia de SQLite
+    (como en las copias de Ajustes), que es segura aunque la BD esté en modo WAL.
+    """
+    destino = ruta_bd.with_name(f"{ruta_bd.stem}.antes-de-migrar-{(hoy or date.today()).isoformat()}.db")
+    with closing(sqlite3.connect(ruta_bd)) as origen, closing(sqlite3.connect(destino)) as copia:
+        origen.backup(copia)
+    return destino
 
 
 def _renombrar_tipos_de_cuenta(conexion: Connection) -> None:
@@ -77,8 +114,10 @@ def _saltar_primeros_pasos_si_ya_se_usaba(conexion: Connection, anadidas: set[st
 
 
 def aplicar_migraciones(conexion: Connection) -> None:
-    """Se ejecuta dentro de una transacción: si algo falla, no se aplica nada."""
+    """Se ejecuta dentro de una transacción. Ojo: en SQLite un `ALTER TABLE` no se deshace
+    si algo falla después; por eso init_db copia antes la BD si hay columnas pendientes."""
     anadidas = _anadir_columnas_nuevas(conexion)
+    _crear_indices_que_falten(conexion)
     _saltar_primeros_pasos_si_ya_se_usaba(conexion, anadidas)
     _renombrar_tipos_de_cuenta(conexion)
     _rellenar_monedas(conexion)
