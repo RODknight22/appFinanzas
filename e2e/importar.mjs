@@ -35,11 +35,23 @@ await prueba("importar", async ({ pagina, api }) => {
   comprobar((await boton.textContent()) === "Importar 5 movimientos", "5 nuevos (el de 45,20 ya estaba registrado)");
 
   // Elegir categoría en una fila la aplica a la otra con el mismo concepto.
+  const progreso = pagina.getByRole("progressbar", { name: "Revisión" });
+  const antes = Number(await progreso.getAttribute("aria-valuenow"));
   await pagina.locator("li", { hasText: "Ferretería Pepe" }).first().getByLabel("Categoría").selectOption({ label: "Vivienda" });
+  await pagina.getByRole("status").getByText("Vivienda también en 1 movimiento igual").waitFor();
+  comprobar(true, "un aviso cuenta las filas iguales que cambiaron solas");
+  const despues = Number(await progreso.getAttribute("aria-valuenow"));
+  comprobar(despues === antes + 2, `la barra de progreso avanza (${antes} → ${despues})`);
+  comprobar(await pagina.getByLabel("Revisada").count() === 2, "las filas resueltas siguen a la vista con ✓");
+  await pagina.screenshot({ path: `${CAPTURAS}/importar-revision.png` });
   await pagina.getByRole("button", { name: /^Todos/ }).click();
   const elegidas = await pagina.locator("li", { hasText: "Ferretería Pepe" }).getByLabel("Categoría")
     .evaluateAll((selects) => selects.map((s) => s.options[s.selectedIndex].text));
   comprobar(elegidas.join() === "Vivienda,Vivienda", "la categoría elegida se propaga al mismo concepto");
+
+  await pagina.getByRole("button", { name: "Dar por buenas las sugerencias" }).click();
+  await pagina.getByText("Todo revisado").waitFor();
+  comprobar(true, "«Dar por buenas las sugerencias» termina la revisión de un toque");
   await pagina.screenshot({ path: `${CAPTURAS}/importar-vista-previa.png` });
 
   await boton.click();

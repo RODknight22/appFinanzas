@@ -2,6 +2,7 @@ import { Plus, Upload } from "lucide-react";
 import { useState } from "react";
 
 import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
+import { FormularioRegistroRapido } from "../components/formularios/FormularioRegistroRapido";
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
 import { ImportarExtracto } from "../components/importacion/ImportarExtracto";
 import { BarraFiltros } from "../components/transacciones/BarraFiltros";
@@ -118,10 +119,20 @@ export function TransaccionesPage() {
                 abierto={modal !== null && modal !== "importar"}
                 onCerrar={() => setModal(null)}
               >
-                {modal !== null && modal !== "importar" && (
+                {/* Nueva: dos toques y sin cerrar al guardar. Editar: el formulario completo. */}
+                {modal === "nueva" && (
+                  <FormularioRegistroRapido
+                    categorias={categorias}
+                    cuentas={cuentas}
+                    cuentaInicial={consulta.cuenta_id}
+                    onGuardado={resultados.recargar}
+                    onCerrar={() => setModal(null)}
+                  />
+                )}
+                {modal !== null && modal !== "nueva" && modal !== "importar" && (
                   <FormularioTransaccion
-                    key={modal === "nueva" ? "nueva" : modal.id}
-                    inicial={modal === "nueva" ? undefined : modal}
+                    key={modal.id}
+                    inicial={modal}
                     categorias={categorias}
                     cuentas={cuentas}
                     onGuardado={alGuardar}

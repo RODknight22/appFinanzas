@@ -67,6 +67,9 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
   Revolut MX (CSV) probado con su archivo real; Santander (.xls) con uno que imita el real:
   falta subir el real a la vista previa. Ojo: los `TRANSFER "To MXN"` de Revolut entran como
   ingreso.
+- [x] **Registro ágil** (idea de Rodrigo: que anotar no aburra): gasto en dos toques, varios
+  seguidos con «Deshacer» y revisión de la importación con progreso. *Dónde:*
+  FormularioRegistroRapido.tsx, ImportarExtracto.tsx.
 - [ ] **Selector de mes más ágil** (Dashboard y Transacciones; idea de Rodrigo): volver al mes
   actual de un clic y saltar a meses lejanos sin pulsar "anterior" muchas veces.
 - [ ] **Bienvenida al día** (idea de Rodrigo): el paso a paso del primer uso explica también lo
