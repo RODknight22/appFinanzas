@@ -192,28 +192,28 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
 10. ¿Una app que le cabe a todo el mundo o muy hecha a tu medida aunque a otros les sobre? 🗣️ Rodrigo: Prefiero que les sobre y que despues puedan desactivar o quitar funciones "personalizable"
 
 **Tu dinero entre dos monedas**
-11. ¿Cómo mandas hoy dinero de MXN a EUR (Revolut, Wise, banco…) y cada cuánto?
+11. ¿Cómo mandas hoy dinero de MXN a EUR (Revolut, Wise, banco…) y cada cuánto? 🗣️ Rodrigo: Tengo Revolut mexico y mi papa me manda dinero y gasto desde la de revolut mexico pero lo que voy a hacer es pasarlo ya sea por transferencia o sacarlo a efectivo y meterlo a la de santander españa
    - 💬 Claude (23/10): esta es la que más necesito para la v1.4 ("Comparar vías de envío").
      Basta con la lista: p. ej. "Revolut casi siempre, a veces Santander, una vez al mes".
-12. ¿Usarías un aviso de "buen momento para cambiar" para decidir cuándo enviar?
-13. Para el peso, ¿qué tasa de referencia prefieres: BCE o Banxico (FIX)?
-14. ¿Tienes inversiones o ahorro (CETES, fondos, cripto, plan de pensiones) que quieras ver?
-15. ¿Compartes gastos con alguien (pareja, piso)? ¿Te serviría dividirlos?
-16. ¿Qué otros bancos usas o usarás, aunque sean PDF? (para preparar sus lectores)
-17. ¿Haces la declaración en México, en España o en las dos? ¿Un resumen anual por país?
+12. ¿Usarías un aviso de "buen momento para cambiar" para decidir cuándo enviar? 🗣️ Rodrigo: Si
+13. Para el peso, ¿qué tasa de referencia prefieres: BCE o Banxico (FIX)? 🗣️ Rodrigo: No se a que te refieras 
+14. ¿Tienes inversiones o ahorro (CETES, fondos, cripto, plan de pensiones) que quieras ver? 🗣️ Rodrigo: Tengo cripto y stocks de norte america 
+15. ¿Compartes gastos con alguien (pareja, piso)? ¿Te serviría dividirlos? 🗣️ Rodrigo: Siii estaria super bien y juntarlo con lo de me deben
+16. ¿Qué otros bancos usas o usarás, aunque sean PDF? (para preparar sus lectores) 🗣️ Rodrigo: Nu mexico, BAC,Promerica,Ficohsa, bbva mexico
+17. ¿Haces la declaración en México, en España o en las dos? ¿Un resumen anual por país? 🗣️ Rodrigo: Sin comentarios
 
 **El futuro**
-18. Dentro de un año, ¿para quién es la app: solo tú, tu familia y amigos, o cualquiera?
-19. Recomiendo seguir con el código abierto público. ¿Qué te preocupa de que sea público?
-20. ¿Quieres ganar algo de dinero con ella o es aprendizaje y portafolio?
+18. Dentro de un año, ¿para quién es la app: solo tú, tu familia y amigos, o cualquiera? 🗣️ Rodrigo: Para cualquiera
+19. Recomiendo seguir con el código abierto público. ¿Qué te preocupa de que sea público? 🗣️ Rodrigo: Lo quisiera vender en un futuro como producto
+20. ¿Quieres ganar algo de dinero con ella o es aprendizaje y portafolio? 🗣️ Rodrigo: Ambos
    - 💬 Claude (23/10): importa para la firma del .exe. SignPath es gratis pero exige no
      vender la app con otra licencia (doble licencia). Si algún día quieres venderla, habría
      que pagar un certificado propio. Para firmar ahora: ¿te vale seguir solo con código abierto?
-21. ¿Hacemos la interfaz en inglés (v1.5) o no te importa?
-22. Móvil: ¿app instalada conectada a tu PC de casa, o copia cifrada en tu Drive?
-23. ¿Conectar el banco automáticamente (solo España, con tu clave) o te basta importar?
-24. Si pudieras preguntarle a Claude por tus finanzas (v2.0), ¿qué le preguntarías?
-25. ¿Cuántas horas a la semana quieres dedicarle? ¿Fecha que te gustaría para la v1.3?
+21. ¿Hacemos la interfaz en inglés (v1.5) o no te importa? 🗣️ Rodrigo: Si, estaria muy bien
+22. Móvil: ¿app instalada conectada a tu PC de casa, o copia cifrada en tu Drive? 🗣️ Rodrigo: Lo que sea mas comodo para el usuario
+23. ¿Conectar el banco automáticamente (solo España, con tu clave) o te basta importar? 🗣️ Rodrigo: Si conectar
+24. Si pudieras preguntarle a Claude por tus finanzas (v2.0), ¿qué le preguntarías? 🗣️ Rodrigo: En que estoy gastando que podria ahorrar, me de tips para recortar, como alcanzo mis metas mas rapido, analice mis finanzas, etc
+25. ¿Cuántas horas a la semana quieres dedicarle? ¿Fecha que te gustaría para la v1.3? 🗣️ Rodrigo: Lo antes posible pero el tiempo suficiente para hacerlo de calidad
 
 **Aprender y trabajar juntos**
 26. ¿Qué quieres aprender: leer código, escribir cosas pequeñas tú, arquitectura, git?
