@@ -1,4 +1,4 @@
-import { CheckCircle2, FileUp } from "lucide-react";
+import { Check, CheckCircle2, FileUp } from "lucide-react";
 import { useState, type DragEvent } from "react";
 
 import { importacionesApi } from "../../api/recursos";
@@ -35,6 +35,10 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   const [vista, setVista] = useState<VistaPreviaImportacion | null>(null);
   const [filas, setFilas] = useState<Fila[]>([]);
   const [verTodas, setVerTodas] = useState(false);
+  // Filas que eran dudosas al leer el archivo: siguen a la vista (con ✓) al resolverlas,
+  // en vez de desaparecer de golpe, y miden el progreso de la revisión.
+  const [revisables, setRevisables] = useState<Set<number>>(new Set());
+  const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
   const [creadas, setCreadas] = useState<number | null>(null);
   const lectura = useEnvio();
   const guardado = useEnvio();
@@ -50,8 +54,11 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
       const resultado = await importacionesApi.vistaPrevia(cuenta, nuevoArchivo, invertir);
       setVista(resultado);
       setFilas(resultado.filas.map((fila) => ({ ...fila, incluir: !fila.duplicado })));
+      const dudosas = resultado.filas.filter((fila) => !fila.duplicado && fila.confianza !== "alta");
+      setRevisables(new Set(dudosas.map((fila) => fila.fila)));
+      setAviso(null);
       // Si nada es dudoso no hay nada que revisar: se enseña todo directamente.
-      setVerTodas(!resultado.filas.some((fila) => !fila.duplicado && fila.confianza !== "alta"));
+      setVerTodas(dudosas.length === 0);
     });
   }
 
@@ -63,14 +70,20 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
 
   /** Cambia la categoría de una fila y de las demás con el mismo concepto que aún no estaban seguras. */
   function elegirCategoria(fila: Fila, categoriaId: number) {
-    setFilas((actuales) =>
-      actuales.map((f) =>
-        f === fila || (f.concepto === fila.concepto && f.tipo === fila.tipo && f.confianza !== "alta")
-          ? { ...f, categoria_id: categoriaId, confianza: "alta" }
-          : f,
-      ),
-    );
+    const afectada = (f: Fila) =>
+      f === fila || (f.concepto === fila.concepto && f.tipo === fila.tipo && f.confianza !== "alta");
+    const otras = filas.filter(afectada).length - 1;
+    setFilas((actuales) => actuales.map((f) => (afectada(f) ? { ...f, categoria_id: categoriaId, confianza: "alta" } : f)));
+    // Que se note el trabajo ahorrado: sin el aviso, las otras filas cambian sin que se vea.
+    if (otras > 0) {
+      const nombre = categorias.find((c) => c.id === categoriaId)?.nombre ?? "La categoría";
+      setAviso({ id: Date.now(), texto: `${nombre} también en ${otras} movimiento${otras === 1 ? "" : "s"} igual${otras === 1 ? "" : "es"}` });
+    }
   }
+
+  /** Da por buena la categoría propuesta en todas las filas que faltan por revisar. */
+  const aceptarSugerencias = () =>
+    setFilas((actuales) => actuales.map((f) => (porRevisar(f) ? { ...f, confianza: "alta" } : f)));
 
   const alternar = (fila: Fila) =>
     setFilas((actuales) => actuales.map((f) => (f === fila ? { ...f, incluir: !f.incluir } : f)));
@@ -108,7 +121,8 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   const incluidas = filas.filter((f) => f.incluir);
   const duplicadas = filas.filter((f) => f.duplicado).length;
   const dudosas = filas.filter(porRevisar).length;
-  const visibles = verTodas ? filas : filas.filter(porRevisar);
+  const revisadas = revisables.size - dudosas;
+  const visibles = verTodas ? filas : filas.filter((f) => revisables.has(f.fila));
 
   return (
     <div className="space-y-5">
@@ -161,15 +175,48 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
             <span><strong className="tabular-nums">{incluidas.length}</strong> por importar</span>
             {duplicadas > 0 && <span className="text-tenue">{duplicadas} ya registrado{duplicadas === 1 ? "" : "s"}</span>}
-            {dudosas > 0 && (
-              <span className="text-amber-600 dark:text-amber-400">{dudosas} con categoría por revisar</span>
-            )}
             {vista.filas_ignoradas > 0 && (
               <span className="text-tenue" title="Totales, notas o líneas sin fecha o importe">
                 {vista.filas_ignoradas} línea{vista.filas_ignoradas === 1 ? "" : "s"} ignorada{vista.filas_ignoradas === 1 ? "" : "s"}
               </span>
             )}
           </div>
+
+          {revisables.size > 0 && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm">
+                {dudosas > 0 ? (
+                  <span>Revisa <strong className="tabular-nums">{dudosas}</strong> de {revisables.size} categorías dudosas</span>
+                ) : (
+                  <span className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 size={16} /> Todo revisado: listo para importar
+                  </span>
+                )}
+                {dudosas > 0 && (
+                  <button type="button" onClick={aceptarSugerencias} className="font-medium text-acento-600 hover:underline">
+                    Dar por buenas las sugerencias
+                  </button>
+                )}
+              </div>
+              <div
+                className="h-2 overflow-hidden rounded-full bg-superficie-2"
+                role="progressbar"
+                aria-label="Revisión"
+                aria-valuemin={0}
+                aria-valuemax={revisables.size}
+                aria-valuenow={revisadas}
+              >
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${dudosas === 0 ? "bg-emerald-500" : "bg-acento-500"}`}
+                  style={{ width: `${(revisadas / revisables.size) * 100}%` }}
+                />
+              </div>
+              {aviso && (
+                // key: la animación se repite con cada aviso nuevo.
+                <p key={aviso.id} role="status" className="animate-pop text-sm text-tenue">✨ {aviso.texto}</p>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex rounded-full bg-superficie-2 p-1 text-sm">
@@ -212,6 +259,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
                   fila={fila}
                   moneda={cuenta.moneda}
                   categorias={categorias.filter((c) => c.tipo === fila.tipo)}
+                  revisada={revisables.has(fila.fila) && !porRevisar(fila)}
                   onAlternar={() => alternar(fila)}
                   onCategoria={(id) => elegirCategoria(fila, id)}
                 />
@@ -240,12 +288,15 @@ interface FilaVistaPreviaProps {
   fila: Fila;
   moneda: Cuenta["moneda"];
   categorias: Categoria[];
+  /** Era dudosa y ya está resuelta: se marca con ✓ en vez de quitarla de la lista. */
+  revisada: boolean;
   onAlternar: () => void;
   onCategoria: (id: number) => void;
 }
 
-function FilaVistaPrevia({ fila, moneda, categorias, onAlternar, onCategoria }: FilaVistaPreviaProps) {
+function FilaVistaPrevia({ fila, moneda, categorias, revisada, onAlternar, onCategoria }: FilaVistaPreviaProps) {
   const esGasto = fila.tipo === "gasto";
+  const dudosa = porRevisar(fila);
   return (
     <li className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 ${fila.incluir ? "" : "opacity-50"}`}>
       <input
@@ -263,7 +314,7 @@ function FilaVistaPrevia({ fila, moneda, categorias, onAlternar, onCategoria }: 
         </p>
       </div>
       <select
-        className={`${CLASE_ENTRADA_BASE} w-40 ${fila.incluir && fila.confianza !== "alta" ? "ring-2 ring-amber-400/60" : ""}`}
+        className={`${CLASE_ENTRADA_BASE} w-40 ${dudosa ? "ring-2 ring-amber-400/60" : ""}`}
         value={fila.categoria_id}
         onChange={(e) => onCategoria(Number(e.target.value))}
         aria-label="Categoría"
@@ -275,6 +326,22 @@ function FilaVistaPrevia({ fila, moneda, categorias, onAlternar, onCategoria }: 
           <option key={c.id} value={c.id}>{c.nombre}</option>
         ))}
       </select>
+      {/* Mismo ancho en los tres casos para que la columna del importe no baile */}
+      <span className="flex w-8 justify-center">
+        {dudosa ? (
+          <button
+            type="button"
+            onClick={() => onCategoria(fila.categoria_id)}
+            aria-label={`Aceptar la sugerencia para ${fila.concepto || "este movimiento"}`}
+            title="Dar por buena"
+            className="rounded-full p-1.5 text-tenue ring-1 ring-linea transition hover:bg-realce hover:text-emerald-600 active:scale-90"
+          >
+            <Check size={14} />
+          </button>
+        ) : (
+          revisada && <CheckCircle2 size={18} className="animate-pop text-emerald-500" aria-label="Revisada" />
+        )}
+      </span>
       <span className={`w-28 text-right text-sm font-semibold tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
         {esGasto ? "−" : "+"}{formatearDinero(fila.monto, moneda)}
       </span>
