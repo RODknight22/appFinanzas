@@ -114,30 +114,69 @@ da tiempo; si no, pasan a la v1.3.
   transferencia hecha desde el otro extracto (coste real) o une un ingreso o gasto suelto con
   el mismo importe. *Dónde:* services/reglas_categoria.py, services/importaciones.py.
 
-## v1.3: Pulido
+## v1.3: Pulido y confianza
 
-- [ ] **Más monedas** (COP, ARS, GBP, CHF…; pasa de la v1.2). Aditivo: el enum `Moneda` se
-  guarda como texto. Revisar `_validar_tasas`, `SelectMoneda`, las tasas de ejemplo de los tests y
-  qué fuente da sus tasas históricas. *Antes:* Rodrigo elige qué monedas.
-- [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas (pasa de la v1.2):
-  hoy solo se recalculan las transacciones. Hace falta saber qué lado de cada transferencia se
-  estimó (`destino_estimado` no lo dice). Y fuente histórica para GTQ/HNL.
-- [ ] **react-router 7** (quita 2 avisos moderados de `npm audit`).
+**Objetivo:** que la app se instale sin avisos de Windows y se pueda hacer tuya (colores y
+panel), con más monedas y las transferencias antiguas bien convertidas.
+
+**Plan (23/10/2026):** la tarea 1 va sola porque toca casi todo el frontend. Después, las tareas
+2, 4 y 5 pueden ir en sesiones a la vez (zonas distintas). La 3 va después de la 2, porque las
+dos tocan services/divisas.py.
+
+| Orden | Tarea | Depende de | Zona que toca |
+| --- | --- | --- | --- |
+| 1 | react-router 7 y limpieza | — | package.json, imports de rutas en todo frontend/src |
+| 2 | Monedas de Latinoamérica | 1 | models.py (`Moneda`), services/divisas.py, config.ts |
+| 3 | Recalcular transferencias antiguas | 2 | services/transferencias.py, divisas.py, importaciones.py |
+| 4 | Estilo personalizado | 1 | SeccionApariencia.tsx, index.css, Configuración |
+| 5 | Widgets personalizables | 1; ideas de Rodrigo (cuaderno) | components/dashboard/ |
+| 6 | Firmar el ejecutable | Rodrigo elige y contrata el certificado | release.yml, empaquetado/ |
+| 7 | Publicar v1.3.0 | 1-5 (y 6 si está) | version.py, package.json, CHANGELOG |
+| 8 | Probar el release en la laptop (Rodrigo) | 7 | — |
+
+Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y pasa a la v1.4.
+
+- [ ] **react-router 7 y limpieza.** Actualizar `react-router-dom` 6 → `react-router` 7 (quita
+  2 avisos moderados de `npm audit`), con la versión fijada. Y limpieza: `#64748b` repetido →
+  constante o token, y manejo de errores duplicado. *Hecho cuando:* `npm audit` sin esos avisos
+  y todas las E2E en verde sin cambiar lo que se ve.
+- [ ] **Monedas de Latinoamérica:** COP, ARS, CLP y PEN (elegidas por Rodrigo). Aditivo: el enum
+  `Moneda` se guarda como texto. Revisar `_validar_tasas` (que falte una no debe tumbar la
+  descarga de las demás), `SelectMoneda`, `MONEDAS` en config.ts y las tasas de ejemplo de los
+  tests. El BCE no da tasas históricas de estas: se usa la más cercana (decirlo en la app).
+  *Hecho cuando:* una cuenta en COP convierte bien a la principal (test) y se ve con su formato.
+- [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas: hoy solo se
+  recalculan las transacciones. Hace falta saber qué lado se estimó (`destino_estimado` no lo
+  dice): columna opcional nueva con el lado. *Hecho cuando:* una transferencia estimada se
+  corrige al llegar la tasa de su día (test), sin tocar los lados reales.
+- [ ] **Estilo personalizado:** elegir tinte y viveza propios además de los 5 estilos. index.css
+  ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración (columnas
+  opcionales) y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar
+  y con buen contraste en claro y oscuro (E2E con capturas).
+- [ ] **Widgets personalizables** (idea de Rodrigo): más tamaños, elegir cómo muestran los datos
+  y widgets nuevos. *Antes:* Rodrigo dice en el cuaderno qué widgets echa de menos y qué quiere
+  ver distinto. *Dónde:* components/dashboard/.
+- [ ] **Firmar el ejecutable de Windows.** "Control de aplicaciones inteligentes" bloquea el
+  .exe sin firma (le pasó a Rodrigo el 23/10). Opciones: SignPath Foundation (gratis para código
+  abierto, si aceptan el proyecto), Azure Trusted Signing (de pago mensual, verificación de
+  identidad) o un certificado de firma de pago. *Antes:* Rodrigo elige y lo contrata; Claude
+  prepara la comparación y el paso de firma en release.yml. *Hecho cuando:* el .exe publicado
+  abre con el control activado.
+- [ ] **Publicar v1.3.0.**
+
+## v1.4: Más adelante
+
 - [ ] **Inversiones y ahorro con valoración:** valor por fecha, aportado frente a valor actual.
 - [ ] **Etiquetas / viajes:** agrupar gastos de varias categorías y monedas ("Viaje CDMX").
-- [ ] **Limpieza:** `#64748b` repetido → constante o token; manejo de errores duplicado; atajo
-  ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35× más rápido).
 - [ ] Recordatorios por correo (`correo_recordatorios`) y seguir precios de los deseos.
-- [ ] **Widgets más personalizables** (idea de Rodrigo): más tamaños, elegir cómo muestran los
-  datos y widgets nuevos. *Dónde:* components/dashboard/registroWidgets.tsx.
-- [ ] **Estilo personalizado:** elegir tinte y viveza propios (o un acento libre). *Dónde:*
-  index.css ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración
-  y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar (E2E).
+- [ ] Monedas de Europa (GBP, CHF: tienen tasas históricas del BCE) y fuente histórica para
+  GTQ/HNL.
+- [ ] Atajo ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35×).
 
 ## v2.0: Conectada
 
-Antes de vender nada: **decidir la licencia** (GPL-3.0 choca con la App Store) y **firmar los
-ejecutables**.
+Antes de vender nada: **decidir la licencia** (GPL-3.0 choca con la App Store). Firmar los
+ejecutables se adelanta a la v1.3.
 
 - [ ] **Servidor MCP de solo lectura** (resumen del mes, buscar movimientos, convertir) para usar
   la app desde Claude Desktop. Reutiliza services/ tal cual; sin red ni contraseñas nuevas.
