@@ -169,7 +169,7 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
   descarga de las demás), `SelectMoneda`, `MONEDAS` en config.ts y las tasas de ejemplo de los
   tests. El BCE no da tasas históricas de estas: se usa la más cercana (decirlo en la app).
   *Hecho cuando:* una cuenta en COP convierte bien a la principal (test) y se ve con su formato.
-- [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas: hoy solo se
+- [x] **Recalcular transferencias antiguas** cuando lleguen tasas históricas: hoy solo se
   recalculan las transacciones. Hace falta saber qué lado se estimó (`destino_estimado` no lo
   dice): columna opcional nueva con el lado. *Hecho cuando:* una transferencia estimada se
   corrige al llegar la tasa de su día (test), sin tocar los lados reales.
