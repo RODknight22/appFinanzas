@@ -76,7 +76,26 @@ export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string
     claro: { fondo: "oklch(97.2% 0.01 75)", tarjeta: "oklch(99.4% 0.004 85)", texto: "oklch(21% 0.029 75)" },
     oscuro: { fondo: "oklch(14.5% 0.019 75)", tarjeta: "oklch(19.5% 0.024 75)", texto: "oklch(97% 0.01 75)" },
   },
+  personal: {
+    nombre: "Personalizado",
+    descripcion: "Tu tono e intensidad",
+    // La vista previa real sale de coloresPersonales(): depende de lo que elijas.
+    ...coloresPersonales(275, 100),
+  },
 };
+
+/**
+ * Los colores de la vista previa del estilo personal, con las mismas fórmulas que index.css
+ * (`oklch(claridad calc(croma * var(--viveza)) var(--tinte))`). `viveza` en centésimas.
+ */
+export function coloresPersonales(tinte: number, viveza: number): { claro: ColoresModo; oscuro: ColoresModo } {
+  const v = viveza / 100;
+  const color = (claridad: number, croma: number) => `oklch(${claridad}% ${(croma * v).toFixed(4)} ${tinte})`;
+  return {
+    claro: { fondo: color(97.2, 0.004), tarjeta: "oklch(100% 0 0)", texto: color(21, 0.012) },
+    oscuro: { fondo: color(14.5, 0.008), tarjeta: color(19.5, 0.01), texto: color(97, 0.004) },
+  };
+}
 
 export const PAGINAS_INICIO: Record<PaginaInicio, { nombre: string; ruta: string }> = {
   dashboard: { nombre: "Dashboard", ruta: "/dashboard" },

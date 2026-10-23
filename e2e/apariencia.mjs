@@ -39,6 +39,39 @@ await prueba("apariencia", async ({ pagina, api }) => {
   comprobar(claro, "cambia a modo claro");
   await pagina.screenshot({ path: `${CAPTURAS}/apariencia-arena-claro.png` });
 
+  // Personalizado: tono e intensidad propios, al momento y guardados al soltar.
+  await pagina.getByRole("button", { name: /Personalizado/ }).click();
+  await esperarAtributo("data-estilo", "personal", "se elige el estilo personalizado");
+  const guardadoPersonal = pagina.waitForResponse(
+    (r) => r.url().endsWith("/api/configuracion") && r.request().method() === "PATCH" && r.request().postData()?.includes("viveza_personal"),
+  );
+  await pagina.getByLabel("Tono").fill("20");
+  await pagina.getByLabel("Intensidad").fill("300");
+  const variables = () =>
+    pagina.evaluate(() => {
+      const estilo = document.documentElement.style;
+      return `${estilo.getPropertyValue("--tinte")} ${estilo.getPropertyValue("--viveza")}`;
+    });
+  comprobar((await variables()) === "20 3", `el tono y la intensidad se pintan al momento (${await variables()})`);
+  await guardadoPersonal;
+  const conPersonal = await api.get("/configuracion");
+  comprobar(conPersonal.tinte_personal === 20 && conPersonal.viveza_personal === 300, "tono e intensidad se guardan");
+  await pagina.screenshot({ path: `${CAPTURAS}/apariencia-personal-claro.png` });
+  await pagina.reload();
+  await esperarAtributo("data-estilo", "personal", "al recargar sigue el estilo personalizado");
+  comprobar((await variables()) === "20 3", `al recargar se pinta con su tono antes de arrancar (${await variables()})`);
+  await pagina.getByRole("button", { name: "Modo oscuro" }).click();
+  await pagina.waitForFunction(() => document.documentElement.classList.contains("dark"), null, { timeout: 3000 });
+  // El fundido entre modos dura unos 250 ms: la captura, ya con los colores definitivos.
+  await pagina.waitForTimeout(500);
+  await pagina.screenshot({ path: `${CAPTURAS}/apariencia-personal-oscuro.png` });
+
+  // Otro estilo quita el tono propio: manda el del estilo.
+  await pagina.getByRole("button", { name: /Bosque/ }).click();
+  await esperarAtributo("data-estilo", "bosque", "se vuelve a un estilo fijo");
+  comprobar((await variables()) === " ", "el estilo fijo ya no lleva el tono propio");
+  await pagina.getByRole("button", { name: "Modo claro" }).click();
+
   await pagina.setViewportSize({ width: 390, height: 844 });
   const ancho = await pagina.evaluate(() => document.documentElement.scrollWidth);
   comprobar(ancho <= 390, `sin scroll horizontal en móvil (${ancho}px)`);

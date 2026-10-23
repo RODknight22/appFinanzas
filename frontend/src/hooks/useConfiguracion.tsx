@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 
 import { configuracionApi, tasasApi } from "../api/configuracion";
 import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
-import type { ColorAcento, Configuracion, EstiloVisual, Moneda, Tasa } from "../types";
+import type { Configuracion, Moneda, Tasa } from "../types";
 import { Cargando } from "../components/ui/Estados";
 import { convertir } from "../utils/divisas";
 import { conTransicion } from "../utils/transicion";
@@ -40,6 +40,8 @@ const CONFIGURACION_INICIAL: Configuracion = {
   avatar: null,
   color_acento: "esmeralda",
   estilo_visual: "fintech",
+  tinte_personal: 275,
+  viveza_personal: 100,
   pagina_inicio: "dashboard",
   dia_inicio_mes: 1,
   widgets: null,
@@ -57,21 +59,41 @@ const CONFIGURACION_INICIAL: Configuracion = {
 // un fotograma después y, entretanto, el DOM aún muestra lo anterior.
 const pedida = { ...document.documentElement.dataset };
 
+/**
+ * Tono e intensidad del estilo personal, directamente en <html>: mandan sobre los de
+ * cualquier estilo de index.css. `null` los quita y vuelve a mandar el estilo elegido.
+ */
+export function pintarEstiloPersonal(valores: { tinte: number; viveza: number } | null) {
+  const estilo = document.documentElement.style;
+  if (valores) {
+    estilo.setProperty("--tinte", String(valores.tinte));
+    estilo.setProperty("--viveza", String(valores.viveza / 100));
+  } else {
+    estilo.removeProperty("--tinte");
+    estilo.removeProperty("--viveza");
+  }
+}
+
 /** Pone acento y estilo en <html> (los leen las variables CSS de index.css). */
-function aplicarApariencia(acento: ColorAcento, estilo: EstiloVisual) {
-  if (pedida.acento === acento && pedida.estilo === estilo) return;
+function aplicarApariencia({ color_acento: acento, estilo_visual: estilo, tinte_personal: tinte, viveza_personal: viveza }: Configuracion) {
+  const personal = estilo === "personal" ? `${tinte} ${viveza}` : "";
+  if (pedida.acento === acento && pedida.estilo === estilo && pedida.personal === personal) return;
   pedida.acento = acento;
   pedida.estilo = estilo;
+  pedida.personal = personal;
   const html = document.documentElement;
   // Fundido suave del color viejo al nuevo, en vez de un cambio brusco.
   conTransicion(() => {
     html.dataset.acento = acento;
     html.dataset.estilo = estilo;
+    pintarEstiloPersonal(personal ? { tinte, viveza } : null);
   });
   try {
     // Copia local para que index.html lo aplique antes de pintar en la próxima visita.
     localStorage.setItem("acento", acento);
     localStorage.setItem("estilo", estilo);
+    localStorage.setItem("tinte", String(tinte));
+    localStorage.setItem("viveza", String(viveza));
   } catch {
     // Navegación privada: no pasa nada, solo se verán los colores un instante después.
   }
@@ -87,7 +109,7 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   function aplicar(nueva: Configuracion) {
     configurarMoneda(nueva.moneda);
     configurarDiaInicioMes(nueva.dia_inicio_mes);
-    aplicarApariencia(nueva.color_acento, nueva.estilo_visual);
+    aplicarApariencia(nueva);
     // Cambiar el estado vuelve a renderizar la app con el nuevo formato.
     setConfiguracion(nueva);
   }

@@ -446,7 +446,7 @@ export type ColorAcento =
   | "esmeralda" | "turquesa" | "cian" | "cielo" | "azul" | "indigo"
   | "violeta" | "fucsia" | "rosa" | "naranja" | "ambar" | "lima";
 /** Paleta de fondos y textos; cada una tiene versión clara y oscura (index.css). */
-export type EstiloVisual = "fintech" | "medianoche" | "grafito" | "bosque" | "arena";
+export type EstiloVisual = "fintech" | "medianoche" | "grafito" | "bosque" | "arena" | "personal";
 export type PaginaInicio = "dashboard" | "transacciones" | "presupuestos" | "suscripciones" | "ingresos" | "efectivo" | "cuentas" | "metas";
 export type TamanoWidget = "pequeno" | "mediano" | "ancho" | "grande";
 
@@ -465,6 +465,10 @@ export interface Configuracion {
   avatar: string | null;
   color_acento: ColorAcento;
   estilo_visual: EstiloVisual;
+  /** Estilo "personal": tono de 0 a 360 (rueda de color). */
+  tinte_personal: number;
+  /** Estilo "personal": intensidad en centésimas (0 = gris, 100 = la de Fintech, 400 = máxima). */
+  viveza_personal: number;
   pagina_inicio: PaginaInicio;
   /** Día (1-28) en que empieza el mes financiero. */
   dia_inicio_mes: number;

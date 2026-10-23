@@ -1,7 +1,8 @@
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { ACENTOS, ESTILOS, type ColoresModo } from "../../config";
-import { useConfiguracion } from "../../hooks/useConfiguracion";
+import { ACENTOS, ESTILOS, coloresPersonales, type ColoresModo } from "../../config";
+import { pintarEstiloPersonal, useConfiguracion } from "../../hooks/useConfiguracion";
 import type { ColorAcento, Configuracion, EstiloVisual } from "../../types";
 import { Tarjeta } from "../ui/Tarjeta";
 import { avisarError } from "./avisarError";
@@ -14,6 +15,25 @@ export function SeccionApariencia() {
     actualizarConfiguracion(cambios).catch(avisarError);
   }
 
+  // Tono e intensidad mientras se mueven los deslizadores: se pintan al momento y se guardan
+  // cuando paran (una petición por gesto, no una por cada paso del deslizador).
+  const guardado = { tinte: configuracion.tinte_personal, viveza: configuracion.viveza_personal };
+  const [personal, setPersonal] = useState(guardado);
+  useEffect(() => setPersonal({ tinte: configuracion.tinte_personal, viveza: configuracion.viveza_personal }),
+    [configuracion.tinte_personal, configuracion.viveza_personal]);
+  useEffect(() => {
+    if (personal.tinte === guardado.tinte && personal.viveza === guardado.viveza) return;
+    const espera = setTimeout(() => elegir({ tinte_personal: personal.tinte, viveza_personal: personal.viveza }), 400);
+    return () => clearTimeout(espera);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando cambia lo elegido
+  }, [personal.tinte, personal.viveza]);
+
+  function mover(cambio: Partial<typeof personal>) {
+    const nuevo = { ...personal, ...cambio };
+    setPersonal(nuevo);
+    pintarEstiloPersonal(nuevo);
+  }
+
   return (
     <Tarjeta titulo="Estilo y color">
       <fieldset>
@@ -23,8 +43,11 @@ export function SeccionApariencia() {
         </legend>
         {/* auto-fill: tantas columnas como quepan, se use la tarjeta a lo ancho o a media pantalla */}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-2">
-          {Object.entries(ESTILOS).map(([valor, { nombre, descripcion, claro, oscuro }]) => {
+          {Object.entries(ESTILOS).map(([valor, estilo]) => {
             const activo = configuracion.estilo_visual === valor;
+            const { nombre, descripcion } = estilo;
+            // El personalizado se previsualiza con lo que se está eligiendo.
+            const { claro, oscuro } = valor === "personal" ? coloresPersonales(personal.tinte, personal.viveza) : estilo;
             return (
               <button
                 key={valor}
@@ -48,6 +71,27 @@ export function SeccionApariencia() {
             );
           })}
         </div>
+        {configuracion.estilo_visual === "personal" && (
+          <div className="mt-4 grid gap-4 rounded-xl bg-superficie-2 p-4 sm:grid-cols-2">
+            <Deslizador
+              etiqueta="Tono"
+              valor={personal.tinte}
+              max={360}
+              texto={`${personal.tinte}°`}
+              // La rueda de color entera, para ver qué tono sale en cada punto.
+              fondo={`linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => `oklch(70% 0.15 ${h})`).join(", ")})`}
+              onCambio={(tinte) => mover({ tinte })}
+            />
+            <Deslizador
+              etiqueta="Intensidad"
+              valor={personal.viveza}
+              max={400}
+              texto={personal.viveza === 0 ? "Gris" : `${Math.round(personal.viveza / 4)} %`}
+              fondo={`linear-gradient(to right, oklch(70% 0 0), oklch(70% 0.15 ${personal.tinte}))`}
+              onCambio={(viveza) => mover({ viveza })}
+            />
+          </div>
+        )}
       </fieldset>
 
       <fieldset className="mt-6">
@@ -92,5 +136,33 @@ function VistaPrevia({ colores: { fondo, tarjeta, texto } }: { colores: ColoresM
         <span className="block h-1.5 w-1/2 rounded-full bg-acento-500" />
       </span>
     </span>
+  );
+}
+
+/** Un deslizador con su nombre, el valor elegido y una franja de color que lo explica. */
+function Deslizador({ etiqueta, valor, max, texto, fondo, onCambio }: {
+  etiqueta: string;
+  valor: number;
+  max: number;
+  texto: string;
+  fondo: string;
+  onCambio: (valor: number) => void;
+}) {
+  return (
+    <label className="block text-sm">
+      <span className="mb-2 flex justify-between">
+        <span className="font-medium text-texto">{etiqueta}</span>
+        <span className="tabular-nums text-tenue">{texto}</span>
+      </span>
+      <input
+        type="range"
+        min={0}
+        max={max}
+        value={valor}
+        onChange={(evento) => onCambio(Number(evento.target.value))}
+        className="h-2 w-full cursor-pointer appearance-none rounded-full accent-acento-600"
+        style={{ background: fondo }}
+      />
+    </label>
   );
 }
