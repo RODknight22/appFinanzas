@@ -1,4 +1,5 @@
-// Importar un extracto de Revolut: "To MXN" es dinero que llega de otra cuenta tuya, no un ingreso.
+// Importar extractos de Revolut: "To MXN" es dinero que llega de otra cuenta tuya, no un ingreso;
+// y el extracto de la otra cuenta completa esas transferencias en vez de duplicarlas.
 import { CAPTURAS, abrir, comprobar, prueba } from "./comun.mjs";
 
 const EXTRACTO = Buffer.from(
@@ -13,7 +14,7 @@ await prueba("importar-transferencias", async ({ pagina, api }) => {
   await api.put("/tasas/USD", { en_principal: "18" });
   await api.put("/tasas/EUR", { en_principal: "20" });
   const pesos = await api.post("/cuentas", { nombre: "Revolut MXN", tipo: "debito", moneda: "MXN" });
-  await api.post("/cuentas", { nombre: "Revolut", tipo: "debito", moneda: "EUR" });
+  const euros = await api.post("/cuentas", { nombre: "Revolut", tipo: "debito", moneda: "EUR" });
   await api.post("/cuentas", { nombre: "Santander", tipo: "debito", moneda: "EUR" });
 
   await abrir(pagina, "/transacciones");
@@ -35,4 +36,21 @@ await prueba("importar-transferencias", async ({ pagina, api }) => {
   const transferencias = await api.get(`/transferencias?cuenta_id=${pesos.id}`);
   comprobar(transferencias.length === 2 && resumen.ingresos === "0.00" && resumen.gastos === "150.00",
     `no infla los ingresos (ingresos ${resumen.ingresos}, gastos ${resumen.gastos}, ${transferencias.length} transferencias)`);
+
+  // El extracto en euros trae el mismo cambio del día 2 (salieron 98,50 €; la app estimó 100).
+  await pagina.getByRole("button", { name: "Cerrar", exact: true }).last().click();
+  await pagina.getByRole("button", { name: "Importar", exact: true }).click();
+  await pagina.getByRole("dialog").getByLabel("Cuenta").selectOption({ label: "Revolut (EUR)" });
+  const extractoEuros = Buffer.from(
+    "Type,Started Date,Completed Date,Description,Amount,Fee,Balance\n" +
+    "TRANSFER,2026-10-02 09:59:00,2026-10-02 10:00:05,To MXN,-98.50,0.00,401.50\n",
+  );
+  await pagina.locator('input[type="file"]').setInputFiles({ name: "revolut-eur.csv", mimeType: "text/csv", buffer: extractoEuros });
+  await pagina.getByText("completa la transferencia con Revolut MXN").waitFor();
+  await pagina.screenshot({ path: `${CAPTURAS}/importar-completar.png` });
+  await pagina.getByRole("button", { name: /^Importar \d+ movimiento/ }).click();
+  await pagina.getByText("1 transferencia completada").waitFor();
+  const completada = (await api.get(`/transferencias?cuenta_id=${euros.id}`)).find((t) => t.monto_origen === "98.50");
+  comprobar(completada?.monto_destino === "2000.00" && completada.coste !== null,
+    `el lado en euros completa la transferencia y ya tiene coste real (${completada?.coste})`);
 });

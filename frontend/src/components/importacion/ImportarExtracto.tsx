@@ -19,8 +19,11 @@ interface ImportarExtractoProps {
   onCerrar: () => void;
 }
 
-/** Una fila de la vista previa más la decisión del usuario: ¿se importa? */
-type Fila = FilaImportacion & { incluir: boolean };
+/**
+ * Una fila de la vista previa más la decisión del usuario: ¿se importa? `unirCon` guarda
+ * con qué cuenta se propuso unirla, para recuperar la unión si se vuelve a elegir esa cuenta.
+ */
+type Fila = FilaImportacion & { incluir: boolean; unirCon: number | null };
 
 const porRevisar = (fila: Fila) => fila.incluir && fila.confianza !== "alta";
 
@@ -58,7 +61,11 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
       const leida = await importacionesApi.vistaPrevia(cuenta, nuevoArchivo, invertir);
       setVista(leida);
       setInvertirSignos(leida.invertir_signos);
-      setFilas(leida.filas.map((fila) => ({ ...fila, incluir: !fila.duplicado })));
+      setFilas(leida.filas.map((fila) => ({
+        ...fila,
+        incluir: !fila.duplicado,
+        unirCon: fila.transaccion_a_unir_id ? fila.cuenta_transferencia_id : null,
+      })));
       const dudosas = leida.filas.filter((fila) => !fila.duplicado && fila.confianza !== "alta");
       setRevisables(new Set(dudosas.map((fila) => fila.fila)));
       setAviso(null);
@@ -78,7 +85,14 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
     const afectada = (f: Fila) =>
       f === fila || (f.concepto === fila.concepto && f.tipo === fila.tipo && f.confianza !== "alta");
     const otras = filas.filter(afectada).length - 1;
-    setFilas((actuales) => actuales.map((f) => (afectada(f) ? { ...f, ...eleccion, confianza: "alta" } : f)));
+    setFilas((actuales) =>
+      actuales.map((f) => {
+        if (!afectada(f)) return f;
+        // La unión con un movimiento de otra cuenta solo vale para esa cuenta.
+        const unir = eleccion.cuenta_transferencia_id !== null && eleccion.cuenta_transferencia_id === f.unirCon;
+        return { ...f, ...eleccion, transaccion_a_unir_id: unir ? f.transaccion_a_unir_id : null, confianza: "alta" };
+      }),
+    );
     // Que se note el trabajo ahorrado: sin el aviso, las otras filas cambian sin que se vea.
     if (otras > 0) {
       const nombre =
@@ -102,8 +116,15 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
     await guardado.ejecutar(async () => {
       const hecho = await importacionesApi.importar(
         cuentaId,
-        elegidas.map(({ fecha, monto, tipo, concepto, categoria_id, cuenta_transferencia_id }) => ({
-          fecha, monto, tipo, concepto, categoria_id, cuenta_transferencia_id,
+        elegidas.map((f) => ({
+          fecha: f.fecha,
+          monto: f.monto,
+          tipo: f.tipo,
+          concepto: f.concepto,
+          categoria_id: f.categoria_id,
+          cuenta_transferencia_id: f.cuenta_transferencia_id,
+          transaccion_a_unir_id: f.unirCon === f.cuenta_transferencia_id ? f.transaccion_a_unir_id : null,
+          transferencia_a_completar_id: f.transferencia_a_completar_id,
         })),
         Boolean(invertirSignos),
       );
@@ -113,7 +134,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   }
 
   if (resultado !== null) {
-    const { creadas, transferencias } = resultado;
+    const { creadas, transferencias, unidas, completadas } = resultado;
     return (
       <div className="space-y-4 py-6 text-center">
         <CheckCircle2 size={40} className="mx-auto text-acento-500" />
@@ -123,6 +144,12 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
         {transferencias > 0 && (
           <p className="text-sm text-tenue">
             {transferencias} como transferencia{transferencias === 1 ? "" : "s"} entre tus cuentas: no cuentan como ingreso ni gasto
+            {unidas > 0 && ` (${unidas} unida${unidas === 1 ? "" : "s"} a lo que ya tenías en la otra cuenta)`}
+          </p>
+        )}
+        {completadas > 0 && (
+          <p className="text-sm text-tenue">
+            {completadas} transferencia{completadas === 1 ? "" : "s"} completada{completadas === 1 ? "" : "s"} con lo que salió o llegó de verdad
           </p>
         )}
         <Boton onClick={onCerrar}>Cerrar</Boton>
@@ -318,6 +345,9 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
   const esGasto = fila.tipo === "gasto";
   const dudosa = porRevisar(fila);
   const esTransferencia = fila.cuenta_transferencia_id !== null;
+  const completa = fila.transferencia_a_completar_id !== null;
+  const unida = fila.transaccion_a_unir_id !== null && fila.unirCon === fila.cuenta_transferencia_id;
+  const otraCuenta = otrasCuentas.find((c) => c.id === fila.cuenta_transferencia_id)?.nombre;
   // En el desplegable conviven categorías ("12") y cuentas ("cuenta:3").
   const valor = esTransferencia ? `cuenta:${fila.cuenta_transferencia_id}` : String(fila.categoria_id);
   function cambiar(nuevo: string) {
@@ -341,32 +371,41 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
         <p className="text-xs text-tenue">
           {formatearFecha(fila.fecha)}
           {fila.duplicado && " · ya registrado"}
+          {completa && ` · completa la transferencia con ${otraCuenta}`}
+          {unida && ` · se une con el movimiento igual de ${otraCuenta}`}
         </p>
       </div>
-      <select
-        className={`${CLASE_ENTRADA_BASE} w-40 ${dudosa ? "ring-2 ring-amber-400/60" : ""}`}
-        value={valor}
-        onChange={(e) => cambiar(e.target.value)}
-        aria-label="Categoría o transferencia"
-        title={
-          esTransferencia
-            ? "Dinero entre tus cuentas: no es ingreso ni gasto"
-            : fila.confianza === "media" ? "Sugerida por un concepto parecido" : undefined
-        }
-      >
-        {/* "Otros…" puede haberse recreado al leer el archivo y no estar aún en la lista */}
-        {!categorias.some((c) => c.id === fila.categoria_id) && <option value={fila.categoria_id}>Otros</option>}
-        {categorias.map((c) => (
-          <option key={c.id} value={c.id}>{c.nombre}</option>
-        ))}
-        {otrasCuentas.length > 0 && (
-          <optgroup label="Transferencia entre tus cuentas">
-            {otrasCuentas.map((c) => (
-              <option key={c.id} value={`cuenta:${c.id}`}>{esGasto ? "A" : "Desde"} {c.nombre}</option>
-            ))}
-          </optgroup>
-        )}
-      </select>
+      {completa ? (
+        // Ya existe como transferencia: solo se le pone el importe real, no hay nada que elegir.
+        <span className="w-40 truncate rounded-xl bg-superficie-2 px-3 py-2 text-sm text-suave" title="Ya registrada desde la otra cuenta">
+          {esGasto ? "A" : "Desde"} {otraCuenta}
+        </span>
+      ) : (
+        <select
+          className={`${CLASE_ENTRADA_BASE} w-40 ${dudosa ? "ring-2 ring-amber-400/60" : ""}`}
+          value={valor}
+          onChange={(e) => cambiar(e.target.value)}
+          aria-label="Categoría o transferencia"
+          title={
+            esTransferencia
+              ? "Dinero entre tus cuentas: no es ingreso ni gasto"
+              : fila.confianza === "media" ? "Sugerida por un concepto parecido" : undefined
+          }
+        >
+          {/* "Otros…" puede haberse recreado al leer el archivo y no estar aún en la lista */}
+          {!categorias.some((c) => c.id === fila.categoria_id) && <option value={fila.categoria_id}>Otros</option>}
+          {categorias.map((c) => (
+            <option key={c.id} value={c.id}>{c.nombre}</option>
+          ))}
+          {otrasCuentas.length > 0 && (
+            <optgroup label="Transferencia entre tus cuentas">
+              {otrasCuentas.map((c) => (
+                <option key={c.id} value={`cuenta:${c.id}`}>{esGasto ? "A" : "Desde"} {c.nombre}</option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+      )}
       {/* Mismo ancho en los tres casos para que la columna del importe no baile */}
       <span className="flex w-8 justify-center">
         {dudosa ? (

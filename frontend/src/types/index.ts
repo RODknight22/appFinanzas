@@ -126,6 +126,10 @@ export interface FilaImportacion {
    * gasto ni ingreso. Ingreso = viene de esa cuenta; gasto = va a ella.
    */
   cuenta_transferencia_id: number | null;
+  /** El mismo dinero ya anotado en esa otra cuenta como ingreso o gasto: se unen en la transferencia. */
+  transaccion_a_unir_id: number | null;
+  /** Transferencia hecha desde la otra cuenta con este lado estimado: esta fila trae el importe real. */
+  transferencia_a_completar_id: number | null;
 }
 
 export interface VistaPreviaImportacion {
@@ -139,13 +143,31 @@ export interface VistaPreviaImportacion {
 
 export type MovimientoImportado = Pick<
   FilaImportacion,
-  "fecha" | "monto" | "tipo" | "concepto" | "categoria_id" | "cuenta_transferencia_id"
+  | "fecha"
+  | "monto"
+  | "tipo"
+  | "concepto"
+  | "categoria_id"
+  | "cuenta_transferencia_id"
+  | "transaccion_a_unir_id"
+  | "transferencia_a_completar_id"
 >;
 
 export interface ResultadoImportacion {
   /** En total, transferencias incluidas. */
   creadas: number;
   transferencias: number;
+  /** Ingresos o gastos sueltos de otra cuenta que pasaron a ser la otra mitad de una transferencia. */
+  unidas: number;
+  /** Transferencias a las que se añadió el importe real de este lado. */
+  completadas: number;
+}
+
+/** Al importar: si el concepto contiene `texto`, la categoría es esta (manda sobre el historial). */
+export interface ReglaCategoria {
+  id: number;
+  texto: string;
+  categoria_id: number;
 }
 
 /** Dinero que pasa de una cuenta a otra (no es ingreso ni gasto). */

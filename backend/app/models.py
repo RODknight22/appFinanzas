@@ -197,6 +197,20 @@ class CategoriaBase(SQLModel):
         return validar_color(valor)
 
 
+class ReglaCategoriaBase(SQLModel):
+    """Al importar un extracto: si el concepto contiene `texto`, la categoría es esta.
+
+    Manda sobre lo aprendido del historial. Se compara sin tildes ni mayúsculas.
+    """
+
+    texto: str = Field(min_length=2, max_length=100)
+    categoria_id: int = Field(foreign_key="categoria.id", index=True)
+
+
+class ReglaCategoria(ReglaCategoriaBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+
 class Categoria(CategoriaBase, table=True):
     # La misma categoría puede existir como ingreso y como gasto, pero no repetida.
     __table_args__ = (UniqueConstraint("nombre", "tipo"),)

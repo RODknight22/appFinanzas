@@ -5,12 +5,16 @@ Dos pasos, para que nada se guarde sin que el usuario lo vea:
    movimiento y marca los que ya estaban registrados. No guarda nada.
 2. `confirmar`: crea de golpe las transacciones que el usuario aceptó.
 
-La categoría se aprende del historial: si "MERCADONA" ya se anotó como
+La categoría sale de las reglas del usuario ("contiene MERCADONA → Supermercado")
+o, si ninguna encaja, se aprende del historial: si "MERCADONA" ya se anotó como
 Supermercado, la próxima vez se sugiere sola. Así, cuanto más se usa, menos
 hay que corregir.
 
-El dinero que pasa entre cuentas propias ("To MXN" en Revolut) no es ingreso ni
-gasto: se propone como transferencia con la otra cuenta (ver `_cuenta_de_transferencia`).
+El dinero que pasa entre cuentas propias no es ingreso ni gasto: se propone como
+transferencia con la otra cuenta. Se reconoce por el concepto ("To MXN" en Revolut,
+ver `_cuenta_de_transferencia`) o porque ya está registrado en la otra cuenta (ver
+`_Contrapartidas`): como ingreso o gasto suelto, o como transferencia a la que le
+falta el importe real de este lado.
 """
 
 import re
@@ -30,7 +34,7 @@ from app.schemas import (
     ResultadoImportacion,
     VistaPreviaImportacion,
 )
-from app.services import categorias, divisas, transacciones
+from app.services import categorias, divisas, reglas_categoria, transacciones
 from app.services.comun import obtener_referencia
 from app.services.errores import ReglaDeNegocioError
 from app.services.lector_extractos import MovimientoLeido, leer_extracto
@@ -43,6 +47,9 @@ _RUIDO = frozenset({
 # Un movimiento anotado a mano suele llevar la fecha de la compra y el banco la del
 # cargo, uno o dos días después: dentro de este margen se considera el mismo.
 MARGEN_DUPLICADOS = timedelta(days=2)
+# Al completar una transferencia importada desde la otra cuenta, el lado estimado (con la
+# tasa del BCE) y el real difieren por el margen del banco: hasta este porcentaje es la misma.
+TOLERANCIA_TIPO_DE_CAMBIO = Decimal("0.05")
 # Cambio de divisa entre cuentas propias: "To MXN", "From EUR", "Exchanged to USD"…
 _PATRON_TRANSFERENCIA = re.compile(r"^(?:exchanged\s+)?(?:to|from)\s+([a-z]{3})$", re.IGNORECASE)
 
@@ -169,6 +176,56 @@ def _cuenta_de_transferencia(concepto: str, cuenta: Cuenta, otras: list[Cuenta])
     return (elegidas[0].id if elegidas else None), len(elegidas) == 1
 
 
+class _Contrapartidas:
+    """Lo ya registrado en otras cuentas que es la otra mitad de un movimiento del extracto.
+
+    - Una transferencia hecha desde la otra cuenta (p. ej. al importar su extracto) con este
+      lado estimado: la fila trae el importe real y la completa en vez de duplicarla.
+    - Un ingreso o gasto suelto en otra cuenta de la misma moneda, con el mismo importe y
+      signo contrario en fechas cercanas: juntos son una transferencia mal anotada.
+    Cada registro solo se empareja con una fila.
+    """
+
+    def __init__(self, session: Session, cuenta: Cuenta, desde: date, hasta: date) -> None:
+        desde, hasta = desde - MARGEN_DUPLICADOS, hasta + MARGEN_DUPLICADOS
+        self.cuenta = cuenta
+        self.estimadas = list(session.exec(
+            select(Transferencia).where(
+                Transferencia.destino_estimado == True,  # noqa: E712 (SQL, no Python)
+                (Transferencia.cuenta_origen_id == cuenta.id) | (Transferencia.cuenta_destino_id == cuenta.id),
+                Transferencia.fecha >= desde, Transferencia.fecha <= hasta,
+            )
+        ))
+        self.sueltas = list(session.exec(
+            select(Transaccion).join(Cuenta, col(Transaccion.cuenta_id) == col(Cuenta.id)).where(
+                Transaccion.cuenta_id != cuenta.id, Cuenta.moneda == cuenta.moneda,
+                col(Transaccion.transferencia_id).is_(None),
+                Transaccion.fecha >= desde, Transaccion.fecha <= hasta,
+            )
+        ))
+
+    def transferencia_a_completar(self, m: MovimientoLeido) -> Transferencia | None:
+        sale = m.importe < 0
+        for t in self.estimadas:
+            if (t.cuenta_origen_id if sale else t.cuenta_destino_id) != self.cuenta.id:
+                continue
+            estimado = t.monto_origen if sale else (t.monto_destino or t.monto_origen)
+            cerca = abs(t.fecha - m.fecha) <= MARGEN_DUPLICADOS
+            if cerca and abs(abs(m.importe) - estimado) <= estimado * TOLERANCIA_TIPO_DE_CAMBIO:
+                self.estimadas.remove(t)
+                return t
+        return None
+
+    def transaccion_a_unir(self, m: MovimientoLeido) -> Transaccion | None:
+        # Si de aquí sale dinero, en la otra cuenta tuvo que entrar (y al revés).
+        tipo_otra = TipoMovimiento.INGRESO if m.importe < 0 else TipoMovimiento.GASTO
+        for t in self.sueltas:
+            if t.tipo == tipo_otra and t.monto_cuenta == abs(m.importe) and abs(t.fecha - m.fecha) <= MARGEN_DUPLICADOS:
+                self.sueltas.remove(t)
+                return t
+        return None
+
+
 def _como_transferencia(session: Session, cuenta: Cuenta, otra: Cuenta, movimiento: MovimientoImportado) -> Transferencia:
     """La transferencia que representa un movimiento del extracto con otra cuenta propia.
 
@@ -185,6 +242,50 @@ def _como_transferencia(session: Session, cuenta: Cuenta, otra: Cuenta, movimien
         fecha=movimiento.fecha, notas=movimiento.concepto or None,
         destino_estimado=None if cuenta.moneda == otra.moneda else True,
     )
+
+
+def _buscar_otra_mitad(
+    fila: FilaImportacion, m: MovimientoLeido, cuenta: Cuenta, otras: list[Cuenta], contrapartidas: _Contrapartidas
+) -> None:
+    """Marca la fila si es una transferencia propia (por concepto o por lo ya registrado)."""
+    completar = contrapartidas.transferencia_a_completar(m)
+    if completar is not None:
+        fila.transferencia_a_completar_id = completar.id
+        fila.cuenta_transferencia_id = completar.cuenta_destino_id if m.importe < 0 else completar.cuenta_origen_id
+        fila.confianza = "alta"
+        return
+    otra, segura = _cuenta_de_transferencia(m.concepto, cuenta, otras)
+    if otra is not None:
+        fila.cuenta_transferencia_id = otra
+        fila.confianza = "alta" if segura else "media"
+        return
+    unir = contrapartidas.transaccion_a_unir(m)
+    if unir is not None:
+        # Mismo importe con signo contrario puede ser casualidad: queda por revisar.
+        fila.cuenta_transferencia_id, fila.transaccion_a_unir_id = unir.cuenta_id, unir.id
+        fila.confianza = "media"
+
+
+def _completar(session: Session, cuenta: Cuenta, movimiento: MovimientoImportado) -> None:
+    """Pone en la transferencia el importe real de este lado: ya no hay nada estimado."""
+    t = obtener_referencia(session, Transferencia, movimiento.transferencia_a_completar_id, "la transferencia")
+    if not t.destino_estimado or cuenta.id not in (t.cuenta_origen_id, t.cuenta_destino_id):
+        raise ReglaDeNegocioError("Esa transferencia no tiene un importe estimado en esta cuenta")
+    if t.cuenta_origen_id == cuenta.id:
+        t.monto_origen = movimiento.monto
+    else:
+        t.monto_destino = movimiento.monto
+    t.destino_estimado = False
+    session.add(t)
+
+
+def _unir(session: Session, transferencia: Transferencia, movimiento: MovimientoImportado) -> None:
+    """Borra el ingreso o gasto suelto de la otra cuenta: ahora es la otra mitad de la transferencia."""
+    suelta = obtener_referencia(session, Transaccion, movimiento.transaccion_a_unir_id, "el movimiento a unir")
+    otra = transferencia.cuenta_destino_id if movimiento.tipo == TipoMovimiento.GASTO else transferencia.cuenta_origen_id
+    if suelta.cuenta_id != otra or suelta.tipo == movimiento.tipo or suelta.monto_cuenta != movimiento.monto:
+        raise ReglaDeNegocioError("El movimiento a unir no es la otra mitad de esta transferencia")
+    session.delete(suelta)
 
 
 # ---------------------------------------------------------------------------
@@ -215,19 +316,21 @@ def vista_previa(
     }
     session.commit()  # por si hubo que volver a crear "Otros gastos" u "Otros ingresos"
     otras_cuentas = list(session.exec(select(Cuenta).where(Cuenta.id != cuenta.id).order_by(col(Cuenta.id))))
+    reglas = reglas_categoria.Reglas(session)
+    contrapartidas = _Contrapartidas(session, cuenta, min(fechas), max(fechas))
 
     filas = []
     for indice, m in enumerate(movimientos):
         tipo = TipoMovimiento.INGRESO if m.importe > 0 else TipoMovimiento.GASTO
-        categoria_id, confianza = historial.sugerir(tipo, m.concepto)
-        otra, segura = _cuenta_de_transferencia(m.concepto, cuenta, otras_cuentas)
-        if otra is not None:
-            confianza = "alta" if segura else "media"
-        filas.append(FilaImportacion(
+        por_regla = reglas.categoria(tipo, m.concepto)
+        categoria_id, confianza = (por_regla, "alta") if por_regla else historial.sugerir(tipo, m.concepto)
+        fila = FilaImportacion(
             fila=m.fila, fecha=m.fecha, monto=abs(m.importe), tipo=tipo, concepto=m.concepto,
             categoria_id=categoria_id or otros[tipo], confianza=confianza, duplicado=indice in duplicados,
-            cuenta_transferencia_id=otra,
-        ))
+        )
+        if not fila.duplicado:
+            _buscar_otra_mitad(fila, m, cuenta, otras_cuentas, contrapartidas)
+        filas.append(fila)
     return VistaPreviaImportacion(
         columnas=extracto.columnas, filas=filas, filas_ignoradas=extracto.filas_ignoradas,
         invertir_signos=invertir_signos,
@@ -242,12 +345,21 @@ def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacio
     fechas = [m.fecha for m in datos.movimientos]
     divisas.asegurar_tasas_historicas(session, min(fechas), max(fechas))
     nuevas: list[Transaccion | Transferencia] = []
+    unidas = completadas = 0
     for movimiento in datos.movimientos:
+        if movimiento.transferencia_a_completar_id is not None:
+            _completar(session, cuenta, movimiento)
+            completadas += 1
+            continue
         if movimiento.cuenta_transferencia_id is not None:
             otra = obtener_referencia(session, Cuenta, movimiento.cuenta_transferencia_id, "la otra cuenta")
             if otra.id == cuenta.id:
                 raise ReglaDeNegocioError("Una transferencia necesita otra cuenta distinta")
-            nuevas.append(_como_transferencia(session, cuenta, otra, movimiento))
+            transferencia = _como_transferencia(session, cuenta, otra, movimiento)
+            if movimiento.transaccion_a_unir_id is not None:
+                _unir(session, transferencia, movimiento)
+                unidas += 1
+            nuevas.append(transferencia)
             continue
         transacciones.validar_relaciones(session, cuenta.id, movimiento.categoria_id, movimiento.tipo)
         transaccion = Transaccion(
@@ -263,5 +375,6 @@ def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacio
     session.add_all(nuevas)
     session.commit()
     return ResultadoImportacion(
-        creadas=len(nuevas), transferencias=sum(isinstance(n, Transferencia) for n in nuevas)
+        creadas=len(nuevas), transferencias=sum(isinstance(n, Transferencia) for n in nuevas),
+        unidas=unidas, completadas=completadas,
     )

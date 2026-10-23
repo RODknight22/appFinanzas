@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { categoriasApi } from "../api/recursos";
+import { ReglasImportacion } from "../components/categorias/ReglasImportacion";
 import { FormularioCategoria } from "../components/formularios/FormularioCategoria";
 import { AccionesFila } from "../components/ui/AccionesFila";
 import { Boton } from "../components/ui/Boton";
@@ -35,7 +36,7 @@ export function CategoriasPage() {
     <>
       <EncabezadoPagina
         titulo="Categorías"
-        consejo="Las categorías de gasto se pueden presupuestar. Al importar un extracto, la app recuerda qué categoría usaste para cada concepto."
+        consejo="Las categorías de gasto se pueden presupuestar. Al importar un extracto, la app recuerda qué categoría usaste para cada concepto, y tus reglas mandan sobre lo que recuerda."
         descripcion="Clasifica tus ingresos y gastos"
         acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva categoría</Boton>}
       />
@@ -79,6 +80,8 @@ export function CategoriasPage() {
           }
         </Contenido>
       </Tarjeta>
+
+      <ReglasImportacion />
 
       <Modal titulo={modal === "nueva" ? "Nueva categoría" : "Editar categoría"} abierto={modal !== null} onCerrar={() => setModal(null)}>
         {modal !== null && (
