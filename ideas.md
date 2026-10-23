@@ -190,21 +190,38 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
 8. ¿El tono de los textos (cercano, tuteando) te gusta o lo quieres más serio? 🗣️ Rodrigo: Me gusta como estan quiero algo serio pero calido
 9. Animaciones y celebraciones (metas, "días sin gastar"): ¿más, igual o menos? 🗣️ Rodrigo: Mas igual, quiero que motiven
 10. ¿Una app que le cabe a todo el mundo o muy hecha a tu medida aunque a otros les sobre? 🗣️ Rodrigo: Prefiero que les sobre y que despues puedan desactivar o quitar funciones "personalizable"
+   - 💬 Claude (23/10): apuntado en la v1.5: "Apartados que se pueden desactivar" en Ajustes.
 
 **Tu dinero entre dos monedas**
 11. ¿Cómo mandas hoy dinero de MXN a EUR (Revolut, Wise, banco…) y cada cuánto? 🗣️ Rodrigo: Tengo Revolut mexico y mi papa me manda dinero y gasto desde la de revolut mexico pero lo que voy a hacer es pasarlo ya sea por transferencia o sacarlo a efectivo y meterlo a la de santander españa
+   - 💬 Claude (23/10): ¡justo lo que necesitaba! "Comparar vías" va a medir esas dos: transferencia
+     de Revolut a Santander frente a sacar efectivo y depositarlo (cajero + tasa). Hoja de ruta, PR #43.
    - 💬 Claude (23/10): esta es la que más necesito para la v1.4 ("Comparar vías de envío").
      Basta con la lista: p. ej. "Revolut casi siempre, a veces Santander, una vez al mes".
 12. ¿Usarías un aviso de "buen momento para cambiar" para decidir cuándo enviar? 🗣️ Rodrigo: Si
 13. Para el peso, ¿qué tasa de referencia prefieres: BCE o Banxico (FIX)? 🗣️ Rodrigo: No se a que te refieras 
+   - 💬 Claude (23/10): culpa mía, era técnico. Para saber cuánto vale un peso la app usa la tasa
+     oficial del Banco Central Europeo; Banxico es la de México. Para tu caso (pesos ↔ euros) el BCE
+     es la buena, así que lo descarto y no tienes que hacer nada.
 14. ¿Tienes inversiones o ahorro (CETES, fondos, cripto, plan de pensiones) que quieras ver? 🗣️ Rodrigo: Tengo cripto y stocks de norte america 
 15. ¿Compartes gastos con alguien (pareja, piso)? ¿Te serviría dividirlos? 🗣️ Rodrigo: Siii estaria super bien y juntarlo con lo de me deben
+   - 💬 Claude (23/10): apuntado en la v1.5 ("Gastos compartidos"): divides un gasto y la parte del
+     otro queda como "me deben" en Deudas.
 16. ¿Qué otros bancos usas o usarás, aunque sean PDF? (para preparar sus lectores) 🗣️ Rodrigo: Nu mexico, BAC,Promerica,Ficohsa, bbva mexico
+   - 💬 Claude (23/10): apuntados. Para cada uno necesito la **forma** del extracto (no tus datos):
+     descarga uno, borra o cambia los importes y conceptos, y déjalo en una carpeta. Con eso hago
+     su lector. Empieza por el que más uses.
 17. ¿Haces la declaración en México, en España o en las dos? ¿Un resumen anual por país? 🗣️ Rodrigo: Sin comentarios
 
 **El futuro**
 18. Dentro de un año, ¿para quién es la app: solo tú, tu familia y amigos, o cualquiera? 🗣️ Rodrigo: Para cualquiera
 19. Recomiendo seguir con el código abierto público. ¿Qué te preocupa de que sea público? 🗣️ Rodrigo: Lo quisiera vender en un futuro como producto
+   - 💬 Claude (23/10): se puede vender software de código abierto, pero la decisión importa ya por
+     la firma del .exe. Opciones:
+     1. **Seguir abierta (GPL) y firmar gratis con SignPath.** Si un día la vendes con otra
+        licencia, cambias a un certificado de pago entonces. (Mi recomendación: no frena nada hoy.)
+     2. **Licencia propia desde ya** y certificado de pago (decenas o cientos de € al año).
+     ¿Cuál prefieres? Respóndeme con 1 o 2.
 20. ¿Quieres ganar algo de dinero con ella o es aprendizaje y portafolio? 🗣️ Rodrigo: Ambos
    - 💬 Claude (23/10): importa para la firma del .exe. SignPath es gratis pero exige no
      vender la app con otra licencia (doble licencia). Si algún día quieres venderla, habría
