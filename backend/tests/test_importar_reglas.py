@@ -98,3 +98,13 @@ def test_el_mismo_importe_en_otra_cuenta_se_une_en_una_transferencia(client: Tes
     assert resumen["ingresos"] == "0.00"  # el ingreso suelto ya es la mitad de la transferencia
     saldos = {c["nombre"]: c["saldo"] for c in resumen["cuentas"]}
     assert saldos == {"Banco": "1500.00", "Revolut MXN": "-500.00"}
+
+
+def test_la_misma_transferencia_no_se_completa_en_dos_filas(client: TestClient) -> None:
+    cuenta = client.post("/cuentas", json={"nombre": "A", "tipo": "debito"}).json()
+    ingreso = client.post("/categorias", json={"nombre": "I", "tipo": "ingreso"}).json()
+    fila = {"fecha": "2026-10-01", "monto": "10", "tipo": "ingreso", "concepto": "x",
+            "categoria_id": ingreso["id"], "transferencia_a_completar_id": 1}
+    respuesta = client.post("/importaciones", json={"cuenta_id": cuenta["id"], "movimientos": [fila, fila]})
+    assert respuesta.status_code == 400
+    assert "dos filas" in respuesta.json()["detail"]
