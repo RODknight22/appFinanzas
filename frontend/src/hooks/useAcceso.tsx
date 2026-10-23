@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { accesoApi, type Credenciales, type EstadoAcceso } from "../api/acceso";
 import { ApiError, registrarAlPerderSesion } from "../api/cliente";
 import { PantallaAcceso } from "../components/acceso/PantallaAcceso";
-import { MensajeError } from "../components/ui/Estados";
+import { Cargando, MensajeError } from "../components/ui/Estados";
 import { mensajeDeError } from "../utils/errores";
 import { vaciarCacheDatos } from "./useDatos";
 
@@ -61,7 +61,7 @@ export function AccesoProvider({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!estado) return null; // comprobando la sesión (un instante)
+  if (!estado) return <Cargando conRetraso />; // comprobando la sesión (casi siempre, un instante)
   if (!estado.autenticado || !estado.usuario) {
     return <PantallaAcceso primeraVez={!estado.configurado} onEntrar={entrar} />;
   }

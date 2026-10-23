@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { configuracionApi, tasasApi } from "../api/configuracion";
 import { MONEDA_POR_DEFECTO, MONEDAS } from "../config";
 import type { ColorAcento, Configuracion, EstiloVisual, Moneda, Tasa } from "../types";
+import { Cargando } from "../components/ui/Estados";
 import { convertir } from "../utils/divisas";
 import { conTransicion } from "../utils/transicion";
 import { configurarDiaInicioMes, configurarMoneda } from "../utils/formato";
@@ -129,9 +130,9 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
     aplicar(imagen ? await configuracionApi.subirFoto(imagen) : await configuracionApi.borrarFoto());
   }
 
-  // No pintamos nada hasta conocer la moneda, para no mostrar importes
-  // con un formato y cambiarlos un instante después.
-  if (!lista) return null;
+  // No pintamos la app hasta conocer la moneda, para no mostrar importes con un formato
+  // y cambiarlos un instante después. Si tarda, se ve el "Cargando…" (con retraso: sin parpadeo).
+  if (!lista) return <Cargando conRetraso />;
 
   const valor: ContextoConfiguracion = {
     configuracion,
