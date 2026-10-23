@@ -6,6 +6,7 @@ import type {
   AportacionMeta,
   Categoria,
   CobroIngreso,
+  CopiaPresupuestos,
   CosteEnviosAnio,
   Cuenta,
   DatosAbono,
@@ -84,7 +85,13 @@ export const transferenciasApi = {
   /** Lo que costaron los envíos entre monedas del año, frente a la tasa del BCE. */
   costes: (anio: number) => http.get<CosteEnviosAnio>("/transferencias/costes", { anio }),
 };
-export const presupuestosApi = crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos");
+export const presupuestosApi = {
+  ...crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos"),
+  /** Cuántos presupuestos del último mes que los tiene faltan en `mes`. */
+  copiables: (mes: MesAnio) => http.get<CopiaPresupuestos>("/presupuestos/copiables", { mes_anio: mes }),
+  /** Los copia a `mes` (sin pisar los que ya hay). */
+  copiar: (mes: MesAnio) => http.post<CopiaPresupuestos>("/presupuestos/copiar", undefined, { mes_anio: mes }),
+};
 
 export const suscripcionesApi = {
   ...crearRecurso<Suscripcion, { proximos_dias?: number }>("/suscripciones"),

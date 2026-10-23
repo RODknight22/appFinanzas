@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
@@ -8,11 +8,12 @@ import { FormularioPresupuesto } from "../components/formularios/FormularioPresu
 import { AccionesFila } from "../components/ui/AccionesFila";
 import { Boton } from "../components/ui/Boton";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
+import { ErrorFormulario } from "../components/ui/Campo";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { SelectorMes } from "../components/ui/SelectorMes";
 import { Tarjeta } from "../components/ui/Tarjeta";
-import { confirmarYEliminar } from "../hooks/useEnvio";
+import { confirmarYEliminar, useEnvio } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Presupuesto, ProgresoPresupuesto } from "../types";
 import { formatearDinero, formatearMes, mesActual } from "../utils/formato";
@@ -34,10 +35,15 @@ export function PresupuestosPage() {
   const [mes, setMes] = useState(mesActual());
   const [modal, setModal] = useState<EstadoModal>(null);
   const estado = useDatos(
-    () => Promise.all([dashboardApi.presupuestos(mes), categoriasApi.listar({ tipo: "gasto" })]),
+    () => Promise.all([dashboardApi.presupuestos(mes), categoriasApi.listar({ tipo: "gasto" }), presupuestosApi.copiables(mes)]),
     [mes],
     "presupuestos",
   );
+  const copia = useEnvio();
+
+  async function copiar() {
+    if (await copia.ejecutar(() => presupuestosApi.copiar(mes))) estado.recargar();
+  }
 
   function alGuardar() {
     setModal(null);
@@ -59,7 +65,7 @@ export function PresupuestosPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
-        {([progresos, categoriasGasto]) => {
+        {([progresos, categoriasGasto, copiables]) => {
           // En la principal: los presupuestos pueden estar en monedas distintas.
           const totalLimite = progresos.reduce((suma, p) => suma + Number(p.limite_principal), 0);
           const totalGastado = progresos.reduce((suma, p) => suma + Number(p.gastado_principal), 0);
@@ -72,6 +78,20 @@ export function PresupuestosPage() {
                   <strong className="text-texto tabular-nums">{formatearDinero(totalLimite)}</strong> presupuestado
                 </p>
               )}
+
+              {/* Repetir el mes: lo normal es que los límites se parezcan de un mes a otro */}
+              {copiables.desde && copiables.cantidad > 0 && (
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-superficie-2 px-4 py-3 text-sm ring-1 ring-linea">
+                  <span className="text-suave">
+                    {progresos.length === 0 ? "¿Repites los presupuestos de" : "Faltan presupuestos que tenías en"}{" "}
+                    <strong className="text-texto">{formatearMes(copiables.desde)}</strong>?
+                  </span>
+                  <Boton variante="secundario" onClick={copiar} disabled={copia.enviando}>
+                    <Copy size={16} /> Copiar {copiables.cantidad}
+                  </Boton>
+                </div>
+              )}
+              <ErrorFormulario mensaje={copia.error} />
 
               <Tarjeta>
                 {progresos.length === 0 ? (
