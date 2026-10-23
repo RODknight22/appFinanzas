@@ -45,10 +45,6 @@ Ejemplo:
 
 <!-- Vacía: Claude movió tus ideas a su sección. Sigue escribiendo aquí. -->
 
-- [ ] Cambiar lo de desplegar de las cuentas a la izquierda para mayor comodidad
-
-- [ ] Me gusta, pero la parte del tutorial donde te dice donde esta cada cosa estaria mejor que te la explicara con glovos de texto y la parte de los "desafios" haz que si ellos abren la cuenta, ponen una meta, etc se marque sola como completada. Tambien me gustaria que la parte de donde metes la transacciones cuando las importas, tengan un boton de aceptarlas mas rapido ya que los estados de cuenta podrian tener muchas transacciones y estar picando y bajando es tedioso, igual no se si haya alguna foma de darle una categoria por defecto sin que el usuario la tenga que elegir forzosamente o sea que el programa identifique en que categoria entra "Solo si es posible"
-
 ## ✨ Funciones nuevas
 
 <!-- Cosas que la app aún no hace. -->
@@ -64,6 +60,9 @@ Ejemplo:
     primera cuenta con su saldo y, opcional, el sueldo como ingreso fijo. Con eso el panel ya
     tiene sentido desde el primer minuto.
   - 🗣️ Rodrigo: Perfecto, pero puedes añadir una especie de tutorial que explique todos los apartados pero no quiero que sea tedioso ni aburrido
+  - 💬 Claude (23/10): propuesta: un tutorial de globos de texto que señalan cada zona de la
+    pantalla, con una frase por globo (5 o 6 en total). Se puede saltar en cualquier momento y
+    se repite desde Ajustes. Va en la v1.2 junto a la bienvenida.
 
 ## 🐛 Arreglos (fixes)
 
@@ -72,6 +71,22 @@ Ejemplo:
 ## 🎨 Mejoras y pulido
 
 <!-- Algo que ya existe pero podría ser más cómodo, rápido o bonito. -->
+
+- [ ] Mover la flecha de desplegar/plegar las subcuentas a la izquierda, para más comodidad #mejora
+  - 💬 Claude (23/10): ¿te refieres a la flecha que está a la derecha del nombre de la cuenta?
+    Propongo ponerla a la izquierda, antes del nombre. ¿Te cuadra?
+  - 🗣️ Rodrigo:
+- [ ] Primeros pasos: que se tachen solos al abrir una cuenta, poner una meta, etc. #fix
+  - 💬 Claude (23/10): el código ya los tacha solos (cuenta, movimiento, presupuesto y meta).
+    Si alguno no se tachó, dime cuál y qué hiciste. Puede que la tarjeta solo se actualice al
+    recargar la página, y eso lo arreglamos.
+  - 🗣️ Rodrigo:
+- [ ] Aceptar los movimientos importados más rápido, con una categoría por defecto #mejora !alta
+  - 💬 Claude (23/10): ya existe una categoría "Otros" por defecto y una sugerencia según el
+    historial (con su aviso en ámbar cuando es dudosa). Propuesta: un botón "Aceptar todas las
+    sugeridas" arriba de la lista y que las dudosas se queden en "Otros" en vez de bloquear la
+    importación. ¿Aceptamos también las que no tienen categoría clara o solo las reconocidas?
+  - 🗣️ Rodrigo:
 
 - [x] ~~Botón para desplegar y plegar las subcuentas~~ #mejora → hecho (PR #7)
   - 💬 Claude: hecho. Flecha en la cuenta madre; plegada muestra cuántas oculta ("2 ›").
