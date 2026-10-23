@@ -10,7 +10,7 @@ export default defineConfig({
         // Librerías en trozos propios: cambian poco, así que en una versión nueva de
         // la app el navegador las reutiliza de su caché y solo descarga nuestro código.
         manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
+          react: ["react", "react-dom", "react-router"],
           graficas: ["recharts"],
           arrastrar: ["@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
         },

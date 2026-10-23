@@ -1,5 +1,5 @@
 import { CheckCircle2, ChevronRight, Circle, PartyPopper, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { useConfiguracion } from "../../hooks/useConfiguracion";
 import { avisarError } from "../ajustes/avisarError";

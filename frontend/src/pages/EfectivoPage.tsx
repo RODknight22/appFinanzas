@@ -1,6 +1,6 @@
 import { ArrowDownToLine, ArrowRight, ArrowUpFromLine, Banknote, Plus, Zap } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { dashboardApi } from "../api/dashboard";
 import { categoriasApi, cuentasApi, transaccionesApi, transferenciasApi } from "../api/recursos";

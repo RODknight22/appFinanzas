@@ -1,6 +1,7 @@
 import { ArrowRightLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
+import { COLOR_CATEGORIA_POR_DEFECTO } from "../../config";
 import type { Categoria, Cuenta, Transaccion } from "../../types";
 import { formatearDinero, formatearFecha } from "../../utils/formato";
 import { AccionesFila } from "../ui/AccionesFila";
@@ -18,7 +19,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
   const esGasto = transaccion.tipo === "gasto";
   return (
     <li className="flex items-center gap-3 py-3">
-      <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? "#64748b"} />
+      <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? COLOR_CATEGORIA_POR_DEFECTO} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{categoria?.nombre ?? "Sin categoría"}</p>
         {/* En móvil hay poco ancho: hasta 2 líneas en vez de cortar en "Banc…" */}

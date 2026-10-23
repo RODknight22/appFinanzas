@@ -1,6 +1,6 @@
 import { Check, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { transaccionesApi } from "../../api/recursos";
 import { useConfiguracion } from "../../hooks/useConfiguracion";
