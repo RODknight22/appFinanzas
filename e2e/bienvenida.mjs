@@ -55,15 +55,23 @@ await prueba("bienvenida", async ({ pagina, api }) => {
   await ventana.getByText("Ya tienes ingresos fijos").waitFor();
   await ventana.getByRole("button", { name: "Siguiente" }).click();
   await globo.waitFor();
+  // En el móvil: los 4 apartados de la barra y «Más» (que agrupa el resto).
+  const titulosMovil = [];
   let fuera = 0;
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 5; i++) {
     await pagina.waitForTimeout(350);
+    titulosMovil.push(await pagina.locator("#recorrido-titulo").textContent());
     const { x, y, width, height } = await pagina.locator("#recorrido-titulo").locator("..").boundingBox();
     if (x < 0 || y < 0 || x + width > 390 || y + height > 844) fuera++;
     if (i === 1) await pagina.screenshot({ path: `${CAPTURAS}/bienvenida-movil.png` });
-    if (i < 8) await pagina.keyboard.press("ArrowRight");
+    if (i === 4) await pagina.screenshot({ path: `${CAPTURAS}/bienvenida-movil-mas.png` });
+    if (i < 4) await pagina.keyboard.press("ArrowRight");
   }
-  comprobar(fuera === 0, "en el móvil los 9 globos caben en la pantalla");
+  comprobar(
+    titulosMovil.join(",") === "Dashboard,Transacciones,Presupuestos,Cuentas,Más",
+    `en el móvil, un globo por botón de la barra (${titulosMovil.join(", ")})`,
+  );
+  comprobar(fuera === 0, "en el móvil los globos caben en la pantalla");
   await pagina.keyboard.press("Escape");
   await pagina.locator("#recorrido-titulo").waitFor({ state: "detached" });
   comprobar(true, "Esc salta el recorrido");
