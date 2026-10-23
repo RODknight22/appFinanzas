@@ -7,6 +7,7 @@ import { FilaCuenta, type FilaCuentaProps } from "../components/cuentas/FilaCuen
 import { ListaTransferencias } from "../components/cuentas/ListaTransferencias";
 import { FormularioCuenta } from "../components/formularios/FormularioCuenta";
 import { FormularioTransferencia, type PagoTarjeta } from "../components/formularios/FormularioTransferencia";
+import { avisar } from "../components/ui/tablonAvisos";
 import { Boton } from "../components/ui/Boton";
 import { Consejo } from "../components/ui/Consejo";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
@@ -49,10 +50,10 @@ export function CuentasPage() {
   async function registrarRendimientos(cuenta: Cuenta) {
     try {
       const ingreso = await cuentasApi.registrarRendimientos(cuenta.id);
-      window.alert(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en "${cuenta.nombre}".`);
+      avisar(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en "${cuenta.nombre}".`);
       estado.recargar();
     } catch (e) {
-      window.alert(e instanceof Error ? e.message : String(e));
+      avisarError(e);
     }
   }
 
