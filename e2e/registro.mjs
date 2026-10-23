@@ -14,9 +14,11 @@ await prueba("registro", async ({ pagina, api }) => {
   await abrir(pagina, "/transacciones");
   await pagina.getByRole("button", { name: "Nueva", exact: true }).click();
   const rejilla = pagina.getByRole("dialog").getByText("Toca la categoría para guardar").locator("..");
-  await rejilla.getByRole("button", { name: "Restaurantes" }).waitFor();
-  const primera = await rejilla.getByRole("button").first().textContent();
-  comprobar(primera === "Restaurantes", "la categoría más usada sale la primera");
+  // La rejilla sale en orden de creación y se reordena al llegar los últimos movimientos:
+  // se espera a ese reordenamiento (en el CI, más lento, aún no ha llegado al pintar).
+  const primeraEsRestaurantes = await rejilla.getByRole("button").first()
+    .filter({ hasText: /^Restaurantes$/ }).waitFor({ timeout: 5000 }).then(() => true, () => false);
+  comprobar(primeraEsRestaurantes, "la categoría más usada sale la primera");
 
   // Cambiar de cuenta en las opciones plegadas; la siguiente vez debe proponerse sola.
   await pagina.getByRole("button", { name: /^Hoy · BBVA/ }).click();
