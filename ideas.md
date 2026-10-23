@@ -49,6 +49,8 @@ Ejemplo:
 
 - [ ] Me gusta, pero la parte del tutorial donde te dice donde esta cada cosa estaria mejor que te la explicara con glovos de texto y la parte de los "desafios" haz que si ellos abren la cuenta, ponen una meta, etc se marque sola como completada. Tambien me gustaria que la parte de donde metes la transacciones cuando las importas, tengan un boton de aceptarlas mas rapido ya que los estados de cuenta podrian tener muchas transacciones y estar picando y bajando es tedioso, igual no se si haya alguna foma de darle una categoria por defecto sin que el usuario la tenga que elegir forzosamente o sea que el programa identifique en que categoria entra "Solo si es posible"
 
+- [ ] Conexion con Drive y otras aplicaciones como claude, chatgpt, gemini, etc MCP server. 
+
 ## ✨ Funciones nuevas
 
 <!-- Cosas que la app aún no hace. -->
