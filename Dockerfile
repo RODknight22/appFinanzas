@@ -38,4 +38,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=20s \
 
 # 0.0.0.0 DENTRO del contenedor es necesario para que Docker le pase el tráfico;
 # quién puede conectarse lo decide el `-p 127.0.0.1:8000:8000` al arrancarlo.
-CMD ["uvicorn", "app.servidor:crear_aplicacion", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+# Sin registro de accesos, como el ejecutable: las rutas llevan lo que buscas y no deben
+# quedarse en `docker logs`.
+CMD ["uvicorn", "app.servidor:crear_aplicacion", "--factory", "--host", "0.0.0.0", "--port", "8000", \
+     "--no-access-log"]
