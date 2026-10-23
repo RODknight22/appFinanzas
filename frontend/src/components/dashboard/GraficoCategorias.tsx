@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, type TooltipProps } from "recharts";
 
 import type { GastoPorCategoria } from "../../types";
-import { formatearDinero } from "../../utils/formato";
+import { formatearDinero, formatearPorcentaje } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
 import { IconoCategoria } from "../ui/IconoCategoria";
 
@@ -12,7 +12,7 @@ function TooltipCategoria({ active, payload }: TooltipProps<number, string>) {
     <div className="rounded-xl bg-superficie-2 px-3 py-2 text-xs shadow-lg ring-1 ring-linea">
       <p className="font-semibold">{gasto.nombre}</p>
       <p className="tabular-nums">
-        {formatearDinero(gasto.total)} · {gasto.porcentaje}%
+        {formatearDinero(gasto.total)} · {formatearPorcentaje(gasto.porcentaje)}
       </p>
     </div>
   );
@@ -51,7 +51,7 @@ export function GraficoCategorias({ datos }: { datos: GastoPorCategoria[] }) {
           <li key={gasto.categoria_id} className="flex items-center gap-3 text-sm">
             <IconoCategoria icono={gasto.icono} color={gasto.color} tamano="sm" />
             <span className="flex-1 truncate">{gasto.nombre}</span>
-            <span className="text-xs text-tenue">{gasto.porcentaje}%</span>
+            <span className="text-xs text-tenue">{formatearPorcentaje(gasto.porcentaje)}</span>
             <span className="font-medium tabular-nums">{formatearDinero(gasto.total)}</span>
           </li>
         ))}

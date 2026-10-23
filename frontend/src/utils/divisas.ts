@@ -31,3 +31,32 @@ export function textoTipoDeCambio(porUnidad: number, de: Moneda, a: Moneda): str
   const [base, cotizada, valor] = porUnidad >= 1 ? [de, a, porUnidad] : [a, de, 1 / porUnidad];
   return `1 ${base} = ${formatearNumero(valor)} ${cotizada}`;
 }
+
+/** Total de varios importes pasados a la principal. `faltan`: monedas sin tasa (sus importes no suman). */
+export interface SumaConvertida {
+  total: number;
+  faltan: Moneda[];
+  /** Cuántos importes sí se pudieron convertir (0 con `faltan` = no hay total que mostrar). */
+  convertidos: number;
+}
+
+/**
+ * Suma importes en distintas monedas. Si falta la tasa de alguna, no la cuenta como 0
+ * en silencio: la apunta en `faltan` para que la pantalla avise de que el total es parcial.
+ */
+export function sumarConvertidos(
+  partes: { monto: number; moneda: Moneda }[],
+  convertirAPrincipal: (monto: number, de: Moneda) => number | undefined,
+): SumaConvertida {
+  const suma: SumaConvertida = { total: 0, faltan: [], convertidos: 0 };
+  for (const { monto, moneda } of partes) {
+    const convertido = convertirAPrincipal(monto, moneda);
+    if (convertido === undefined) {
+      if (!suma.faltan.includes(moneda)) suma.faltan.push(moneda);
+    } else {
+      suma.total += convertido;
+      suma.convertidos++;
+    }
+  }
+  return suma;
+}

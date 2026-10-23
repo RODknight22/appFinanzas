@@ -2,6 +2,16 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+/** Cada trozo con sus librerías y las dependencias de estas (sacadas de `npm ls --all`). */
+const TROZOS: Record<string, RegExp[]> = {
+  react: [/^(react|react-dom|scheduler|loose-envify|js-tokens|react-router|cookie|set-cookie-parser)$/],
+  graficas: [
+    /^(recharts|recharts-scale|react-smooth|react-transition-group|react-is|prop-types|object-assign)$/,
+    /^(d3-.+|victory-vendor|internmap|decimal\.js-light|lodash|eventemitter3|fast-equals|dom-helpers|@babel\/runtime|clsx|tiny-invariant)$/,
+  ],
+  arrastrar: [/^@dnd-kit\//, /^tslib$/],
+};
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
@@ -9,10 +19,12 @@ export default defineConfig({
       output: {
         // Librerías en trozos propios: cambian poco, así que en una versión nueva de
         // la app el navegador las reutiliza de su caché y solo descarga nuestro código.
-        manualChunks: {
-          react: ["react", "react-dom", "react-router"],
-          graficas: ["recharts"],
-          arrastrar: ["@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
+        // Se decide por la carpeta de cada archivo: con la forma de lista ({ react: [...] }),
+        // Rollup metía react-dom en "arrastrar" (es dependencia de @dnd-kit).
+        manualChunks(id) {
+          const paquete = id.match(/node_modules\/((?:@[^/]+\/)?[^/]+)\//)?.[1];
+          if (!paquete) return undefined; // nuestro código
+          return Object.entries(TROZOS).find(([, paquetes]) => paquetes.some((p) => p.test(paquete)))?.[0];
         },
       },
     },

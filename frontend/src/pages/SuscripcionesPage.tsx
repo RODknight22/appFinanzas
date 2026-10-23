@@ -10,11 +10,13 @@ import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { TotalConvertido } from "../components/ui/TotalConvertido";
 import { COBROS_POR_MES, PERIODICIDADES } from "../config";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Suscripcion } from "../types";
+import { sumarConvertidos } from "../utils/divisas";
 import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../utils/formato";
 
 /** Tres modales posibles; el tipo de unión deja claro cuál está abierto. */
@@ -46,15 +48,16 @@ export function SuscripcionesPage() {
         titulo="Suscripciones"
         consejo="Al marcar un pago se anota el gasto y la fecha salta sola al siguiente cobro."
         descripcion="Pagos recurrentes y su próxima fecha de cobro"
-        acciones={<Boton onClick={() => setModal({ modo: "nueva" })}><Plus size={16} /> Nueva</Boton>}
+        // Sin suscripciones, el botón de crear ya está en el aviso de lista vacía.
+        acciones={estado.datos?.[0].length !== 0 && <Boton onClick={() => setModal({ modo: "nueva" })}><Plus size={16} /> Nueva</Boton>}
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
         {([suscripciones, cuentas, categoriasGasto]) => {
           // Cada suscripción se convierte a la moneda principal (tasa de hoy) antes de sumar.
-          const costeMensual = suscripciones.reduce(
-            (total, s) => total + (convertir(Number(s.monto), s.moneda) ?? 0) * COBROS_POR_MES[s.periodicidad],
-            0,
+          const costeMensual = sumarConvertidos(
+            suscripciones.map((s) => ({ monto: Number(s.monto) * COBROS_POR_MES[s.periodicidad], moneda: s.moneda })),
+            convertir,
           );
 
           return (
@@ -62,8 +65,8 @@ export function SuscripcionesPage() {
               {suscripciones.length > 0 && (
                 <p className="mb-4 text-sm text-tenue">
                   Coste mensual estimado:{" "}
-                  <strong className="text-texto tabular-nums">{formatearDinero(costeMensual)}</strong>
-                  {" · "}al año: <strong className="text-texto tabular-nums">{formatearDinero(costeMensual * 12)}</strong>
+                  <strong className="text-texto tabular-nums"><TotalConvertido suma={costeMensual} /></strong>
+                  {" · "}al año: <strong className="text-texto tabular-nums"><TotalConvertido suma={costeMensual} factor={12} /></strong>
                 </p>
               )}
 
@@ -98,9 +101,10 @@ export function SuscripcionesPage() {
                             <CalendarCheck size={14} /> Pagado
                           </Boton>
                           <AccionesFila
+                            nombre={suscripcion.nombre}
                             onEditar={() => setModal({ modo: "editar", suscripcion })}
                             onEliminar={() =>
-                              confirmarYEliminar(`¿Eliminar "${suscripcion.nombre}"? Los pagos ya registrados se conservan.`, () => suscripcionesApi.eliminar(suscripcion.id), estado.recargar)
+                              confirmarYEliminar(`¿Eliminar «${suscripcion.nombre}»? Los pagos ya registrados se conservan.`, () => suscripcionesApi.eliminar(suscripcion.id), estado.recargar)
                             }
                           />
                         </li>

@@ -20,7 +20,7 @@ await prueba("envios", async ({ pagina, api }) => {
   const costes = pagina.getByText(/^Te costó/);
   await costes.first().waitFor();
   const texto = await costes.first().textContent();
-  comprobar((await costes.count()) === 1 && texto.includes("80") && texto.includes("4 %"), `la transferencia muestra su coste (${texto})`);
+  comprobar((await costes.count()) === 1 && texto.includes("80") && /\b4\s?%/.test(texto), `la transferencia muestra su coste (${texto})`);
   await pagina.screenshot({ path: `${CAPTURAS}/envios-lista.png` });
 
   await abrir(pagina, "/dashboard");

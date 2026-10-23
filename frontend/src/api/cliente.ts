@@ -64,12 +64,19 @@ async function leerMensajeDeError(respuesta: Response): Promise<string> {
 async function peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
   // Un archivo (Blob/File) viaja tal cual; cualquier otro cuerpo, como JSON.
   const esArchivo = cuerpo instanceof Blob;
-  const respuesta = await fetch(`${URL_BASE}${ruta}`, {
-    method: metodo,
-    headers:
-      cuerpo === undefined ? undefined : { "Content-Type": esArchivo ? "application/octet-stream" : "application/json" },
-    body: cuerpo === undefined ? undefined : esArchivo ? cuerpo : JSON.stringify(cuerpo),
-  });
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${URL_BASE}${ruta}`, {
+      method: metodo,
+      headers:
+        cuerpo === undefined ? undefined : { "Content-Type": esArchivo ? "application/octet-stream" : "application/json" },
+      body: cuerpo === undefined ? undefined : esArchivo ? cuerpo : JSON.stringify(cuerpo),
+    });
+  } catch {
+    // fetch solo falla así si no hubo respuesta (la app se cerró, sin red…). El "Failed to
+    // fetch" del navegador no le dice nada a nadie; status 0 = no llegó a haber respuesta.
+    throw new ApiError(0, "No se pudo conectar con la app. ¿Sigue abierta?");
+  }
 
   if (!respuesta.ok) {
     // Un 401 fuera de /auth significa que la sesión ya no vale (en /auth/login

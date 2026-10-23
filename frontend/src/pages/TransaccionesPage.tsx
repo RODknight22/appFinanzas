@@ -1,5 +1,5 @@
 import { Plus, Upload } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
 import { FormularioRegistroRapido } from "../components/formularios/FormularioRegistroRapido";
@@ -31,6 +31,14 @@ export function TransaccionesPage() {
   const catalogos = useDatos(() => Promise.all([categoriasApi.listar(), cuentasApi.listar()]), [], "transacciones-catalogos");
   const consulta = aConsulta(filtros);
   const resultados = useDatos(() => transaccionesApi.buscar(consulta), [JSON.stringify(consulta)], "transacciones");
+
+  // Una página que ya no existe (se borró lo último de ella o la URL es vieja): a la última que sí.
+  const sinFilas = resultados.datos?.items.length === 0;
+  const total = resultados.datos?.total ?? 0;
+  useEffect(() => {
+    if (resultados.cargando || !sinFilas || total === 0 || filtros.pagina <= 1) return;
+    cambiar({ pagina: Math.ceil(total / POR_PAGINA) });
+  }, [resultados.cargando, sinFilas, total, filtros.pagina, cambiar]);
 
   function alGuardar() {
     setModal(null);

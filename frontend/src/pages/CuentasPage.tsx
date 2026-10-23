@@ -50,7 +50,7 @@ export function CuentasPage() {
   async function registrarRendimientos(cuenta: Cuenta) {
     try {
       const ingreso = await cuentasApi.registrarRendimientos(cuenta.id);
-      avisar(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en "${cuenta.nombre}".`);
+      avisar(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en «${cuenta.nombre}».`);
       estado.recargar();
     } catch (e) {
       avisarError(e);
@@ -98,6 +98,8 @@ export function CuentasPage() {
           const enPrincipal = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo_principal)]));
           // El efectivo tiene su propia pestaña.
           const grupos = agruparCuentas(cuentas.filter((c) => c.tipo !== "efectivo"));
+          // El backend no deja borrar una cuenta madre: mejor avisarlo antes del clic.
+          const conSubcuentas = new Set(cuentas.map((c) => c.cuenta_padre_id).filter((id) => id !== null));
 
           const fila = (cuenta: Cuenta, extra: Pick<FilaCuentaProps, "subcuenta" | "totalConSubcuentas" | "plegado"> = {}) => {
             const saldo = saldos.get(cuenta.id) ?? Number(cuenta.balance_inicial);
@@ -108,8 +110,9 @@ export function CuentasPage() {
                 saldo={saldo}
                 {...extra}
                 onEditar={() => setModal(cuenta)}
+                motivoNoEliminar={conSubcuentas.has(cuenta.id) ? "Tiene subcuentas: muévelas o bórralas antes" : undefined}
                 onEliminar={() =>
-                  confirmarYEliminar(`¿Eliminar la cuenta "${cuenta.nombre}"?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
+                  confirmarYEliminar(`¿Eliminar la cuenta «${cuenta.nombre}»?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
                 }
                 onRegistrarRendimientos={() => registrarRendimientos(cuenta)}
                 // En una tarjeta, el saldo negativo es la deuda.

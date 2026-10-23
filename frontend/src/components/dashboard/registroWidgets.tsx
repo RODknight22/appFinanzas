@@ -24,7 +24,7 @@ import type {
   WidgetDisposicion,
 } from "../../types";
 import type { PagoProximo } from "../../utils/cuentas";
-import { formatearDinero, formatearNumero } from "../../utils/formato";
+import { formatearDinero, formatearNumero, formatearPorcentaje } from "../../utils/formato";
 import { Vacio } from "../ui/Estados";
 import { BarraMeta } from "../metas/BarraMeta";
 import { Tarjeta } from "../ui/Tarjeta";
@@ -64,7 +64,7 @@ export interface DatosPanel {
 function textoRinde(porcentaje: string | null): string {
   if (porcentaje === null) return "—";
   const valor = Number(porcentaje);
-  return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${formatearNumero(Math.abs(valor), 1)} %`;
+  return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${formatearPorcentaje(Math.abs(valor))}`;
 }
 
 function detallePoder({ moneda_ingreso, moneda_gasto, tasa_mes, tasa_media_12_meses, ingresos, rindio, diferencia }: PoderAdquisitivo): string {
@@ -228,7 +228,7 @@ export const WIDGETS = {
         detalle={
           envios === 0
             ? "Indica lo que llegó en tus transferencias entre monedas"
-            : `${envios} ${envios === 1 ? "envío" : "envíos"} · ${formatearNumero(Number(porcentaje_medio), 1)} % frente al BCE`
+            : `${envios} ${envios === 1 ? "envío" : "envíos"} · ${formatearPorcentaje(Number(porcentaje_medio))} frente al BCE`
         }
       />
     ),

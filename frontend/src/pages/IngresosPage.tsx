@@ -11,10 +11,12 @@ import { Contenido, Vacio } from "../components/ui/Estados";
 import { IconoCategoria } from "../components/ui/IconoCategoria";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { TotalConvertido } from "../components/ui/TotalConvertido";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { IngresoRecurrente } from "../types";
+import { sumarConvertidos } from "../utils/divisas";
 import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../utils/formato";
 import { cobrosPorMes, describirPeriodicidad } from "../utils/periodicidad";
 
@@ -46,7 +48,8 @@ export function IngresosPage() {
         titulo="Ingresos fijos"
         consejo="Elige los días de la quincena, repite cada N semanas o meses, y adelanta el cobro al viernes si cae en fin de semana."
         descripcion="Nómina, rentas y otros ingresos que llegan cada cierto tiempo"
-        acciones={<Boton onClick={() => setModal({ modo: "nuevo" })}><Plus size={16} /> Nuevo</Boton>}
+        // Sin ingresos, el botón de crear ya está en el aviso de lista vacía.
+        acciones={estado.datos?.[0].length !== 0 && <Boton onClick={() => setModal({ modo: "nuevo" })}><Plus size={16} /> Nuevo</Boton>}
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
@@ -54,9 +57,9 @@ export function IngresosPage() {
           const cuentaPorId = new Map(cuentas.map((c) => [c.id, c]));
           const categoriaPorId = new Map(categoriasIngreso.map((c) => [c.id, c]));
           // Cada ingreso se convierte a la moneda principal (tasa de hoy) antes de sumar.
-          const mensual = ingresos.reduce(
-            (total, i) => total + (convertir(Number(i.monto), i.moneda) ?? 0) * cobrosPorMes(i),
-            0,
+          const mensual = sumarConvertidos(
+            ingresos.map((i) => ({ monto: Number(i.monto) * cobrosPorMes(i), moneda: i.moneda })),
+            convertir,
           );
 
           return (
@@ -64,8 +67,8 @@ export function IngresosPage() {
               {ingresos.length > 0 && (
                 <p className="mb-4 text-sm text-tenue">
                   Ingreso mensual estimado:{" "}
-                  <strong className="text-texto tabular-nums">{formatearDinero(mensual)}</strong>
-                  {" · "}al año: <strong className="text-texto tabular-nums">{formatearDinero(mensual * 12)}</strong>
+                  <strong className="text-texto tabular-nums"><TotalConvertido suma={mensual} /></strong>
+                  {" · "}al año: <strong className="text-texto tabular-nums"><TotalConvertido suma={mensual} factor={12} /></strong>
                 </p>
               )}
 
@@ -103,9 +106,10 @@ export function IngresosPage() {
                             <HandCoins size={14} /> Cobrado
                           </Boton>
                           <AccionesFila
+                            nombre={ingreso.nombre}
                             onEditar={() => setModal({ modo: "editar", ingreso })}
                             onEliminar={() =>
-                              confirmarYEliminar(`¿Eliminar "${ingreso.nombre}"? Los cobros ya registrados se conservan.`, () => ingresosApi.eliminar(ingreso.id), estado.recargar)
+                              confirmarYEliminar(`¿Eliminar «${ingreso.nombre}»? Los cobros ya registrados se conservan.`, () => ingresosApi.eliminar(ingreso.id), estado.recargar)
                             }
                           />
                         </li>

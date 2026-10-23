@@ -40,7 +40,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
         )}
       </span>
       {transaccion.transferencia_id === null ? (
-        <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
+        <AccionesFila nombre={transaccion.notas || categoria?.nombre} onEditar={onEditar} onEliminar={onEliminar} />
       ) : (
         // La comisión de una transferencia se cambia desde la transferencia.
         <Link

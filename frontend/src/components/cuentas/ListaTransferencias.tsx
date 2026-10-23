@@ -1,7 +1,7 @@
 import { ArrowRight, ArrowRightLeft } from "lucide-react";
 
 import type { Cuenta, Transferencia } from "../../types";
-import { formatearDinero, formatearFecha, formatearNumero } from "../../utils/formato";
+import { formatearDinero, formatearFecha, formatearPorcentaje } from "../../utils/formato";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Vacio } from "../ui/Estados";
 
@@ -70,7 +70,7 @@ function CosteEnvio({ coste, porcentaje }: { coste: number; porcentaje: number }
       className={`block text-xs ${gano ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
       title="Frente a la tasa del Banco Central Europeo de ese día, comisión incluida"
     >
-      {gano ? "Ganaste" : "Te costó"} {formatearDinero(Math.abs(coste))} ({formatearNumero(Math.abs(porcentaje), 1)} %)
+      {gano ? "Ganaste" : "Te costó"} {formatearDinero(Math.abs(coste))} ({formatearPorcentaje(Math.abs(porcentaje))})
     </span>
   );
 }

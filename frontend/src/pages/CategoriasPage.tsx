@@ -56,7 +56,8 @@ export function CategoriasPage() {
         ))}
       </div>
 
-      <Tarjeta>
+      {/* Al cambiar de pestaña, mientras llegan las categorías nuevas se ven las anteriores: atenuadas. */}
+      <Tarjeta className={`transition-opacity ${estado.cargando && estado.datos ? "pointer-events-none opacity-50" : ""}`}>
         <Contenido {...estado} onReintentar={estado.recargar}>
           {(categorias) =>
             categorias.length === 0 ? (
@@ -68,9 +69,10 @@ export function CategoriasPage() {
                     <IconoCategoria icono={categoria.icono} color={categoria.color} />
                     <span className="flex-1 truncate font-medium">{categoria.nombre}</span>
                     <AccionesFila
+                      nombre={categoria.nombre}
                       onEditar={() => setModal(categoria)}
                       onEliminar={() =>
-                        confirmarYEliminar(`¿Eliminar la categoría "${categoria.nombre}"?`, () => categoriasApi.eliminar(categoria.id), estado.recargar)
+                        confirmarYEliminar(`¿Eliminar la categoría «${categoria.nombre}»?`, () => categoriasApi.eliminar(categoria.id), estado.recargar)
                       }
                     />
                   </li>

@@ -16,7 +16,7 @@ import { Tarjeta } from "../components/ui/Tarjeta";
 import { confirmarYEliminar, useEnvio } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Presupuesto, ProgresoPresupuesto } from "../types";
-import { formatearDinero, formatearMes, mesActual } from "../utils/formato";
+import { formatearDinero, formatearMesEnFrase, mesActual } from "../utils/formato";
 
 type EstadoModal = null | "nuevo" | Presupuesto;
 
@@ -40,6 +40,7 @@ export function PresupuestosPage() {
     "presupuestos",
   );
   const copia = useEnvio();
+  const sinPresupuestos = estado.datos?.[0].length === 0;
 
   async function copiar() {
     if (await copia.ejecutar(() => presupuestosApi.copiar(mes))) estado.recargar();
@@ -59,7 +60,8 @@ export function PresupuestosPage() {
         acciones={
           <>
             <SelectorMes mes={mes} onCambiar={setMes} />
-            <Boton onClick={() => setModal("nuevo")}><Plus size={16} /> Nuevo</Boton>
+            {/* Sin presupuestos, el botón de crear ya está en el aviso de lista vacía. */}
+            {!sinPresupuestos && <Boton onClick={() => setModal("nuevo")}><Plus size={16} /> Nuevo</Boton>}
           </>
         }
       />
@@ -71,7 +73,8 @@ export function PresupuestosPage() {
           const totalGastado = progresos.reduce((suma, p) => suma + Number(p.gastado_principal), 0);
 
           return (
-            <>
+            // Al cambiar de mes, mientras llegan los datos nuevos se ven los del mes anterior: atenuados.
+            <div aria-busy={estado.cargando} className={`transition-opacity ${estado.cargando ? "pointer-events-none opacity-50" : ""}`}>
               {progresos.length > 0 && (
                 <p className="mb-4 text-sm text-tenue">
                   Total: <strong className="text-texto tabular-nums">{formatearDinero(totalGastado)}</strong> gastado de{" "}
@@ -84,10 +87,10 @@ export function PresupuestosPage() {
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-superficie-2 px-4 py-3 text-sm ring-1 ring-linea">
                   <span className="text-suave">
                     {progresos.length === 0 ? "¿Repites los presupuestos de" : "Faltan presupuestos que tenías en"}{" "}
-                    <strong className="text-texto">{formatearMes(copiables.desde)}</strong>?
+                    <strong className="text-texto">{formatearMesEnFrase(copiables.desde)}</strong>?
                   </span>
                   <Boton variante="secundario" onClick={copiar} disabled={copia.enviando}>
-                    <Copy size={16} /> Copiar {copiables.cantidad}
+                    <Copy size={16} /> Copiar {copiables.cantidad} {copiables.cantidad === 1 ? "presupuesto" : "presupuestos"}
                   </Boton>
                 </div>
               )}
@@ -96,7 +99,7 @@ export function PresupuestosPage() {
               <Tarjeta>
                 {progresos.length === 0 ? (
                   <Vacio
-                    mensaje={`No hay presupuestos para ${formatearMes(mes)}`}
+                    mensaje={`No hay presupuestos para ${formatearMesEnFrase(mes)}`}
                     accion={<Boton variante="secundario" onClick={() => setModal("nuevo")}>Crear presupuesto</Boton>}
                   />
                 ) : (
@@ -107,9 +110,10 @@ export function PresupuestosPage() {
                           <BarraPresupuesto progreso={progreso} />
                         </div>
                         <AccionesFila
+                          nombre={`el presupuesto de ${progreso.nombre}`}
                           onEditar={() => setModal(aPresupuesto(progreso))}
                           onEliminar={() =>
-                            confirmarYEliminar(`¿Eliminar el presupuesto de "${progreso.nombre}"?`, () => presupuestosApi.eliminar(progreso.presupuesto_id), estado.recargar)
+                            confirmarYEliminar(`¿Eliminar el presupuesto de «${progreso.nombre}»?`, () => presupuestosApi.eliminar(progreso.presupuesto_id), estado.recargar)
                           }
                         />
                       </li>
@@ -130,7 +134,7 @@ export function PresupuestosPage() {
                   />
                 )}
               </Modal>
-            </>
+            </div>
           );
         }}
       </Contenido>

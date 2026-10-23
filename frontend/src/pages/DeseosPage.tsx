@@ -11,10 +11,12 @@ import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
+import { TotalConvertido } from "../components/ui/TotalConvertido";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { DecisionDeseo, Deseo, Meta } from "../types";
+import { sumarConvertidos } from "../utils/divisas";
 import { formatearDinero, formatearFecha } from "../utils/formato";
 import { cobrosPorMes } from "../utils/periodicidad";
 
@@ -63,13 +65,15 @@ export function DeseosPage() {
       <Contenido {...estado} onReintentar={estado.recargar}>
         {([deseos, metas, ingresos]) => {
           const metaPorId = new Map(metas.map((m) => [m.id, m]));
-          const enPrincipal = (d: Deseo) => convertir(Number(d.precio), d.moneda) ?? 0;
-          // Lo que ganas al día con tus ingresos fijos: da perspectiva al precio.
-          const ingresoDiario = ingresos.reduce((total, i) => total + (convertir(Number(i.monto), i.moneda) ?? 0) * cobrosPorMes(i), 0) / 30;
+          const enPrincipal = (d: Deseo) => convertir(Number(d.precio), d.moneda);
+          const sumarPrecios = (lista: Deseo[]) => sumarConvertidos(lista.map((d) => ({ monto: Number(d.precio), moneda: d.moneda })), convertir);
+          // Lo que ganas al día con tus ingresos fijos: da perspectiva al precio (aproximado si falta alguna tasa).
+          const ingresoDiario =
+            sumarConvertidos(ingresos.map((i) => ({ monto: Number(i.monto) * cobrosPorMes(i), moneda: i.moneda })), convertir).total / 30;
           const enMaquina = deseos.filter((d) => d.estado === "en_reflexion");
           const lista = deseos.filter((d) => d.estado === "deseado");
           const historial = deseos.filter((d) => d.estado === "comprado" || d.estado === "descartado");
-          const noGastado = historial.filter((d) => d.estado === "descartado").reduce((suma, d) => suma + enPrincipal(d), 0);
+          const noGastado = sumarPrecios(historial.filter((d) => d.estado === "descartado"));
 
           const decidir = (deseo: Deseo, decision: DecisionDeseo) => accion(deseosApi.decidir(deseo.id, decision));
           const tarjetaProps = {
@@ -77,7 +81,7 @@ export function DeseosPage() {
             ingresoDiario,
             enPrincipal,
             onEditar: (d: Deseo) => setModal(d),
-            onEliminar: (d: Deseo) => confirmarYEliminar(`¿Eliminar "${d.nombre}"?`, () => deseosApi.eliminar(d.id), estado.recargar),
+            onEliminar: (d: Deseo) => confirmarYEliminar(`¿Eliminar «${d.nombre}»?`, () => deseosApi.eliminar(d.id), estado.recargar),
           };
 
           return (
@@ -85,7 +89,7 @@ export function DeseosPage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <Tarjeta>
                   <p className="text-sm font-semibold text-tenue">En la lista</p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums">{formatearDinero(lista.reduce((s, d) => s + enPrincipal(d), 0))}</p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums"><TotalConvertido suma={sumarPrecios(lista)} /></p>
                 </Tarjeta>
                 <Tarjeta>
                   <p className="flex items-center gap-1.5 text-sm font-semibold text-tenue"><Hourglass size={15} /> En la máquina del tiempo</p>
@@ -93,7 +97,7 @@ export function DeseosPage() {
                 </Tarjeta>
                 <Tarjeta>
                   <p className="text-sm font-semibold text-tenue">Dinero que no gastaste</p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{formatearDinero(noGastado)}</p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400"><TotalConvertido suma={noGastado} /></p>
                 </Tarjeta>
               </div>
 
@@ -183,7 +187,7 @@ export function DeseosPage() {
                             {deseo.fecha_decision && ` · ${formatearFecha(deseo.fecha_decision)}`}
                           </span>
                           <span className="tabular-nums">{formatearDinero(deseo.precio, deseo.moneda)}</span>
-                          <AccionesFila onEditar={() => setModal(deseo)} onEliminar={() => tarjetaProps.onEliminar(deseo)} />
+                          <AccionesFila nombre={deseo.nombre} onEditar={() => setModal(deseo)} onEliminar={() => tarjetaProps.onEliminar(deseo)} />
                         </li>
                       ))}
                     </ul>
@@ -214,7 +218,7 @@ interface TarjetaDeseoProps {
   deseo: Deseo;
   metaPorId: Map<number, Meta>;
   ingresoDiario: number;
-  enPrincipal: (deseo: Deseo) => number;
+  enPrincipal: (deseo: Deseo) => number | undefined;
   onEditar: (deseo: Deseo) => void;
   onEliminar: (deseo: Deseo) => void;
   children: ReactNode;
@@ -223,7 +227,8 @@ interface TarjetaDeseoProps {
 /** Un deseo: precio, tienda, prioridad, meta vinculada y las acciones de su sección. */
 function TarjetaDeseo({ deseo, metaPorId, ingresoDiario, enPrincipal, onEditar, onEliminar, children }: TarjetaDeseoProps) {
   const meta = deseo.meta_id !== null ? metaPorId.get(deseo.meta_id) : undefined;
-  const diasDeTrabajo = ingresoDiario > 0 ? enPrincipal(deseo) / ingresoDiario : null;
+  const precio = enPrincipal(deseo);
+  const diasDeTrabajo = ingresoDiario > 0 && precio !== undefined ? precio / ingresoDiario : null;
 
   return (
     <li className="flex flex-col gap-3 rounded-2xl p-4 ring-1 ring-linea">
@@ -235,7 +240,7 @@ function TarjetaDeseo({ deseo, metaPorId, ingresoDiario, enPrincipal, onEditar, 
             {deseo.notas && ` · ${deseo.notas}`}
           </p>
         </div>
-        <AccionesFila onEditar={() => onEditar(deseo)} onEliminar={() => onEliminar(deseo)} />
+        <AccionesFila nombre={deseo.nombre} onEditar={() => onEditar(deseo)} onEliminar={() => onEliminar(deseo)} />
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-xl font-bold tabular-nums">{formatearDinero(deseo.precio, deseo.moneda)}</span>

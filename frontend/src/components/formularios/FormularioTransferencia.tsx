@@ -6,7 +6,7 @@ import { useConfiguracion } from "../../hooks/useConfiguracion";
 import { useEnvio } from "../../hooks/useEnvio";
 import type { Cuenta, Moneda, Transferencia } from "../../types";
 import { textoTipoDeCambio } from "../../utils/divisas";
-import { formatearDinero, formatearNumero, hoyISO } from "../../utils/formato";
+import { formatearDinero, formatearPorcentaje, hoyISO } from "../../utils/formato";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
 import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
@@ -47,7 +47,7 @@ function TipoDeCambioAplicado({ sale, llega, de, a }: { sale: number; llega: num
       Tipo aplicado: {textoTipoDeCambio(aplicado, de, a)}
       {Math.abs(peor) >= 0.05 && (
         <span className={peor > 0 ? "text-amber-600 dark:text-amber-400" : ""}>
-          {" "}· un {formatearNumero(Math.abs(peor), 1)} % {peor > 0 ? "peor" : "mejor"} que el del mercado hoy
+          {" "}· un {formatearPorcentaje(Math.abs(peor))} {peor > 0 ? "peor" : "mejor"} que el del mercado hoy
         </span>
       )}
     </p>

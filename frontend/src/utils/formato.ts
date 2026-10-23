@@ -11,18 +11,28 @@ const formateadores = new Map<Moneda, Intl.NumberFormat>();
 
 /**
  * Todas las monedas se formatean con la región de la moneda principal: así la
- * principal usa su símbolo ("$") y las demás su código ("USD 15.00"). Si cada
- * una usara su propia región, MXN y USD saldrían ambas como "$".
+ * principal usa su símbolo ("$") y las demás, el suyo si no se confunde ("€102.00",
+ * "Q50.00") o su código si también sería "$" ("USD 15.00"). Si cada una usara su
+ * propia región, MXN y USD saldrían ambas como "$".
  */
 function formateador(moneda: Moneda): Intl.NumberFormat {
   let existente = formateadores.get(moneda);
   if (!existente) {
     // useGrouping "always": en español Intl no separa los miles en números de 4 cifras
     // ("9835,05 €"); en una app de dinero se lee mejor "9.835,05 €".
-    existente = new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda, useGrouping: "always" });
+    const opciones: Intl.NumberFormatOptions = { style: "currency", currency: moneda, useGrouping: "always" };
+    if (moneda !== monedaPrincipal && simboloEstrecho(moneda) !== "$") opciones.currencyDisplay = "narrowSymbol";
+    existente = new Intl.NumberFormat(localeActual, opciones);
     formateadores.set(moneda, existente);
   }
   return existente;
+}
+
+/** El símbolo corto de una moneda ("€", "$", "Q"…) en la región de la app. */
+function simboloEstrecho(moneda: Moneda): string | undefined {
+  return new Intl.NumberFormat(localeActual, { style: "currency", currency: moneda, currencyDisplay: "narrowSymbol" })
+    .formatToParts(0)
+    .find((parte) => parte.type === "currency")?.value;
 }
 
 /** Cambia la moneda principal (y el formato regional de fechas) de toda la app. */
@@ -42,6 +52,12 @@ export function formatearNumero(valor: number, maxDecimales = 4): string {
   return valor.toLocaleString(localeActual, { maximumFractionDigits: maxDecimales });
 }
 
+/** Un porcentaje (45.5 = 45,5 %) con el formato regional de la app: "45.5%", "45,5 %"… */
+export function formatearPorcentaje(valor: number, maxDecimales = 1): string {
+  // Intl espera la fracción (0.455), no el número de "por cientos".
+  return (valor / 100).toLocaleString(localeActual, { style: "percent", maximumFractionDigits: maxDecimales, useGrouping: "always" });
+}
+
 /**
  * Las fechas ISO ("2026-10-18") se interpretan en UTC por defecto, lo que puede
  * mostrar el día anterior según la zona horaria. Las construimos en hora local.
@@ -59,14 +75,24 @@ export function formatearFecha(fecha: FechaISO): string {
   });
 }
 
+/** El mes como título o etiqueta: "Octubre de 2026", "Oct 26". */
 export function formatearMes(mes: MesAnio, formato: "corto" | "largo" = "largo"): string {
+  const texto = textoMes(mes, formato);
+  // "octubre de 2026" -> "Octubre de 2026" (CSS `capitalize` pondría también "De").
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/** El mes en mitad de una frase: "No hay presupuestos para octubre de 2026" (en español va en minúscula). */
+export function formatearMesEnFrase(mes: MesAnio): string {
+  return textoMes(mes, "largo");
+}
+
+function textoMes(mes: MesAnio, formato: "corto" | "largo"): string {
   const [anio, numeroMes] = mes.split("-").map(Number);
-  const texto = new Date(anio, numeroMes - 1, 1).toLocaleDateString(localeActual, {
+  return new Date(anio, numeroMes - 1, 1).toLocaleDateString(localeActual, {
     month: formato === "corto" ? "short" : "long",
     year: formato === "corto" ? "2-digit" : "numeric",
   });
-  // "octubre de 2026" -> "Octubre de 2026" (CSS `capitalize` pondría también "De").
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 /** Nombre corto de un mes (1-12) con el formato regional de la app: "oct", "Oct"… */

@@ -1,5 +1,5 @@
 import { ArrowRightLeft, Check, CheckCircle2, FileUp } from "lucide-react";
-import { useState, type DragEvent } from "react";
+import { useRef, useState, type DragEvent } from "react";
 
 import { importacionesApi } from "../../api/recursos";
 import { useEnvio } from "../../hooks/useEnvio";
@@ -49,8 +49,12 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   const [resultado, setResultado] = useState<ResultadoImportacion | null>(null);
   const lectura = useEnvio();
   const guardado = useEnvio();
+  // Cambiar de cuenta o invertir signos relee el archivo: si la respuesta de una lectura
+  // anterior llega tarde, se ignora (solo cuenta la última petición).
+  const ultimaLectura = useRef(0);
 
   async function leer(nuevoArchivo: File, cuenta: number, invertir: boolean | null) {
+    const peticion = ++ultimaLectura.current;
     setArchivo(nuevoArchivo);
     setVista(null);
     if (nuevoArchivo.size > TAMANO_MAXIMO) {
@@ -58,7 +62,14 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
       return;
     }
     await lectura.ejecutar(async () => {
-      const leida = await importacionesApi.vistaPrevia(cuenta, nuevoArchivo, invertir);
+      let leida: VistaPreviaImportacion;
+      try {
+        leida = await importacionesApi.vistaPrevia(cuenta, nuevoArchivo, invertir);
+      } catch (e) {
+        if (peticion !== ultimaLectura.current) return; // el error de una lectura vieja no importa
+        throw e;
+      }
+      if (peticion !== ultimaLectura.current) return;
       setVista(leida);
       setInvertirSignos(leida.invertir_signos);
       setFilas(leida.filas.map((fila) => ({
@@ -282,6 +293,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
             <label className="flex items-center gap-2 text-sm text-suave">
               <input
                 type="checkbox"
+                className="accent-acento-600"
                 checked={Boolean(invertirSignos)}
                 onChange={(e) => {
                   setInvertirSignos(e.target.checked);
@@ -361,6 +373,7 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
     <li className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 ${fila.incluir ? "" : "opacity-50"}`}>
       <input
         type="checkbox"
+        className="accent-acento-600"
         checked={fila.incluir}
         onChange={onAlternar}
         aria-label={`Importar ${fila.concepto || "movimiento"} del ${formatearFecha(fila.fecha)}`}

@@ -75,7 +75,7 @@ export function SelectorFecha({ etiqueta, valor, onCambiar, opcional = false, ay
           className={`${CLASE_ENTRADA} flex items-center gap-2 text-left`}
         >
           <CalendarDays size={16} className="shrink-0 text-tenue" />
-          <span id={`${id}-valor`} className={`truncate ${valor ? "" : "text-tenue-2"}`}>
+          <span id={`${id}-valor`} className={`truncate ${valor ? "" : "text-tenue"}`}>
             {valor ? textoFecha(valor) : "Sin fecha"}
           </span>
         </button>
@@ -188,7 +188,7 @@ function PanelCalendario({ disparador, etiqueta, valor, opcional, onElegir, onCe
       {vista === "dias" ? (
         <div className="grid grid-cols-7 gap-y-0.5 text-center">
           {DIAS_SEMANA.map((letra) => (
-            <span key={letra} className="pb-1 text-[11px] font-semibold text-tenue-2">{letra}</span>
+            <span key={letra} className="pb-1 text-[11px] font-semibold text-tenue">{letra}</span>
           ))}
           {Array.from({ length: diaDeSemana(primerDia) }, (_, i) => <span key={`hueco-${i}`} />)}
           {dias.map((dia) => {

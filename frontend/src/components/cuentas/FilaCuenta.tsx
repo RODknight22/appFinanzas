@@ -2,7 +2,7 @@ import { CalendarClock, ChevronRight, CornerDownRight, CreditCard, Pin, PinOff, 
 
 import type { Cuenta } from "../../types";
 import { proximaFechaDelDia, rendimientoEstimado } from "../../utils/cuentas";
-import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../../utils/formato";
+import { diasHasta, formatearDinero, formatearFecha, formatearPorcentaje, textoVencimiento } from "../../utils/formato";
 import { TIPOS_CUENTA } from "../formularios/FormularioCuenta";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Boton } from "../ui/Boton";
@@ -12,6 +12,8 @@ export interface FilaCuentaProps {
   saldo: number;
   onEditar: () => void;
   onEliminar: () => void;
+  /** Si no se puede borrar (p. ej. tiene subcuentas), por qué: el botón se apaga y lo explica. */
+  motivoNoEliminar?: string;
   onRegistrarRendimientos: () => void;
   /** Abre una transferencia hacia la tarjeta con la deuda ya escrita. */
   onPagar: () => void;
@@ -56,7 +58,7 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
             />
           </div>
           <p className="mt-1">
-            Disponible {formatearDinero(Math.max(limite - deuda, 0), cuenta.moneda)} de {formatearDinero(limite, cuenta.moneda)} ({Math.round(usado)}% usado)
+            Disponible {formatearDinero(Math.max(limite - deuda, 0), cuenta.moneda)} de {formatearDinero(limite, cuenta.moneda)} ({formatearPorcentaje(usado, 0)} usado)
           </p>
         </div>
       )}
@@ -77,7 +79,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-tenue">
       <span>
-        {tasa}% anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1), cuenta.moneda)} al día · ≈{" "}
+        {formatearPorcentaje(tasa, 2)} anual · ≈ {formatearDinero(rendimientoEstimado(saldo, tasa, 1), cuenta.moneda)} al día · ≈{" "}
         {formatearDinero(rendimientoEstimado(saldo, tasa, 30), cuenta.moneda)} al mes
       </span>
       {diasPendientes > 0 ? (
@@ -93,7 +95,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
 
 /** Una cuenta de la lista, con la información propia de su tipo. */
 export function FilaCuenta(props: FilaCuentaProps) {
-  const { cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas, plegado } = props;
+  const { cuenta, saldo, onEditar, onEliminar, motivoNoEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas, plegado } = props;
   const { etiqueta, icono: Icono } = TIPOS_CUENTA[cuenta.tipo];
   const esCredito = cuenta.tipo === "credito";
   const IconoFijar = cuenta.fijada ? PinOff : Pin;
@@ -157,7 +159,7 @@ export function FilaCuenta(props: FilaCuentaProps) {
           >
             <IconoFijar size={16} />
           </button>
-          <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
+          <AccionesFila nombre={cuenta.nombre} onEditar={onEditar} onEliminar={onEliminar} motivoNoEliminar={motivoNoEliminar} />
         </div>
       </div>
       {/* Detalles debajo y alineados con el nombre (pl-14 = icono + hueco; pl-24 suma la columna
