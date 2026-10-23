@@ -138,7 +138,7 @@ export const deseosApi = {
 
 /** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */
 export const importacionesApi = {
-  /** Lee el archivo (CSV o .xlsx) en el servidor sin guardar nada. */
+  /** Lee el archivo (CSV, .xlsx o .xls) en el servidor sin guardar nada. */
   vistaPrevia: (cuentaId: number, archivo: File, invertirSignos: boolean) =>
     http.post<VistaPreviaImportacion>("/importaciones/vista-previa", archivo, {
       cuenta_id: cuentaId,

@@ -1,4 +1,4 @@
-"""Lee extractos bancarios (CSV o Excel .xlsx) sin que el usuario configure nada.
+"""Lee extractos bancarios (CSV o Excel .xlsx y .xls) sin que el usuario configure nada.
 
 Cada banco exporta a su manera: separador `;` o `,`, importes "1.234,56" o
 "1,234.56", fechas "dd/mm/aaaa", líneas de cabecera con el titular antes de la
@@ -112,6 +112,32 @@ def _filas_excel(contenido: bytes) -> list[list[Celda]]:
         libro.close()
 
 
+def _filas_xls(contenido: bytes) -> list[list[Celda]]:
+    """Lee el .xls antiguo (Excel 97-2003). No va comprimido, así que no hay bomba ZIP:
+    lo que ocupa en memoria crece con el archivo, que ya llega limitado a 1 MB."""
+    # Importación local, como openpyxl: xlrd solo se carga si llega un .xls.
+    import xlrd
+
+    try:
+        # logfile: xlrd escribe sus avisos en la consola si no se le da otro sitio.
+        libro = xlrd.open_workbook(file_contents=contenido, on_demand=True, logfile=io.StringIO())
+    except Exception as error:  # xlrd también lanza tipos variados ante un archivo dañado
+        raise ReglaDeNegocioError("No se pudo abrir el Excel: el archivo parece dañado") from error
+    try:
+        hoja = libro.sheet_by_index(0)
+
+        def valor(celda: "xlrd.sheet.Cell") -> Celda:
+            if celda.ctype == xlrd.XL_CELL_DATE:  # en .xls una fecha es un número con formato
+                return xlrd.xldate_as_datetime(celda.value, libro.datemode)
+            if celda.ctype in (xlrd.XL_CELL_TEXT, xlrd.XL_CELL_NUMBER):
+                return celda.value
+            return None  # vacías, booleanos y celdas con error
+
+        return [[valor(c) for c in hoja.row(i)] for i in range(min(hoja.nrows, MAX_FILAS + 1))]
+    finally:
+        libro.release_resources()
+
+
 def _decodificar(contenido: bytes) -> str:
     """UTF-8 si lo es; si no, Windows-1252 (lo que usan muchos bancos españoles)."""
     try:
@@ -138,10 +164,8 @@ def _leer_tabla(contenido: bytes) -> list[list[Celda]]:
         raise ReglaDeNegocioError("El archivo está vacío")
     if contenido.startswith(b"PK"):  # .xlsx es un ZIP
         return _filas_excel(contenido)
-    if contenido.startswith(b"\xd0\xcf\x11\xe0"):  # .xls antiguo (formato OLE)
-        raise ReglaDeNegocioError(
-            "El formato .xls antiguo no se puede leer: ábrelo y guárdalo como .xlsx o CSV"
-        )
+    if contenido.startswith(b"\xd0\xcf\x11\xe0"):  # .xls antiguo (formato OLE), p. ej. Santander
+        return _filas_xls(contenido)
     if contenido.lstrip()[:1] == b"<":  # algunos bancos llaman ".xls" a una página HTML
         raise ReglaDeNegocioError("El archivo es una página web, no una hoja de cálculo: expórtalo como CSV o .xlsx")
     return _filas_csv(contenido)
@@ -322,7 +346,7 @@ def _localizar_tabla(filas: list[list[Celda]]) -> tuple[int, dict[str, int]]:
 # 4. Punto de entrada
 # ---------------------------------------------------------------------------
 def leer_extracto(contenido: bytes) -> ExtractoLeido:
-    """Lee un CSV o .xlsx de cualquier banco y devuelve sus movimientos."""
+    """Lee un CSV, .xlsx o .xls de cualquier banco y devuelve sus movimientos."""
     filas = _leer_tabla(contenido)
     inicio, roles = _localizar_tabla(filas)
     if "fecha" not in roles or not {"importe", "cargo", "abono"} & roles.keys():

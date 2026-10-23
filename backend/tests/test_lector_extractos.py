@@ -4,6 +4,7 @@ import io
 import zipfile
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from openpyxl import Workbook
@@ -130,11 +131,29 @@ def test_excel_con_fechas_y_numeros_nativos() -> None:
     ]
 
 
+def test_santander_xls_antiguo_con_datos_de_la_cuenta_antes_de_la_tabla() -> None:
+    """El .xls (formato de Excel 97-2003) que exporta Santander España, con datos inventados.
+
+    El archivo se creó una vez con xlwt 1.3.0 imitando el real: fechas como texto,
+    importes numéricos y filas de titular y saldo arriba. La última fila lleva la fecha
+    como fecha nativa de Excel, por si el banco cambia.
+    """
+    contenido = (Path(__file__).parent / "datos" / "santander_inventado.xls").read_bytes()
+    extracto = leer_extracto(contenido)
+    assert _resumen(contenido) == [
+        (date(2026, 10, 16), "-41.00", "Transferencia Inmediata A Favor De Ejemplo"),
+        (date(2026, 10, 13), "-20.00", "Retirada De Efectivo En Cajero Automatico"),
+        (date(2026, 10, 11), "200.00", "Ingreso En Cajero Automatico"),
+        (date(2026, 10, 2), "6.70", "Bizum De Ejemplo"),
+    ]
+    assert extracto.columnas == {"fecha": "FECHA OPERACIÓN", "concepto": "CONCEPTO", "importe": "IMPORTE EUR"}
+
+
 @pytest.mark.parametrize(
     ("contenido", "mensaje"),
     [
         (b"", "vacío"),
-        (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1resto", ".xls antiguo"),
+        (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1resto", "dañado"),
         (b"<html><table></table></html>", "página web"),
         (b"PK\x03\x04no es un zip de verdad", "dañado"),
         (b"Nombre,Apellido\nAna,Lopez\n", "columnas de fecha e importe"),

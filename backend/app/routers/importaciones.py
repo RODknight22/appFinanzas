@@ -37,7 +37,7 @@ async def _archivo(request: Request) -> bytes:
 def vista_previa(
     cuenta_id: int, contenido: Annotated[bytes, Depends(_archivo)], session: SessionDep, invertir_signos: bool = False
 ):
-    """Lee un extracto (CSV o .xlsx) y devuelve lo que se importaría. No guarda nada."""
+    """Lee un extracto (CSV, .xlsx o .xls) y devuelve lo que se importaría. No guarda nada."""
     return servicio.vista_previa(session, cuenta_id, contenido, invertir_signos)
 
 
