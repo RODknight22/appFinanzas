@@ -1,3 +1,3 @@
 """Versión de la app: el único sitio donde se cambia al publicar un release."""
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"

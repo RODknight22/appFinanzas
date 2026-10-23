@@ -16,6 +16,33 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Extractos de Revolut: el concepto ya no sale como la fecha de cargo y la comisión (`Fee`,
   p. ej. la cuota del plan) se cuenta como gasto en vez de perderse.
 
+## [1.2.0] - 2026-10-23
+
+### Añadido
+- Coste real de cada envío entre monedas: lo que no llegó frente a la tasa del BCE de ese día
+  más la comisión ("Te costó 80 $ (4 %)"), y un widget con el total del año.
+- Poder adquisitivo: cuánto rinde lo que cobras en una moneda al gastarlo en otra, este mes
+  frente a la media de 12 meses. Las monedas se detectan solas.
+- Reglas de categoría para importar ("si contiene MERCADONA, es Supermercado"), en Categorías.
+- Al importar, los cambios de divisa entre cuentas propias ("To MXN") se guardan como
+  transferencias y no como ingresos. El extracto de la otra cuenta completa esas
+  transferencias en vez de duplicarlas, y un ingreso o gasto suelto con el mismo importe en
+  otra cuenta tuya se puede unir a ellas.
+- Repetir los presupuestos del último mes con un toque.
+- Bienvenida con un paso opcional para el sueldo y un recorrido con globos de texto por el menú.
+- Gasto en dos toques (importe y categoría), varios seguidos con «Deshacer».
+
+### Cambiado
+- Selector de mes con botón "Hoy" y cuadrícula para saltar a cualquier mes y año.
+- La revisión de la importación muestra el progreso, una ✓ por fila y "Dar por buenas las
+  sugerencias"; cada cuenta recuerda si se invirtieron los signos.
+- Avisos y confirmaciones propios de la app en lugar de las ventanas del navegador.
+- En Cuentas, la flecha para plegar las subcuentas pasa a la izquierda del nombre.
+
+### Arreglado
+- Extractos de Revolut México (fecha de la compra, comisión aparte) y .xls antiguos de
+  Santander España, probados con archivos reales.
+
 ## [1.1.0] - 2026-10-23
 
 ### Añadido
