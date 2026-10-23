@@ -45,7 +45,7 @@ Ejemplo:
 
 <!-- Vacía: Claude movió tus ideas a su sección. Sigue escribiendo aquí. -->
 
-- [ ]
+- [ ] Cambiar lo de desplegar de las cuentas a la izquierda para mayor comodidad
 
 ## ✨ Funciones nuevas
 
@@ -55,13 +55,13 @@ Ejemplo:
   saltar a meses lejanos #funcion → hoja de ruta v1.2
   - 💬 Claude: propuesta: botón "Hoy" que aparece cuando no estás en el mes actual, y al pulsar
     el nombre del mes, una cuadrícula con los 12 meses y flechas para cambiar de año.
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: Me parece tu idea
 - [>] Bienvenida al día: explicar lo nuevo, rápida y entretenida, para meter los datos básicos
   #funcion → hoja de ruta v1.2
   - 💬 Claude: ¿qué datos básicos son imprescindibles para ti? Propongo: moneda principal,
     primera cuenta con su saldo y, opcional, el sueldo como ingreso fijo. Con eso el panel ya
     tiene sentido desde el primer minuto.
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: Perfecto, pero puedes añadir una especie de tutorial que explique todos los apartados pero no quiero que sea tedioso ni aburrido
 
 ## 🐛 Arreglos (fixes)
 
