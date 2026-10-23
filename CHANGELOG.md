@@ -3,6 +3,15 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+- Importar el .xls antiguo que exporta Santander España.
+
+### Corregido
+- Extractos de Revolut: el concepto ya no sale como la fecha de cargo y la comisión (`Fee`,
+  p. ej. la cuota del plan) se cuenta como gasto en vez de perderse.
+
 ## [1.1.0] - 2026-10-23
 
 ### Añadido

@@ -141,7 +141,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
             <span className="truncate">{archivo ? archivo.name : "Suelta aquí el CSV o Excel, o haz clic"}</span>
             <input
               type="file"
-              accept=".csv,.txt,.xlsx"
+              accept=".csv,.txt,.xlsx,.xls"
               className="sr-only"
               onChange={(e) => {
                 const elegido = e.target.files?.[0];
