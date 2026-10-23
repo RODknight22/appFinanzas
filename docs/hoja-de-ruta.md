@@ -56,7 +56,7 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
   (ruff para Python, eslint para TS). *Dónde:* .github/workflows/ci.yml.
 - [x] **Release más seguro** (auditoría B1): permisos por trabajo y acciones fijadas por SHA.
   *Dónde:* .github/workflows/release.yml.
-- [ ] **Publicar v1.1.0:** versión en backend/app/version.py y frontend/package.json, CHANGELOG.md
+- [x] **Publicar v1.1.0:** versión en backend/app/version.py y frontend/package.json, CHANGELOG.md
   y README.md al día (importación, ingresos, efectivo, deudas, deseos), tag `v1.1.0`.
 
 ## v1.2: Multidivisa a fondo (lo que distingue a la app)

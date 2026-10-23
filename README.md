@@ -18,17 +18,22 @@ tienes en total sin hacer cuentas a mano.
   su tamaño.
 - **Transacciones**: búsqueda sin importar tildes ni mayúsculas, filtros por cuenta, categoría,
   importe y fecha.
-- **Cuentas**: efectivo, débito, tarjetas de crédito (con fecha de corte, de pago y límite) y
-  cuentas con rendimientos diarios.
+- **Importar extractos** del banco en CSV o Excel: sin configurar columnas, sin duplicados y
+  aprendiendo la categoría de cada concepto.
+- **Cuentas**: débito, tarjetas de crédito (con fecha de corte, de pago y límite) y cuentas con
+  rendimientos diarios. El **efectivo** tiene su pestaña, con subcuentas (cartera, hucha…).
 - **Transferencias** entre cuentas, también entre monedas: guarda el tipo de cambio real que te
   aplicó el banco y te dice cuánto peor fue que el del mercado. Pagar la tarjeta es un clic.
 - **Multidivisa**: peso mexicano, dólar, euro, quetzal y lempira. Cada movimiento se convierte con
   la tasa del día en que ocurrió; las tasas se actualizan solas y puedes corregirlas a mano.
 - **Metas de ahorro** que siguen el saldo de una cuenta o tus aportaciones, te dicen cuánto apartar
   al mes y lo celebran contigo al llegar al 25, 50, 75 y 100 %.
-- **Presupuestos** por categoría y **suscripciones** con aviso de los próximos pagos.
-- **Personalización**: modo oscuro o claro, color de acento, foto de perfil, página de inicio y
-  día en que empieza tu "mes" (por ejemplo, el día de cobro).
+- **Lista de deseos** junto a tus metas, y **deudas**: quién te debe y a quién debes.
+- **Presupuestos** por categoría y **pagos fijos**: suscripciones e ingresos fijos (como el
+  sueldo), con avisos de los próximos en la campana.
+- **Copia de seguridad** de un clic y exportación de tus movimientos a CSV.
+- **Personalización**: 5 estilos con versión clara y oscura, 12 colores de acento, foto de perfil,
+  página de inicio y día en que empieza tu "mes" (por ejemplo, el día de cobro).
 
 | Metas de ahorro | Transacciones | En el móvil |
 | --- | --- | --- |
@@ -81,7 +86,9 @@ certutil -hashfile AppFinanzas-vX.Y.Z-windows.exe SHA256   # Windows
 - **Dónde están tus datos**: en un único archivo `finance.db` dentro de
   - Windows: `%APPDATA%\AppFinanzas`
   - Linux: `~/.local/share/AppFinanzas`
-- **Copia de seguridad**: con la app **cerrada**, copia esa carpeta entera a otro sitio.
+- **Copia de seguridad**: en **Ajustes → Seguridad y datos**, "Descargar copia completa" guarda la
+  base de datos (para restaurarla, cierra la app y sustituye `finance.db` por el archivo
+  descargado). También puedes, con la app **cerrada**, copiar esa carpeta entera a otro sitio.
 - **¿Olvidaste la contraseña?** Ejecuta la app con `--restablecer-contrasena` (en Docker:
   `docker exec finanzas python -m app.restablecer_contrasena`). Se borra el usuario, **no** tus
   datos: al abrirla, creas uno nuevo.
@@ -119,19 +126,17 @@ las mismas defensas de Host y Origin que la versión publicada.
 | `backend/tests` | Tests con pytest |
 | `frontend/src` | React 18 + TypeScript + Tailwind v4 + Recharts |
 | `empaquetado/` | Receta de PyInstaller para los ejecutables |
-| `.github/workflows` | CI (tests, tipos, auditoría) y publicación de versiones |
+| `e2e/` | Pruebas en el navegador con Playwright |
+| `.github/workflows` | CI (linters, tests, tipos y E2E) y publicación de versiones |
 
 ```bash
-# Tests del backend
-docker run --rm -v "$PWD/backend:/app" -w /app appfinanzas-backend \
-  sh -c "pip install -q -r requirements-dev.txt && pytest -q"
-# Tipos del frontend
-docker run --rm -v "$PWD/frontend:/app" -w /app node:22-alpine npx tsc --noEmit
+scripts/verificar.sh          # linters, tests del backend y tipos del frontend
+scripts/verificar.sh --e2e    # además recorre la app en un navegador (Playwright)
 ```
 
 **Publicar una versión**: cambia `backend/app/version.py` y `frontend/package.json`, añade los
 cambios a `CHANGELOG.md` y `NOTAS_RELEASE.md`, y sube una etiqueta:
-`git tag v1.0.0 && git push origin v1.0.0`. GitHub Actions fabrica los ejecutables y la imagen
+`git tag v1.1.0 && git push origin v1.1.0`. GitHub Actions fabrica los ejecutables y la imagen
 Docker y crea el Release.
 
 ## Licencia
