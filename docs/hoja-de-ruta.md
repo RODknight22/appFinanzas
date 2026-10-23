@@ -5,7 +5,27 @@ Plan orientativo por versiones: se puede reordenar cuando haga falta. Cada tarea
 Las ideas en bruto van al cuaderno `ideas.md` de la rama `ideas`; aquí solo llegan las que ya son
 tarea.
 
-Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/2026.
+Origen: auditorías de estado, seguridad, rendimiento y producto del 21-22/10/2026, y segunda
+ronda (frontend, backend, seguridad, diseño y mercado) del 23/10/2026.
+
+## Visión
+
+**Las finanzas de quien vive entre dos monedas** (cobra en una y gasta en otra: migrantes,
+remoto para fuera, remesas entre Latinoamérica y Europa). Local, privada y sin depender de
+conectar el banco. No competimos con YNAB en presupuestos ni con Fintonic en bancos: lo que nadie
+hace es guardar cada movimiento con la tasa de su día, medir cuánto cuesta cambiar de moneda y
+cuánto rinde el sueldo.
+
+Cada versión tiene **una innovación**: lo nuevo que justifica actualizar. Prioridades: **P1**
+imprescindible para publicar la versión, **P2** conviene, **P3** si sobra tiempo (si no, pasa a
+la siguiente).
+
+| Versión | Nombre | La innovación |
+| --- | --- | --- |
+| v1.3 | Pulido y confianza | Nada se rompe ni se pierde: todo o nada, copia antes de migrar, más monedas |
+| v1.4 | Remesas | Saber cuándo y por dónde cambiar dinero sale más barato |
+| v1.5 | En el bolsillo | Anotar desde el móvil como una app instalada, y en inglés |
+| v2.0 | Conectada | Preguntar a tu asistente de IA por tus finanzas sin que salgan de tu equipo |
 
 ---
 
@@ -133,6 +153,11 @@ dos tocan services/divisas.py.
 | 6 | Firmar el ejecutable | Rodrigo elige y contrata el certificado | release.yml, empaquetado/ |
 | 7 | Publicar v1.3.0 | 1-5 (y 6 si está) | version.py, package.json, CHANGELOG |
 | 8 | Probar el release en la laptop (Rodrigo) | 7 | — |
+| A | Auditoría 23/10: seguridad y guía (P1) | — | lector_extractos, seguridad_http, CI, docs/ |
+| B | Auditoría 23/10: todo o nada (P1) | — | divisas.py, migraciones.py, cuentas.py |
+| C | Auditoría 23/10: pulido del frontend (P1) | — | frontend/src (sin backend) |
+
+A, B y C van en paralelo (zonas distintas) y antes que la 2, que también toca divisas.py.
 
 Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y pasa a la v1.4.
 
@@ -161,30 +186,72 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
   identidad) o un certificado de firma de pago. *Antes:* Rodrigo elige y lo contrata; Claude
   prepara la comparación y el paso de firma en release.yml. *Hecho cuando:* el .exe publicado
   abre con el control activado.
+- [ ] **A. Seguridad y guía** (P1): máximo de columnas al importar (un CSV de 1 MB podía colgar
+  la app), errores claros en vez de 500, acciones del CI fijadas por SHA, Docker sin registro de
+  accesos y con zona horaria, y docs/como-funciona.md para Rodrigo.
+- [ ] **B. Todo o nada** (P1): la descarga de tasas hacía commit en mitad de una importación;
+  copia de la BD antes de migrar; índices que faltaban en columnas migradas; no cambiar la moneda
+  de una cuenta con deudas.
+- [ ] **C. Pulido del frontend** (P1): totales que contaban como 0 lo que no tiene tasa, foco en
+  los diálogos, carreras al cambiar de cuenta al importar, formato de % y €, contraste, chunks.
+- [ ] **Resto de la auditoría** (P2, una PR pequeña cada uno):
+  - Pagar una suscripción o cobrar un ingreso fijo dos veces con un doble clic (idempotencia).
+  - Un mismo movimiento a unir en dos filas de una importación; `IntegrityError` → 409.
+  - `assets/` inexistente devuelve index.html cacheado un año: debe ser 404.
+  - Navegación móvil con los mismos nombres que en escritorio y una pestaña "Más".
+  - Un único recorrido de bienvenida (hoy hay modal, tarjeta y globos que se solapan).
+  - Colores de ingreso/gasto propios, separados del acento elegido (22 archivos con `emerald`).
 - [ ] **Publicar v1.3.0.**
 
-## v1.4: Más adelante
+## v1.4: Remesas
 
-- [ ] **Inversiones y ahorro con valoración:** valor por fecha, aportado frente a valor actual.
-- [ ] **Etiquetas / viajes:** agrupar gastos de varias categorías y monedas ("Viaje CDMX").
-- [ ] Recordatorios por correo (`correo_recordatorios`) y seguir precios de los deseos.
-- [ ] Monedas de Europa (GBP, CHF: tienen tasas históricas del BCE) y fuente histórica para
-  GTQ/HNL.
-- [ ] Atajo ASCII en `normalizar_texto` si la búsqueda empieza a notarse lenta (medido: 35×).
-- [ ] **React 19 y react-router 8** (la 8 exige React ≥ 19.2): revisar Recharts, dnd-kit y los
-  tipos antes de subir.
+**La innovación:** antes de mandar dinero, saber cuánto te va a costar por cada vía y si es buen
+momento. Ninguna app de finanzas lo hace; es lo que más valor da a quien vive entre dos monedas.
+
+- [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía (Revolut,
+  banco, Wise…) frente a la tasa oficial, y cuál conviene. *Antes:* Rodrigo dice qué vías usa.
+- [ ] **Tasa de Banxico (FIX)** para las fechas pasadas de MXN (P1): hoy solo hay BCE, que mide
+  el euro; para el peso la referencia natural es Banxico. Fuente pública y gratuita.
+- [ ] **Aviso de buen momento** (P2): "el euro está un 3 % por debajo de su media de 3 meses".
+- [ ] **Más bancos al importar** (P1): BBVA México/España, Nu, Wise, CaixaBank. Cada lector con su
+  test y un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
+- [ ] **Etiquetas / viajes** (P2): agrupar gastos de varias categorías y monedas ("Viaje CDMX").
+- [ ] Inversiones y ahorro con valoración (P3): valor por fecha, aportado frente a valor actual.
+- [ ] Monedas de Europa (GBP, CHF: tienen tasas del BCE) y fuente histórica para GTQ/HNL (P3).
+- [ ] Recordatorios por correo y seguir precios de los deseos (P3).
+- [ ] Atajo ASCII en `normalizar_texto` si la búsqueda se nota lenta (medido: 35×) (P3).
+- [ ] **React 19 y react-router 8** (P2; la 8 exige React ≥ 19.2): revisar Recharts y dnd-kit.
+
+## v1.5: En el bolsillo
+
+**La innovación:** la app se instala en el móvil y en el escritorio como una app de verdad
+(PWA), sin tienda ni nube: el gasto se anota donde ocurre.
+
+- [ ] **PWA instalable** (P1): manifiesto e iconos; se abre como ventana propia. En el móvil,
+  conectado a tu PC por la red de casa (con contraseña y aviso claro) o con la sincronización.
+- [ ] **Interfaz en inglés** (P1): sin inglés el alcance se queda en una fracción. Textos en un
+  archivo por idioma; el español sigue siendo el principal.
+- [ ] **Copias automáticas programadas** (P1): una al día en la carpeta que elijas, guardando 30.
+- [ ] Paleta de comandos y apunte en lenguaje natural ("32 cena revolut ayer") (P2).
+- [ ] "Cierre de mes": 4-5 tarjetas al empezar un mes nuevo con lo más llamativo del anterior (P3).
+- [ ] Publicar en winget y plantillas de una línea para servidores caseros (P2; con el .exe
+  firmado).
 
 ## v2.0: Conectada
 
-Antes de vender nada: **decidir la licencia** (GPL-3.0 choca con la App Store). Firmar los
-ejecutables se adelanta a la v1.3.
+**La innovación:** preguntar "¿cuánto gasté en México este año?" a Claude (u otro asistente) y que
+responda con tus datos, que siguen en tu equipo.
+
+Antes de vender nada: **decidir la licencia** (GPL-3.0 choca con la App Store; Rodrigo tiene
+todos los derechos, así que puede ofrecer doble licencia si nadie más contribuye sin acuerdo).
 
 - [ ] **Servidor MCP de solo lectura** (resumen del mes, buscar movimientos, convertir) para usar
   la app desde Claude Desktop. Reutiliza services/ tal cual; sin red ni contraseñas nuevas.
 - [ ] **IA con clave propia del usuario:** sugerir categoría solo de lo que el historial no
   resuelve al importar (sin importes ni datos personales); leer tickets después.
-- [ ] **PWA de escritorio:** instalar la app como ventana propia desde localhost.
 - [ ] **Sincronización cifrada** del archivo completo en la nube del usuario (iCloud/Drive).
+- [ ] **Bancos de España con clave propia** (Enable Banking, gratis para tus propias cuentas;
+  opción avanzada). En México no hay vía para particulares: allí se sigue importando.
 
 ## Por ahora no
 

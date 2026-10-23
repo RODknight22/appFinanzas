@@ -70,7 +70,8 @@ docker run -d --name finanzas -p 127.0.0.1:8000:8000 -v finanzas:/data \
 ```
 
 Abre <http://127.0.0.1:8000>. El `127.0.0.1` hace que solo tu ordenador pueda entrar; los datos
-viven en el volumen `finanzas`.
+viven en el volumen `finanzas`. La imagen usa la hora de España; si vives en otra zona, añade
+`-e TZ=America/Mexico_City` (o la tuya) para que "hoy" y el mes actual cuadren.
 
 ### Comprobar la descarga (opcional)
 

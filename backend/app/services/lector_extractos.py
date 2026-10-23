@@ -26,6 +26,9 @@ Celda = str | int | float | date | datetime | None
 
 # Un extracto real cabe de sobra; el límite evita trabajar con un archivo que no lo es.
 MAX_FILAS = 20_000
+# Un extracto tiene una decena de columnas. Sin tope, un archivo de 1 MB con una fila de
+# medio millón de separadores obligaría a montar una tabla de miles de millones de celdas.
+MAX_COLUMNAS = 50
 # La cabecera de la tabla suele estar en las primeras filas (antes va el titular, la cuenta…).
 FILAS_BUSCAR_CABECERA = 40
 LONGITUD_MAX_CONCEPTO = 500
@@ -103,7 +106,9 @@ def _filas_excel(contenido: bytes) -> list[list[Celda]]:
     try:
         hoja = libro.active
         filas = []
-        for fila in hoja.iter_rows(values_only=True):
+        # max_col: openpyxl rellena cada fila hasta el tamaño que declara el archivo (que
+        # puede mentir y decir 16.384 columnas); así nunca pasa de las que se usan.
+        for fila in hoja.iter_rows(max_col=MAX_COLUMNAS, values_only=True):
             filas.append(list(fila))
             if len(filas) > MAX_FILAS:
                 break
@@ -133,7 +138,8 @@ def _filas_xls(contenido: bytes) -> list[list[Celda]]:
                 return celda.value
             return None  # vacías, booleanos y celdas con error
 
-        return [[valor(c) for c in hoja.row(i)] for i in range(min(hoja.nrows, MAX_FILAS + 1))]
+        filas = range(min(hoja.nrows, MAX_FILAS + 1))
+        return [[valor(c) for c in hoja.row(i)[:MAX_COLUMNAS]] for i in filas]
     finally:
         libro.release_resources()
 
@@ -155,8 +161,11 @@ def _filas_csv(contenido: bytes) -> list[list[Celda]]:
         ancho, veces = max(anchos.items(), key=lambda par: (par[1], par[0]), default=(0, 0))
         return veces * ancho if ancho > 1 else 0
 
-    separador = max(";,\t|", key=puntuar)
-    return [list(fila) for fila in csv.reader(lineas, delimiter=separador)]
+    try:
+        separador = max(";,\t|", key=puntuar)
+        return [fila[:MAX_COLUMNAS] for fila in csv.reader(lineas, delimiter=separador)]
+    except csv.Error as error:  # p. ej. una celda de más de 128 KB: no es un extracto
+        raise ReglaDeNegocioError("No se pudo leer el CSV: el archivo parece dañado") from error
 
 
 def _leer_tabla(contenido: bytes) -> list[list[Celda]]:

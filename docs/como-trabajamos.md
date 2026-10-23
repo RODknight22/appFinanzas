@@ -87,8 +87,15 @@ Comprobar que una rama ya está en `main`:
   bancarios, siempre fuera del repo y con los datos cambiados si es posible.
 - **Usa las skills del proyecto** (en .claude/skills): `/nueva-tarea`, `/cerrar-tarea`,
   `/explicame`. Repiten bien los pasos que se olvidan.
-- **Deja que verifique.** `scripts/verificar.sh --e2e` tarda unos 2 minutos y prueba linters, backend,
-  tipos y la app en el navegador. Pide siempre "verificado" antes de fusionar.
+- **Deja que verifique.** `scripts/verificar.sh --e2e` tarda unos 8 minutos y prueba linters,
+  backend, tipos y la app en el navegador. Mientras se trabaja basta con los tests de lo tocado;
+  el completo, una vez al cerrar. Pide siempre "verificado" antes de fusionar.
+- **El modelo según el trabajo.** Programar y diseñar: el modelo grande. Revisar capturas,
+  buscar en el código o resumir: uno pequeño (Sonnet o Haiku), pidiéndole que haga `git fetch`
+  antes de opinar sobre lo que hay en `main` (un Haiku sin ello respondió con datos viejos).
+- **Fusiona pronto y cierra la conversación.** Una PR que espera días acumula conflictos, y una
+  conversación larga se resume varias veces (cada resumen cuesta y pierde detalle). Lo ideal: una
+  conversación por tarea o por versión, y `/clear` después de fusionar.
 - **Agentes para trabajo en paralelo dentro de una sesión:** auditorías o revisiones de solo
   lectura ("lanza agentes que revisen X, Y y Z"). Para construir funciones, mejor sesiones en
   worktrees que tú supervisas.

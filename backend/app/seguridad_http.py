@@ -73,7 +73,10 @@ class ProteccionLocal:
             if origen not in (f"http://{host}", f"https://{host}"):
                 return await _rechazar(403, "Origen no permitido")(scope, receive, send)
 
-        if int(cabeceras.get("content-length") or 0) > TAMANO_MAXIMO:
+        longitud = cabeceras.get("content-length") or "0"
+        if not longitud.isdigit():
+            return await _rechazar(400, "Content-Length no válido")(scope, receive, send)
+        if int(longitud) > TAMANO_MAXIMO:
             return await _rechazar(413, MENSAJE_DEMASIADO_GRANDE)(scope, receive, send)
 
         recibidos = 0
