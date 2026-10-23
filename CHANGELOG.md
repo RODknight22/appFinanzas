@@ -6,6 +6,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Sin publicar]
 
 ### Añadido
+- Anotar un movimiento en dos toques: importe y categoría (las más usadas primero), con fecha y
+  cuenta recordadas; varios seguidos sin cerrar la ventana y con «Deshacer».
+- Importar: barra de progreso de la revisión, ✓ para aceptar una sugerencia y «Dar por buenas
+  las sugerencias» de un toque.
 - Importar el .xls antiguo que exporta Santander España.
 
 ### Corregido
