@@ -72,7 +72,8 @@ Ejemplo:
 
 <!-- Algo que ya existe pero podría ser más cómodo, rápido o bonito. -->
 
-- [ ] Mover la flecha de desplegar/plegar las subcuentas a la izquierda, para más comodidad #mejora
+- [ ] Mover la flecha de desplegar/plegar las subcuentas a la izquierda, para más comodidad
+  #mejora
   - 💬 Claude (23/10): ¿te refieres a la flecha que está a la derecha del nombre de la cuenta?
     Propongo ponerla a la izquierda, antes del nombre. ¿Te cuadra?
   - 🗣️ Rodrigo:
@@ -81,11 +82,13 @@ Ejemplo:
     Si alguno no se tachó, dime cuál y qué hiciste. Puede que la tarjeta solo se actualice al
     recargar la página, y eso lo arreglamos.
   - 🗣️ Rodrigo:
-- [ ] Aceptar los movimientos importados más rápido, con una categoría por defecto #mejora !alta
-  - 💬 Claude (23/10): ya existe una categoría "Otros" por defecto y una sugerencia según el
-    historial (con su aviso en ámbar cuando es dudosa). Propuesta: un botón "Aceptar todas las
-    sugeridas" arriba de la lista y que las dudosas se queden en "Otros" en vez de bloquear la
-    importación. ¿Aceptamos también las que no tienen categoría clara o solo las reconocidas?
+- [~] Aceptar los movimientos importados más rápido, con una categoría por defecto #mejora
+  → hecho en la PR #18 (ya en `main`, aún no en un release)
+  - 💬 Claude (23/10): esto lo hizo otra sesión una hora antes de que lo escribieras: ✓ en
+    cada fila para aceptar su sugerencia, "Dar por buenas las sugerencias" para todas a la vez
+    (las que no tienen categoría clara se quedan en "Otros") y una barra "Revisa N de M". La
+    categoría ya se adivina sola por el historial. Si probaste el .exe de la v1.1.0, no lo
+    viste: pruébalo con `docker compose` y dime si sigue siendo pesado.
   - 🗣️ Rodrigo:
 
 - [x] ~~Botón para desplegar y plegar las subcuentas~~ #mejora → hecho (PR #7)
