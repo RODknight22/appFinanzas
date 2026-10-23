@@ -21,6 +21,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Docker: hora de España por defecto (`-e TZ=...` para otra zona) y sin registro de accesos.
 
 ### Arreglado
+- Las transferencias entre monedas anotadas sin la tasa de su día se corrigen solas cuando
+  llega la tasa oficial (solo el lado estimado: lo que dijo el banco no se toca).
 - Una importación que fallaba podía dejar a medias una transferencia ya completada.
 - Un extracto manipulado con miles de columnas podía colgar la app.
 - Índices que faltaban en bases de datos actualizadas desde versiones antiguas.

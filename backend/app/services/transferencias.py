@@ -14,7 +14,7 @@ from decimal import Decimal
 from sqlmodel import Session, col, or_, select
 
 from app.datos_iniciales import CATEGORIA_COMISIONES
-from app.models import Cuenta, Moneda, TipoMovimiento, Transaccion, Transferencia
+from app.models import Cuenta, LadoTransferencia, Moneda, TipoMovimiento, Transaccion, Transferencia
 from app.schemas import CosteEnviosAnio, TransferenciaCreate, TransferenciaRead, TransferenciaUpdate
 from app.services import categorias, configuracion, divisas
 from app.services.comun import cambios_parciales, obtener_o_404, obtener_referencia
@@ -69,6 +69,7 @@ def _completar_destino(
             )
         transferencia.monto_destino = transferencia.monto_origen
         transferencia.destino_estimado = None
+        transferencia.lado_estimado = None
         return origen, destino
 
     # La tasa de esa fecha hace falta para estimar lo que llegó o para calcular el coste.
@@ -76,11 +77,13 @@ def _completar_destino(
     divisas.asegurar_tasas_historicas(session, transferencia.fecha, transferencia.fecha)
     if destino_indicado:
         transferencia.destino_estimado = False
+        transferencia.lado_estimado = None
     elif transferencia.monto_destino is None:
         transferencia.monto_destino = divisas.convertir(
             session, transferencia.monto_origen, origen.moneda, destino.moneda, transferencia.fecha
         )
         transferencia.destino_estimado = True
+        transferencia.lado_estimado = LadoTransferencia.DESTINO
     return origen, destino
 
 
