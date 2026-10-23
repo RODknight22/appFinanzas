@@ -198,13 +198,40 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
 **La innovación:** antes de mandar dinero, saber cuánto te va a costar por cada vía y si es buen
 momento. Ninguna app de finanzas lo hace; es lo que más valor da a quien vive entre dos monedas.
 
-- [ ] **Widgets personalizables** (P1, idea de Rodrigo): más tamaños, elegir cómo muestran los
-  datos y widgets nuevos. *Antes:* Rodrigo los prueba y dice en el cuaderno qué echa de menos y
-  qué quiere ver distinto. *Dónde:* components/dashboard/.
+**Plan (23/10/2026):** primero lo que no espera a Rodrigo (1-4); los widgets, en cuanto lleguen
+sus notas (24/10). 2 y 3 son de backend y 4 de frontend: pueden ir en sesiones a la vez.
+
+| Orden | Tarea | Depende de | Zona que toca |
+| --- | --- | --- | --- |
+| 1 | Tasa FIX de Banxico | — | services/divisas.py, nuevo services/banxico.py |
+| 2 | Ajustar el saldo de una cuenta | — | services/cuentas.py, CuentasPage |
+| 3 | Colores de ingreso y gasto propios | — | index.css, los 22 archivos con `emerald` |
+| 4 | Navegación móvil y una sola bienvenida | 3 | Layout.tsx, components/bienvenida/ |
+| 5 | Widgets personalizables y Dashboard más ligero | Notas de Rodrigo; 3 | components/dashboard/ |
+| 6 | Comparar vías de envío | Vías de Rodrigo; 1 | services/transferencias.py, widgets |
+| 7 | Aviso de buen momento | 1, 5 | services/divisas.py, widget |
+| 8 | Más bancos al importar | Forma de los extractos (Rodrigo) | services/lector_extractos.py |
+| 9 | Firmar el ejecutable | Alta en SignPath y licencia (Rodrigo) | release.yml, docs/ |
+| 10 | React 19 y react-router 8 | 3-5 (tocan el mismo frontend) | package.json, frontend/src |
+| 11 | Publicar v1.4.0 | 1-6 y 9 | version.py, package.json, CHANGELOG |
+
+Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publica sin ellas.
+
+- [ ] **Ajustar el saldo de una cuenta** (P1; Rodrigo, 23/10: "que mi saldo cuadre"): escribir
+  el saldo que dice el banco y que la app cree un movimiento "Ajuste de saldo" por la diferencia.
+  Así el historial sigue cuadrando y se ve cuándo y cuánto se ajustó (no se pisa el saldo).
+  *Hecho cuando:* tras ajustar, el saldo es el escrito y el patrimonio cuadra (test).
+- [ ] **Widgets personalizables y Dashboard más ligero** (P1, idea de Rodrigo): más tamaños,
+  elegir cómo muestran los datos y widgets nuevos; Rodrigo lo nota "recargado" pero le gustan
+  las gráficas: menos widgets a la vista por defecto, más para elegir. *Antes:* Rodrigo los
+  prueba y dice en el cuaderno qué echa de menos. *Dónde:* components/dashboard/.
 - [ ] **Firmar el ejecutable de Windows** (P1) con SignPath Foundation (gratis para código abierto;
   Rodrigo lo eligió el 23/10). "Control de aplicaciones inteligentes" bloquea el .exe sin firma.
-  *Antes:* Rodrigo solicita el alta; Claude prepara la página de política de firma y el paso de
-  firma en release.yml. *Hecho cuando:* el .exe publicado abre con el control activado.
+  *Lo que pide SignPath:* licencia OSI **sin doble licencia comercial** (choca con la idea de la
+  v2.0), MFA en GitHub, una sección "Code signing policy" en el README con roles y privacidad,
+  aprobar a mano cada firma y compilar en el CI (ya lo hacemos). *Antes:* Rodrigo decide la
+  licencia y solicita el alta en signpath.org/apply; Claude prepara la política y el paso en
+  release.yml. *Hecho cuando:* el .exe publicado abre con el control activado.
 - [ ] **Diseño de la auditoría** (P2): navegación móvil con los mismos nombres que en escritorio y
   una pestaña "Más"; un único recorrido de bienvenida (hoy modal, tarjeta y globos se solapan);
   colores de ingreso y gasto propios, separados del acento (22 archivos con `emerald`).
@@ -244,6 +271,8 @@ responda con tus datos, que siguen en tu equipo.
 
 Antes de vender nada: **decidir la licencia** (GPL-3.0 choca con la App Store; Rodrigo tiene
 todos los derechos, así que puede ofrecer doble licencia si nadie más contribuye sin acuerdo).
+Ojo: la firma gratuita de SignPath (v1.4) exige no tener doble licencia comercial; si se vende,
+habría que pagar un certificado propio.
 
 - [ ] **Servidor MCP de solo lectura** (resumen del mes, buscar movimientos, convertir) para usar
   la app desde Claude Desktop. Reutiliza services/ tal cual; sin red ni contraseñas nuevas.
