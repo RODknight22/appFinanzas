@@ -337,6 +337,15 @@ def vista_previa(
     )
 
 
+def _comprobar_sin_repetidos(datos: ImportacionCreate) -> None:
+    """Un movimiento suelto solo se une una vez y una transferencia solo se completa una vez:
+    repetido en dos filas, el mismo dinero contaría doble."""
+    for campo, que in (("transaccion_a_unir_id", "movimiento a unir"), ("transferencia_a_completar_id", "transferencia")):
+        ids = [getattr(m, campo) for m in datos.movimientos if getattr(m, campo) is not None]
+        if len(ids) != len(set(ids)):
+            raise ReglaDeNegocioError(f"La misma {que} aparece en dos filas: elige solo una")
+
+
 def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacion:
     """Crea todas las transacciones (y transferencias) o ninguna: nada queda a medias."""
     cuenta = obtener_referencia(session, Cuenta, datos.cuenta_id, "la cuenta")
@@ -344,6 +353,7 @@ def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacio
     # en vez de una por movimiento, y cada uno se convierte con la tasa de su día.
     fechas = [m.fecha for m in datos.movimientos]
     divisas.asegurar_tasas_historicas(session, min(fechas), max(fechas))
+    _comprobar_sin_repetidos(datos)
     nuevas: list[Transaccion | Transferencia] = []
     unidas = completadas = 0
     for movimiento in datos.movimientos:

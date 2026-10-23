@@ -231,3 +231,16 @@ def test_patch_valida_los_dias_de_quincena(client: TestClient, cuenta: dict, cat
     ingreso = _crear(client, cuenta, categoria_ingreso, dia_quincena_1=10, dia_quincena_2=25)
     respuesta = client.patch(f"/ingresos-recurrentes/{ingreso['id']}", json={"dia_quincena_1": 26})
     assert respuesta.status_code == 400
+
+
+def test_un_doble_clic_no_cobra_ni_omite_dos_veces(
+    client: TestClient, cuenta: dict, categoria_ingreso: dict
+) -> None:
+    ingreso = _crear(client, cuenta, categoria_ingreso)
+    base = f"/ingresos-recurrentes/{ingreso['id']}"
+
+    assert client.post(f"{base}/registrar-cobro", json={"fecha_prevista": "2026-10-15"}).status_code == 201
+    assert client.post(f"{base}/registrar-cobro", json={"fecha_prevista": "2026-10-15"}).status_code == 409
+    assert client.post(f"{base}/omitir", json={"fecha_prevista": "2026-10-31"}).status_code == 200
+    assert client.post(f"{base}/omitir", json={"fecha_prevista": "2026-10-31"}).status_code == 409
+    assert client.post(f"{base}/omitir", json={}).status_code == 200  # sin fecha, como antes

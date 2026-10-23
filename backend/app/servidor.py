@@ -33,7 +33,9 @@ class WebDeUnaPagina(StaticFiles):
         try:
             respuesta = await super().get_response(path, scope)
         except HTTPException as error:
-            if error.status_code != 404:
+            # Un archivo de assets/ que no existe (p. ej. de una versión anterior) no es una
+            # ruta de la app: devolver index.html con caché de un año rompería esa pestaña.
+            if error.status_code != 404 or path.startswith("assets/"):
                 raise
             respuesta = await super().get_response("index.html", scope)
         if path.startswith("assets/"):
