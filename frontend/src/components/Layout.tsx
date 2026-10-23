@@ -91,14 +91,14 @@ export function Layout() {
 
         <nav className="flex flex-1 flex-col gap-1">
           {MENU.map(({ ruta, etiqueta, icono: Icono }) => (
-            <NavLink key={ruta} to={ruta} className={claseEnlace} {...precarga(ruta)}>
+            <NavLink key={ruta} to={ruta} className={claseEnlace} data-tutorial={ruta} {...precarga(ruta)}>
               <Icono size={18} />
               {etiqueta}
             </NavLink>
           ))}
         </nav>
 
-        <NavLink to="/ajustes" className={claseEnlace} {...precarga("/ajustes")}>
+        <NavLink to="/ajustes" className={claseEnlace} data-tutorial="/ajustes" {...precarga("/ajustes")}>
           <Settings size={18} />
           Ajustes
         </NavLink>
@@ -130,11 +130,11 @@ export function Layout() {
         <div className="flex items-center gap-1">
           <CampanaNotificaciones {...notificaciones} />
           {MENU.filter((item) => item.soloEscritorio).map(({ ruta, etiqueta, icono: Icono }) => (
-            <Link key={ruta} to={ruta} aria-label={etiqueta} className="rounded-lg p-2 text-tenue" {...precarga(ruta)}>
+            <Link key={ruta} to={ruta} aria-label={etiqueta} className="rounded-lg p-2 text-tenue" data-tutorial={ruta} {...precarga(ruta)}>
               <Icono size={18} />
             </Link>
           ))}
-          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue" {...precarga("/ajustes")}>
+          <Link to="/ajustes" aria-label="Ajustes" className="rounded-lg p-2 text-tenue" data-tutorial="/ajustes" {...precarga("/ajustes")}>
             <Settings size={18} />
           </Link>
           <button type="button" onClick={alternar} aria-label="Cambiar tema" className="rounded-lg p-2 text-tenue">
@@ -154,7 +154,7 @@ export function Layout() {
         </Suspense>
       </main>
 
-      {/* La primera vez: moneda, primera cuenta y recorrido por el menú */}
+      {/* La primera vez: moneda, primera cuenta, sueldo y recorrido con globos (data-tutorial) */}
       {!configuracion.tutorial_visto && <AsistenteBienvenida />}
 
       {/* Barra inferior en móvil */}
@@ -164,6 +164,7 @@ export function Layout() {
             key={ruta}
             to={ruta}
             aria-label={etiqueta}
+            data-tutorial={ruta}
             {...precarga(ruta)}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 py-2 text-[10px] ${
