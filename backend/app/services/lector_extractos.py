@@ -1,4 +1,4 @@
-"""Lee extractos bancarios (CSV o Excel .xlsx) sin que el usuario configure nada.
+"""Lee extractos bancarios (CSV o Excel .xlsx y .xls) sin que el usuario configure nada.
 
 Cada banco exporta a su manera: separador `;` o `,`, importes "1.234,56" o
 "1,234.56", fechas "dd/mm/aaaa", líneas de cabecera con el titular antes de la
@@ -37,7 +37,8 @@ MAX_PIEZAS_EXCEL = 200
 # Nombres de columna habituales en bancos de España y México, ya normalizados
 # (minúsculas, sin tildes ni signos). Basta con que la cabecera empiece por uno de ellos.
 SINONIMOS: dict[str, tuple[str, ...]] = {
-    "fecha": ("fecha", "f operacion", "f valor", "dia", "date"),
+    # Revolut da dos fechas: la de la compra ("started") va antes que la del cargo.
+    "fecha": ("fecha", "f operacion", "f valor", "dia", "date", "started date", "completed date"),
     "concepto": (
         "concepto", "descripcion", "movimiento", "detalle", "description", "comercio",
         "establecimiento", "beneficiario", "observaciones", "referencia",
@@ -45,6 +46,8 @@ SINONIMOS: dict[str, tuple[str, ...]] = {
     "importe": ("importe", "monto", "cantidad", "amount", "valor"),
     "cargo": ("cargo", "cargos", "debe", "retiro", "retiros", "debito", "salida", "salidas"),
     "abono": ("abono", "abonos", "haber", "deposito", "depositos", "credito", "entrada", "entradas"),
+    # Comisión aparte del importe (Revolut): también sale de la cuenta, así que se resta.
+    "comision": ("comision", "comisiones", "fee", "fees"),
 }
 # Columnas numéricas que no son el movimiento: nunca se toman como importe.
 NO_IMPORTE = ("saldo", "balance", "disponible")
@@ -109,6 +112,32 @@ def _filas_excel(contenido: bytes) -> list[list[Celda]]:
         libro.close()
 
 
+def _filas_xls(contenido: bytes) -> list[list[Celda]]:
+    """Lee el .xls antiguo (Excel 97-2003). No va comprimido, así que no hay bomba ZIP:
+    lo que ocupa en memoria crece con el archivo, que ya llega limitado a 1 MB."""
+    # Importación local, como openpyxl: xlrd solo se carga si llega un .xls.
+    import xlrd
+
+    try:
+        # logfile: xlrd escribe sus avisos en la consola si no se le da otro sitio.
+        libro = xlrd.open_workbook(file_contents=contenido, on_demand=True, logfile=io.StringIO())
+    except Exception as error:  # xlrd también lanza tipos variados ante un archivo dañado
+        raise ReglaDeNegocioError("No se pudo abrir el Excel: el archivo parece dañado") from error
+    try:
+        hoja = libro.sheet_by_index(0)
+
+        def valor(celda: "xlrd.sheet.Cell") -> Celda:
+            if celda.ctype == xlrd.XL_CELL_DATE:  # en .xls una fecha es un número con formato
+                return xlrd.xldate_as_datetime(celda.value, libro.datemode)
+            if celda.ctype in (xlrd.XL_CELL_TEXT, xlrd.XL_CELL_NUMBER):
+                return celda.value
+            return None  # vacías, booleanos y celdas con error
+
+        return [[valor(c) for c in hoja.row(i)] for i in range(min(hoja.nrows, MAX_FILAS + 1))]
+    finally:
+        libro.release_resources()
+
+
 def _decodificar(contenido: bytes) -> str:
     """UTF-8 si lo es; si no, Windows-1252 (lo que usan muchos bancos españoles)."""
     try:
@@ -135,10 +164,8 @@ def _leer_tabla(contenido: bytes) -> list[list[Celda]]:
         raise ReglaDeNegocioError("El archivo está vacío")
     if contenido.startswith(b"PK"):  # .xlsx es un ZIP
         return _filas_excel(contenido)
-    if contenido.startswith(b"\xd0\xcf\x11\xe0"):  # .xls antiguo (formato OLE)
-        raise ReglaDeNegocioError(
-            "El formato .xls antiguo no se puede leer: ábrelo y guárdalo como .xlsx o CSV"
-        )
+    if contenido.startswith(b"\xd0\xcf\x11\xe0"):  # .xls antiguo (formato OLE), p. ej. Santander
+        return _filas_xls(contenido)
     if contenido.lstrip()[:1] == b"<":  # algunos bancos llaman ".xls" a una página HTML
         raise ReglaDeNegocioError("El archivo es una página web, no una hoja de cálculo: expórtalo como CSV o .xlsx")
     return _filas_csv(contenido)
@@ -319,7 +346,7 @@ def _localizar_tabla(filas: list[list[Celda]]) -> tuple[int, dict[str, int]]:
 # 4. Punto de entrada
 # ---------------------------------------------------------------------------
 def leer_extracto(contenido: bytes) -> ExtractoLeido:
-    """Lee un CSV o .xlsx de cualquier banco y devuelve sus movimientos."""
+    """Lee un CSV, .xlsx o .xls de cualquier banco y devuelve sus movimientos."""
     filas = _leer_tabla(contenido)
     inicio, roles = _localizar_tabla(filas)
     if "fecha" not in roles or not {"importe", "cargo", "abono"} & roles.keys():
@@ -343,6 +370,9 @@ def leer_extracto(contenido: bytes) -> ExtractoLeido:
             # Cargo y abono por separado: unos bancos los ponen en positivo y otros el cargo en negativo.
             cargo, abono = _a_importe(celda(fila, "cargo")), _a_importe(celda(fila, "abono"))
             importe = None if cargo is None and abono is None else abs(abono or 0) - abs(cargo or 0)
+        comision = _a_importe(celda(fila, "comision"))
+        if importe is not None and comision:
+            importe -= abs(comision)  # así entra la cuota del plan, que llega con importe 0
         if fecha is None or not importe:  # totales, notas al pie, líneas vacías o importe 0
             if any(_texto(c) for c in fila):
                 ignoradas += 1

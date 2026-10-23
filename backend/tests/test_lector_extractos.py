@@ -4,6 +4,7 @@ import io
 import zipfile
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from openpyxl import Workbook
@@ -71,6 +72,30 @@ def test_banco_mexicano_con_cargo_y_abono_separados() -> None:
     ]
 
 
+def test_revolut_mexico_fecha_de_inicio_y_comision_aparte() -> None:
+    """Formato real de Revolut (datos inventados): dos fechas con hora y la comisión en `Fee`.
+
+    La cuota del plan viene con importe 0 y todo en `Fee`: sin restarla se perdería el gasto.
+    """
+    contenido = (
+        b"Type,Started Date,Completed Date,Description,Amount,Fee,Balance\n"
+        b"CHARGE,2026-06-15 22:25:22,2026-06-15 22:25:22,Premium plan fee,0.00,99.00,-99.00\n"
+        b"CARD_PAYMENT,2026-06-15 23:40:55,2026-06-17 07:50:21,Tienda Ejemplo,-150.50,0.00,-249.50\n"
+        b"CARD_PAYMENT,2026-06-16 10:00:00,2026-06-18 09:00:00,Compra en USD,-100.00,2.50,-352.00\n"
+        b"CARD_REFUND,2026-06-18 18:00:00,2026-06-20 05:53:08,Tienda Ejemplo,5.00,0.00,-347.00\n"
+    )
+    extracto = leer_extracto(contenido)
+    assert _resumen(contenido) == [
+        (date(2026, 6, 15), "-99.00", "Premium plan fee"),
+        (date(2026, 6, 15), "-150.50", "Tienda Ejemplo"),  # la fecha de la compra, no la del cargo
+        (date(2026, 6, 16), "-102.50", "Compra en USD"),
+        (date(2026, 6, 18), "5.00", "Tienda Ejemplo"),
+    ]
+    assert extracto.columnas == {
+        "fecha": "Started Date", "concepto": "Description", "importe": "Amount", "comision": "Fee",
+    }
+
+
 def test_csv_sin_cabecera_detecta_las_columnas_por_su_contenido() -> None:
     contenido = b"2026-10-05,Spotify,-10.99\n2026-10-06,Amazon Marketplace,-23.50\n2026-10-07,Bizum de Ana,15\n"
     assert _resumen(contenido) == [
@@ -106,11 +131,29 @@ def test_excel_con_fechas_y_numeros_nativos() -> None:
     ]
 
 
+def test_santander_xls_antiguo_con_datos_de_la_cuenta_antes_de_la_tabla() -> None:
+    """El .xls (formato de Excel 97-2003) que exporta Santander España, con datos inventados.
+
+    El archivo se creó una vez con xlwt 1.3.0 imitando el real: fechas como texto,
+    importes numéricos y filas de titular y saldo arriba. La última fila lleva la fecha
+    como fecha nativa de Excel, por si el banco cambia.
+    """
+    contenido = (Path(__file__).parent / "datos" / "santander_inventado.xls").read_bytes()
+    extracto = leer_extracto(contenido)
+    assert _resumen(contenido) == [
+        (date(2026, 10, 16), "-41.00", "Transferencia Inmediata A Favor De Ejemplo"),
+        (date(2026, 10, 13), "-20.00", "Retirada De Efectivo En Cajero Automatico"),
+        (date(2026, 10, 11), "200.00", "Ingreso En Cajero Automatico"),
+        (date(2026, 10, 2), "6.70", "Bizum De Ejemplo"),
+    ]
+    assert extracto.columnas == {"fecha": "FECHA OPERACIÓN", "concepto": "CONCEPTO", "importe": "IMPORTE EUR"}
+
+
 @pytest.mark.parametrize(
     ("contenido", "mensaje"),
     [
         (b"", "vacío"),
-        (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1resto", ".xls antiguo"),
+        (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1resto", "dañado"),
         (b"<html><table></table></html>", "página web"),
         (b"PK\x03\x04no es un zip de verdad", "dañado"),
         (b"Nombre,Apellido\nAna,Lopez\n", "columnas de fecha e importe"),

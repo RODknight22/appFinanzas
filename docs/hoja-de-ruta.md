@@ -61,9 +61,12 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
 
 ## v1.2: Multidivisa a fondo (lo que distingue a la app)
 
-- [ ] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
+- [x] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
   *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
   *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
+  Revolut MX (CSV) probado con su archivo real; Santander (.xls) con uno que imita el real:
+  falta subir el real a la vista previa. Ojo: los `TRANSFER "To MXN"` de Revolut entran como
+  ingreso.
 - [ ] **Selector de mes más ágil** (Dashboard y Transacciones; idea de Rodrigo): volver al mes
   actual de un clic y saltar a meses lejanos sin pulsar "anterior" muchas veces.
 - [ ] **Bienvenida al día** (idea de Rodrigo): el paso a paso del primer uso explica también lo
@@ -80,7 +83,7 @@ a la v1.2: espera a que Rodrigo tenga los extractos y no debe frenar la publicac
 - [ ] **Presupuestos repetibles** o "copiar del mes anterior". *Dónde:* services/presupuestos.py.
 - [ ] **Importación más lista:** reglas editables ("contiene X → categoría Y"), recordar por
   cuenta si se invierten signos, detectar transferencias entre cuentas propias (mismo importe que
-  sale de una y entra en otra), leer `.xls` si algún banco lo usa.
+  sale de una y entra en otra).
 
 ## v1.3: Pulido
 
