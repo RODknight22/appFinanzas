@@ -6,15 +6,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Sin publicar]
 
 ### Añadido
-- Anotar un movimiento en dos toques: importe y categoría (las más usadas primero), con fecha y
-  cuenta recordadas; varios seguidos sin cerrar la ventana y con «Deshacer».
-- Importar: barra de progreso de la revisión, ✓ para aceptar una sugerencia y «Dar por buenas
-  las sugerencias» de un toque.
-- Importar el .xls antiguo que exporta Santander España.
+- Monedas de Latinoamérica: peso colombiano (COP), argentino (ARS) y chileno (CLP), y sol
+  peruano (PEN). Se activan en Ajustes → Monedas; las que no tienen tasas oficiales de días
+  pasados lo indican («sin histórico») y usan la tasa guardada más cercana.
+- Copia automática de la base de datos antes de actualizar su estructura
+  (`finance.antes-de-migrar-AAAA-MM-DD.db`).
+- Guía de cómo funciona la app por dentro (docs/como-funciona.md).
 
-### Corregido
-- Extractos de Revolut: el concepto ya no sale como la fecha de cargo y la comisión (`Fee`,
-  p. ej. la cuota del plan) se cuenta como gasto en vez de perderse.
+### Cambiado
+- Si el servicio de tasas deja de publicar una moneda, se guardan las demás en vez de ninguna.
+- Totales en varias monedas: si falta la tasa de alguna, se avisa («≈») en vez de sumarla como 0.
+- Porcentajes con el formato de tu región y el euro como «€» cuando no es la moneda principal.
+- Ventanas: el foco entra al abrirlas y no se escapa; al borrar, el foco empieza en «Cancelar».
+- Docker: hora de España por defecto (`-e TZ=...` para otra zona) y sin registro de accesos.
+
+### Arreglado
+- Una importación que fallaba podía dejar a medias una transferencia ya completada.
+- Un extracto manipulado con miles de columnas podía colgar la app.
+- Índices que faltaban en bases de datos actualizadas desde versiones antiguas.
+- Ya no se puede cambiar la moneda de una cuenta con deudas (mezclaría dos divisas).
 
 ## [1.2.0] - 2026-10-23
 

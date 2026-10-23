@@ -1,4 +1,4 @@
-import { MONEDAS } from "../../config";
+import { MONEDAS, MONEDAS_CON_HISTORICO } from "../../config";
 import { useConfiguracion } from "../../hooks/useConfiguracion";
 import type { Moneda } from "../../types";
 import { confirmar } from "../ui/tablonAvisos";
@@ -32,6 +32,10 @@ export function SeccionMonedas() {
       <p className="mb-4 text-sm text-tenue">
         Las monedas activas aparecen en los formularios. La principal es en la que se suman los totales.
       </p>
+      <p className="mb-4 text-xs text-tenue">
+        Peso, dólar y euro usan la tasa oficial (BCE) del día de cada movimiento. Las marcadas «sin
+        histórico» usan la tasa guardada más cercana a esa fecha.
+      </p>
       <ul className="divide-y divide-linea">
         {TODAS.map((codigo) => {
           const activa = monedasActivas.includes(codigo);
@@ -49,6 +53,11 @@ export function SeccionMonedas() {
                 />
                 <span className="w-12 font-mono text-sm font-semibold">{codigo}</span>
                 <span className="text-sm text-suave">{MONEDAS[codigo].nombre}</span>
+                {!MONEDAS_CON_HISTORICO.includes(codigo) && (
+                  <span className="text-xs text-tenue" title="No hay tasas oficiales de días pasados: para fechas antiguas se usa la tasa guardada más cercana.">
+                    sin histórico
+                  </span>
+                )}
               </label>
               {esPrincipal ? (
                 <span className="rounded-full bg-acento-100 px-2.5 py-0.5 text-xs font-medium text-acento-700 dark:bg-acento-950 dark:text-acento-300">

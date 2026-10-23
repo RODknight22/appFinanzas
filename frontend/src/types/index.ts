@@ -14,7 +14,7 @@ export type FechaISO = string;
 
 export type TipoMovimiento = "ingreso" | "gasto";
 export type TipoCuenta = "efectivo" | "debito" | "credito" | "rendimientos" | "ahorro" | "inversion";
-export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL";
+export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL" | "COP" | "ARS" | "CLP" | "PEN";
 export type Periodicidad = "diaria" | "semanal" | "quincenal" | "mensual" | "anual";
 
 // --- Entidades -------------------------------------------------------------

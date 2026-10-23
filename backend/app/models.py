@@ -54,6 +54,15 @@ class Moneda(str, Enum):
     EUR = "EUR"  # euro
     GTQ = "GTQ"  # quetzal guatemalteco
     HNL = "HNL"  # lempira hondureño
+    COP = "COP"  # peso colombiano
+    ARS = "ARS"  # peso argentino
+    CLP = "CLP"  # peso chileno
+    PEN = "PEN"  # sol peruano
+
+
+# Las activas cuando el usuario aún no ha elegido (`monedas_activas` vacío): las que había
+# antes de añadir más. Así quien actualiza no ve de golpe monedas nuevas en cada formulario.
+MONEDAS_INICIALES = (Moneda.MXN, Moneda.USD, Moneda.EUR, Moneda.GTQ, Moneda.HNL)
 
 
 class OrigenTasa(str, Enum):

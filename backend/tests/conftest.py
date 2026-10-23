@@ -84,7 +84,10 @@ def categoria_ingreso(client: TestClient) -> dict:
 
 # Tasas de ejemplo (unidades por 1 USD), con números redondos para que los
 # resultados esperados se puedan calcular de cabeza.
-TASAS_EJEMPLO = {Moneda.MXN: "18", Moneda.EUR: "0.9", Moneda.GTQ: "7.5", Moneda.HNL: "25"}
+TASAS_EJEMPLO = {
+    Moneda.MXN: "18", Moneda.EUR: "0.9", Moneda.GTQ: "7.5", Moneda.HNL: "25",
+    Moneda.COP: "4000", Moneda.ARS: "1000", Moneda.CLP: "900", Moneda.PEN: "3.75",
+}
 
 
 @pytest.fixture
