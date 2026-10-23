@@ -35,6 +35,7 @@ from app.models import (
     Periodicidad,
     PresupuestoBase,
     PrioridadDeseo,
+    ReglaCategoriaBase,
     SentidoDeuda,
     SuscripcionBase,
     TamanoWidget,
@@ -149,6 +150,12 @@ class FilaImportacion(SQLModel):
     # Si parece dinero que va a (gasto) o viene de (ingreso) otra cuenta tuya, cuál.
     # Se importa como transferencia, no como gasto ni ingreso.
     cuenta_transferencia_id: int | None = None
+    # El mismo dinero ya anotado en esa otra cuenta como ingreso o gasto: al importar se
+    # une con esta fila en una transferencia (y deja de contar como ingreso o gasto).
+    transaccion_a_unir_id: int | None = None
+    # Transferencia ya registrada desde la otra cuenta con este lado estimado: esta fila
+    # trae lo que pasó de verdad y la completa en vez de duplicarla.
+    transferencia_a_completar_id: int | None = None
 
 
 class VistaPreviaImportacion(SQLModel):
@@ -167,6 +174,8 @@ class MovimientoImportado(SQLModel):
     categoria_id: int
     # Con otra cuenta: se guarda como transferencia (y `categoria_id` no se usa).
     cuenta_transferencia_id: int | None = None
+    transaccion_a_unir_id: int | None = None  # ver FilaImportacion
+    transferencia_a_completar_id: int | None = None
 
 
 class ImportacionCreate(SQLModel):
@@ -179,6 +188,22 @@ class ImportacionCreate(SQLModel):
 class ResultadoImportacion(SQLModel):
     creadas: int  # en total, transferencias incluidas
     transferencias: int = 0
+    unidas: int = 0  # ingresos o gastos de otra cuenta convertidos en parte de una transferencia
+    completadas: int = 0  # transferencias a las que se añadió el importe real de este lado
+
+
+# --- Reglas de categoría -----------------------------------------------------
+class ReglaCategoriaCreate(ReglaCategoriaBase):
+    pass
+
+
+class ReglaCategoriaRead(ReglaCategoriaBase):
+    id: int
+
+
+class ReglaCategoriaUpdate(SQLModel):
+    texto: str | None = Field(default=None, min_length=2, max_length=100)
+    categoria_id: int | None = None
 
 
 # --- Transferencias --------------------------------------------------------

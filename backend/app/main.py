@@ -23,6 +23,7 @@ from app.routers import (
     metas,
     notificaciones,
     presupuestos,
+    reglas_categoria,
     suscripciones,
     transacciones,
     transferencias,
@@ -74,6 +75,7 @@ app.include_router(acceso.router)
 for modulo in (
     cuentas, categorias, transacciones, transferencias, presupuestos, suscripciones, metas, dashboard,
     configuracion, importaciones, ingresos_recurrentes, deudas, deseos, notificaciones, copias,
+    reglas_categoria,
 ):
     app.include_router(modulo.router, dependencies=[Depends(requiere_sesion)])
 
