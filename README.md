@@ -28,8 +28,9 @@ tienes en total sin hacer cuentas a mano.
   año en el panel. Pagar la tarjeta es un clic.
 - **Poder adquisitivo**: si cobras en una moneda y gastas en otra, cuánto rinde tu dinero este
   mes frente a la media de 12 meses.
-- **Multidivisa**: peso mexicano, dólar, euro, quetzal y lempira. Cada movimiento se convierte con
-  la tasa del día en que ocurrió; las tasas se actualizan solas y puedes corregirlas a mano.
+- **Multidivisa**: peso mexicano, dólar, euro, quetzal, lempira y los pesos colombiano, argentino y
+  chileno y el sol peruano. Cada movimiento se convierte con la tasa del día en que ocurrió; las
+  tasas se actualizan solas y puedes corregirlas a mano.
 - **Metas de ahorro** que siguen el saldo de una cuenta o tus aportaciones, te dicen cuánto apartar
   al mes y lo celebran contigo al llegar al 25, 50, 75 y 100 %.
 - **Lista de deseos** junto a tus metas, y **deudas**: quién te debe y a quién debes.

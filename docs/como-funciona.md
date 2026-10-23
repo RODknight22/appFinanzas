@@ -196,12 +196,12 @@ Todas las tasas se guardan respecto al dólar ("unidades por 1 USD") en la tabla
 una por moneda y día. Para pasar de EUR a MXN se pasa por el dólar:
 `100 EUR → MXN = 100 / tasa(EUR) × tasa(MXN)`.
 
-- **Hoy:** `open.er-api.com` (ExchangeRate-API), gratis y sin clave, incluye las 5 monedas
-  (MXN, USD, EUR, GTQ, HNL). Se descarga al arrancar, en segundo plano para no retrasar la
-  apertura, y cuando se necesita (`asegurar_tasas_del_dia`).
+- **Hoy:** `open.er-api.com` (ExchangeRate-API), gratis y sin clave, incluye todas las monedas de la
+  app. Si un día falta alguna, se guardan las demás. Se descarga al arrancar, en segundo plano para
+  no retrasar la apertura, y cuando se necesita (`asegurar_tasas_del_dia`).
 - **Días pasados:** las del Banco Central Europeo, vía `api.frankfurter.dev`, desde 1999
-  (`asegurar_tasas_historicas`). Solo cubren EUR y MXN; para GTQ y HNL se usa la guardada más
-  cercana.
+  (`asegurar_tasas_historicas`). Solo cubren EUR y MXN; para las demás (GTQ, HNL, COP, ARS,
+  CLP, PEN) se usa la guardada más cercana, y Ajustes lo indica con «sin histórico».
 - **A mano:** puedes escribir una tasa en Ajustes. Una tasa manual manda sobre la descargada.
 
 ### Y si no hay tasa
