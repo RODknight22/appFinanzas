@@ -1,4 +1,4 @@
-import { Banknote, Gift, HandCoins, Repeat, Target, Wallet } from "lucide-react";
+import { Banknote, Coins, Gift, HandCoins, Palette, Repeat, ShieldCheck, Target, UserRound, Wallet } from "lucide-react";
 
 import { SeccionConPestanas } from "./ui/SeccionConPestanas";
 
@@ -38,6 +38,21 @@ export function SeccionPagosFijos() {
       pestanas={[
         { ruta: "/pagos-fijos", etiqueta: "Suscripciones", icono: Repeat },
         { ruta: "/pagos-fijos/ingresos", etiqueta: "Ingresos fijos", icono: HandCoins },
+      ]}
+    />
+  );
+}
+
+export function SeccionAjustes() {
+  return (
+    <SeccionConPestanas
+      nombre="Secciones de ajustes"
+      compacta
+      pestanas={[
+        { ruta: "/ajustes", etiqueta: "Perfil", icono: UserRound },
+        { ruta: "/ajustes/apariencia", etiqueta: "Apariencia", icono: Palette },
+        { ruta: "/ajustes/monedas", etiqueta: "Monedas", icono: Coins },
+        { ruta: "/ajustes/seguridad", etiqueta: "Seguridad y datos", icono: ShieldCheck },
       ]}
     />
   );

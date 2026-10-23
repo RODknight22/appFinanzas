@@ -1,4 +1,4 @@
-// Secciones con pestañas: Metas | Deseos y Pagos fijos (Suscripciones | Ingresos fijos).
+// Secciones con pestañas: Metas | Deseos, Pagos fijos (Suscripciones | Ingresos fijos) y Ajustes.
 import { BASE, CAPTURAS, abrir, comprobar, prueba } from "./comun.mjs";
 
 await prueba("secciones", async ({ pagina }) => {
@@ -27,4 +27,21 @@ await prueba("secciones", async ({ pagina }) => {
   const ancho = await pagina.evaluate(() => document.documentElement.scrollWidth);
   comprobar(ancho <= 390, `sin scroll horizontal en móvil (${ancho}px)`);
   await pagina.screenshot({ path: `${CAPTURAS}/secciones-movil.png` });
+
+  // Ajustes: cada pestaña es una ruta con su título y cabe en el móvil sin scroll lateral.
+  const ajustes = [
+    ["Perfil", "/ajustes", "Perfil"],
+    ["Apariencia", "/ajustes/apariencia", "Apariencia"],
+    ["Monedas", "/ajustes/monedas", "Monedas"],
+    ["Seguridad y datos", "/ajustes/seguridad", "Seguridad y datos"],
+  ];
+  await abrir(pagina, "/ajustes/seguridad");
+  for (const [pestana, ruta, titulo] of ajustes) {
+    await pagina.getByRole("navigation", { name: "Secciones de ajustes" }).getByRole("link", { name: pestana }).click();
+    await pagina.waitForURL(`${BASE}${ruta}`);
+    const visible = await pagina.getByRole("heading", { level: 1, name: titulo }).waitFor().then(() => true, () => false);
+    const anchoAjustes = await pagina.evaluate(() => document.documentElement.scrollWidth);
+    comprobar(visible && anchoAjustes <= 390, `Ajustes › ${pestana}: abre en ${ruta}, sin scroll lateral (${anchoAjustes}px)`);
+    await pagina.screenshot({ path: `${CAPTURAS}/ajustes-${ruta.split("/").pop()}-movil.png`, fullPage: true });
+  }
 });

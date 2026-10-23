@@ -1,12 +1,15 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
-import { SeccionCuentas, SeccionMetas, SeccionPagosFijos } from "./components/Secciones";
+import { SeccionAjustes, SeccionCuentas, SeccionMetas, SeccionPagosFijos } from "./components/Secciones";
 import { PAGINAS_INICIO } from "./config";
 import { useConfiguracion } from "./hooks/useConfiguracion";
 import { DashboardPage } from "./pages/DashboardPage";
 import {
-  AjustesPage,
+  AjustesAparienciaPage,
+  AjustesMonedasPage,
+  AjustesPerfilPage,
+  AjustesSeguridadPage,
   CategoriasPage,
   CuentasPage,
   DeseosPage,
@@ -51,7 +54,12 @@ export default function App() {
         <Route path="deseos" element={<Navigate to="/metas/deseos" replace />} />
         <Route path="suscripciones" element={<Navigate to="/pagos-fijos" replace />} />
         <Route path="ingresos" element={<Navigate to="/pagos-fijos/ingresos" replace />} />
-        <Route path="ajustes" element={<AjustesPage />} />
+        <Route path="ajustes" element={<SeccionAjustes />}>
+          <Route index element={<AjustesPerfilPage />} />
+          <Route path="apariencia" element={<AjustesAparienciaPage />} />
+          <Route path="monedas" element={<AjustesMonedasPage />} />
+          <Route path="seguridad" element={<AjustesSeguridadPage />} />
+        </Route>
         {/* Cualquier otra URL vuelve a la página de inicio */}
         <Route path="*" element={<Navigate to={inicio} replace />} />
       </Route>

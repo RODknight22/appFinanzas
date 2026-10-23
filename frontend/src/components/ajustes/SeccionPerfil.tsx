@@ -66,7 +66,7 @@ export function SeccionPerfil() {
     }`;
 
   return (
-    <Tarjeta titulo="Perfil">
+    <Tarjeta titulo="Foto y nombre">
       <form onSubmit={guardar} className="space-y-4">
         <div className="flex items-center gap-4">
           {/* Vista previa con lo que aún no se ha guardado */}
