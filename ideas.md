@@ -140,8 +140,10 @@ Ejemplo:
     vacía: si quieres tus datos de prueba, copia data/finance.db a data-dev/ con la app parada.
 - [x] ~~CI completo: E2E y linters (ruff, eslint) en GitHub~~ → hecho (PR #9)
 - [x] ~~Release más seguro~~ → hecho (PR #11)
-- [ ] Terminar la v1.1: Ajustes con pestañas → publicar v1.1.0 → probar el release en la
-  laptop. El plan completo está en docs/hoja-de-ruta.md (PR #14).
+- [x] ~~Terminar la v1.1 y la v1.2~~ → publicadas (v1.1.0 y v1.2.0, 23/10)
+- [ ] v1.3: react-router 7 → monedas de Latinoamérica, estilo personalizado y widgets (en
+  paralelo) → recalcular transferencias → firmar el .exe → publicar. Plan en
+  docs/hoja-de-ruta.md. Tu parte: ideas de widgets (arriba) y elegir el certificado de firma.
 
 ## 💭 Conceptos e ideas abstractas
 
