@@ -157,7 +157,7 @@ export function FilaCuenta(props: FilaCuentaProps) {
           >
             <IconoFijar size={16} />
           </button>
-          <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
+          <AccionesFila nombre={cuenta.nombre} onEditar={onEditar} onEliminar={onEliminar} />
         </div>
       </div>
       {/* Detalles debajo y alineados con el nombre (pl-14 = icono + hueco; pl-24 suma la columna

@@ -106,6 +106,7 @@ export function IngresosPage() {
                             <HandCoins size={14} /> Cobrado
                           </Boton>
                           <AccionesFila
+                            nombre={ingreso.nombre}
                             onEditar={() => setModal({ modo: "editar", ingreso })}
                             onEliminar={() =>
                               confirmarYEliminar(`¿Eliminar «${ingreso.nombre}»? Los cobros ya registrados se conservan.`, () => ingresosApi.eliminar(ingreso.id), estado.recargar)

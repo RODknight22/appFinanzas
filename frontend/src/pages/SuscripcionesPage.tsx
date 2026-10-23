@@ -101,6 +101,7 @@ export function SuscripcionesPage() {
                             <CalendarCheck size={14} /> Pagado
                           </Boton>
                           <AccionesFila
+                            nombre={suscripcion.nombre}
                             onEditar={() => setModal({ modo: "editar", suscripcion })}
                             onEliminar={() =>
                               confirmarYEliminar(`¿Eliminar «${suscripcion.nombre}»? Los pagos ya registrados se conservan.`, () => suscripcionesApi.eliminar(suscripcion.id), estado.recargar)

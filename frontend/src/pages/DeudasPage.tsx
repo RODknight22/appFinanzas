@@ -187,7 +187,7 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
               <HandCoins size={14} /> Abonar
             </Boton>
           )}
-          <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
+          <AccionesFila nombre={`la deuda con ${deuda.persona}`} onEditar={onEditar} onEliminar={onEliminar} />
         </div>
       </div>
 

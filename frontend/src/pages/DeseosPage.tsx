@@ -187,7 +187,7 @@ export function DeseosPage() {
                             {deseo.fecha_decision && ` · ${formatearFecha(deseo.fecha_decision)}`}
                           </span>
                           <span className="tabular-nums">{formatearDinero(deseo.precio, deseo.moneda)}</span>
-                          <AccionesFila onEditar={() => setModal(deseo)} onEliminar={() => tarjetaProps.onEliminar(deseo)} />
+                          <AccionesFila nombre={deseo.nombre} onEditar={() => setModal(deseo)} onEliminar={() => tarjetaProps.onEliminar(deseo)} />
                         </li>
                       ))}
                     </ul>
@@ -240,7 +240,7 @@ function TarjetaDeseo({ deseo, metaPorId, ingresoDiario, enPrincipal, onEditar, 
             {deseo.notas && ` · ${deseo.notas}`}
           </p>
         </div>
-        <AccionesFila onEditar={() => onEditar(deseo)} onEliminar={() => onEliminar(deseo)} />
+        <AccionesFila nombre={deseo.nombre} onEditar={() => onEditar(deseo)} onEliminar={() => onEliminar(deseo)} />
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-xl font-bold tabular-nums">{formatearDinero(deseo.precio, deseo.moneda)}</span>

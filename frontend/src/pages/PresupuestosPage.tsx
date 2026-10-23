@@ -110,6 +110,7 @@ export function PresupuestosPage() {
                           <BarraPresupuesto progreso={progreso} />
                         </div>
                         <AccionesFila
+                          nombre={`el presupuesto de ${progreso.nombre}`}
                           onEditar={() => setModal(aPresupuesto(progreso))}
                           onEliminar={() =>
                             confirmarYEliminar(`¿Eliminar el presupuesto de «${progreso.nombre}»?`, () => presupuestosApi.eliminar(progreso.presupuesto_id), estado.recargar)

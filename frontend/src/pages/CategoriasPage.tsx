@@ -69,6 +69,7 @@ export function CategoriasPage() {
                     <IconoCategoria icono={categoria.icono} color={categoria.color} />
                     <span className="flex-1 truncate font-medium">{categoria.nombre}</span>
                     <AccionesFila
+                      nombre={categoria.nombre}
                       onEditar={() => setModal(categoria)}
                       onEliminar={() =>
                         confirmarYEliminar(`¿Eliminar la categoría «${categoria.nombre}»?`, () => categoriasApi.eliminar(categoria.id), estado.recargar)

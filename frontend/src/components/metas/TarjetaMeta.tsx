@@ -55,7 +55,7 @@ export function TarjetaMeta({ meta, cuenta, onAportar, onEditar, onEliminar, onM
             {meta.fecha_limite && ` · hasta el ${formatearFecha(meta.fecha_limite)}`}
           </p>
         </div>
-        <AccionesFila onEditar={onEditar} onEliminar={onEliminar} />
+        <AccionesFila nombre={meta.nombre} onEditar={onEditar} onEliminar={onEliminar} />
       </header>
 
       <div>
