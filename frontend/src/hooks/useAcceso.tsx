@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import { accesoApi, type Credenciales, type EstadoAcceso } from "../api/acceso";
-import { registrarAlPerderSesion } from "../api/cliente";
+import { ApiError, registrarAlPerderSesion } from "../api/cliente";
 import { PantallaAcceso } from "../components/acceso/PantallaAcceso";
 import { MensajeError } from "../components/ui/Estados";
 import { mensajeDeError } from "../utils/errores";
@@ -29,7 +29,10 @@ export function AccesoProvider({ children }: { children: ReactNode }) {
     accesoApi
       .estado()
       .then(setEstado)
-      .catch((e: unknown) => setError(mensajeDeError(e)));
+      // Sin respuesta (status 0) el mensaje ya dice que no hay conexión; si no, se añade.
+      .catch((e: unknown) =>
+        setError(e instanceof ApiError && e.status === 0 ? e.message : `No se pudo conectar con el servidor. ${mensajeDeError(e)}`),
+      );
   }
 
   useEffect(() => {
@@ -54,7 +57,7 @@ export function AccesoProvider({ children }: { children: ReactNode }) {
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
-        <MensajeError mensaje={`No se pudo conectar con el servidor. ${error}`} onReintentar={cargarEstado} />
+        <MensajeError mensaje={error} onReintentar={cargarEstado} />
       </div>
     );
   }
