@@ -18,19 +18,23 @@ tienes en total sin hacer cuentas a mano.
   su tamaño.
 - **Transacciones**: búsqueda sin importar tildes ni mayúsculas, filtros por cuenta, categoría,
   importe y fecha.
-- **Importar extractos** del banco en CSV o Excel: sin configurar columnas, sin duplicados y
-  aprendiendo la categoría de cada concepto.
+- **Importar extractos** del banco en CSV o Excel: sin configurar columnas, sin duplicados,
+  aprendiendo la categoría de cada concepto y con tus propias reglas ("contiene MERCADONA →
+  Supermercado"). Los cambios entre tus cuentas cuentan como transferencias, no como ingresos.
 - **Cuentas**: débito, tarjetas de crédito (con fecha de corte, de pago y límite) y cuentas con
   rendimientos diarios. El **efectivo** tiene su pestaña, con subcuentas (cartera, hucha…).
 - **Transferencias** entre cuentas, también entre monedas: guarda el tipo de cambio real que te
-  aplicó el banco y te dice cuánto peor fue que el del mercado. Pagar la tarjeta es un clic.
+  aplicó el banco y te dice cuánto te costó frente a la tasa del BCE de ese día, con el total del
+  año en el panel. Pagar la tarjeta es un clic.
+- **Poder adquisitivo**: si cobras en una moneda y gastas en otra, cuánto rinde tu dinero este
+  mes frente a la media de 12 meses.
 - **Multidivisa**: peso mexicano, dólar, euro, quetzal y lempira. Cada movimiento se convierte con
   la tasa del día en que ocurrió; las tasas se actualizan solas y puedes corregirlas a mano.
 - **Metas de ahorro** que siguen el saldo de una cuenta o tus aportaciones, te dicen cuánto apartar
   al mes y lo celebran contigo al llegar al 25, 50, 75 y 100 %.
 - **Lista de deseos** junto a tus metas, y **deudas**: quién te debe y a quién debes.
-- **Presupuestos** por categoría y **pagos fijos**: suscripciones e ingresos fijos (como el
-  sueldo), con avisos de los próximos en la campana.
+- **Presupuestos** por categoría (se repiten de un mes a otro con un toque) y **pagos fijos**:
+  suscripciones e ingresos fijos (como el sueldo), con avisos de los próximos en la campana.
 - **Copia de seguridad** de un clic y exportación de tus movimientos a CSV.
 - **Personalización**: 5 estilos con versión clara y oscura, 12 colores de acento, foto de perfil,
   página de inicio y día en que empieza tu "mes" (por ejemplo, el día de cobro).
@@ -136,7 +140,7 @@ scripts/verificar.sh --e2e    # además recorre la app en un navegador (Playwrig
 
 **Publicar una versión**: cambia `backend/app/version.py` y `frontend/package.json`, añade los
 cambios a `CHANGELOG.md` y `NOTAS_RELEASE.md`, y sube una etiqueta:
-`git tag v1.1.0 && git push origin v1.1.0`. GitHub Actions fabrica los ejecutables y la imagen
+`git tag v1.2.0 && git push origin v1.2.0`. GitHub Actions fabrica los ejecutables y la imagen
 Docker y crea el Release.
 
 ## Licencia
