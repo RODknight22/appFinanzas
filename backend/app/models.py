@@ -176,6 +176,9 @@ class Cuenta(CuentaBase, table=True):
     # Lo gestiona el backend (no se envía en la API): hasta qué día se han
     # registrado ya los rendimientos, para no pagarlos dos veces.
     fecha_ultimo_rendimiento: date | None = None
+    # Si al importar su extracto se invirtieron los signos la última vez (tarjetas que
+    # exportan las compras en positivo): se propone igual la próxima.
+    importar_invertido: bool | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -263,8 +266,9 @@ class TransferenciaBase(SQLModel):
 
 class Transferencia(TransferenciaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    # True si `monto_destino` lo estimó la app con la tasa del día porque no se dijo lo que
-    # llegó: entonces no refleja el tipo de cambio real y no cuenta en el coste de los envíos.
+    # True si uno de los dos importes lo estimó la app con la tasa del día (no se dijo lo
+    # que llegó, o al importar un extracto solo se conocía un lado): entonces no refleja el
+    # tipo de cambio real y no cuenta en el coste de los envíos.
     # None entre cuentas de la misma moneda y en las anteriores a este campo.
     destino_estimado: bool | None = None
 

@@ -35,13 +35,19 @@ async def _archivo(request: Request) -> bytes:
     openapi_extra={"requestBody": {"content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}}}},
 )
 def vista_previa(
-    cuenta_id: int, contenido: Annotated[bytes, Depends(_archivo)], session: SessionDep, invertir_signos: bool = False
+    cuenta_id: int,
+    contenido: Annotated[bytes, Depends(_archivo)],
+    session: SessionDep,
+    invertir_signos: bool | None = None,
 ):
-    """Lee un extracto (CSV, .xlsx o .xls) y devuelve lo que se importaría. No guarda nada."""
+    """Lee un extracto (CSV, .xlsx o .xls) y devuelve lo que se importaría. No guarda nada.
+
+    Sin `invertir_signos`, se usa lo que se eligió la última vez en esa cuenta.
+    """
     return servicio.vista_previa(session, cuenta_id, contenido, invertir_signos)
 
 
 @router.post("", response_model=ResultadoImportacion, status_code=status.HTTP_201_CREATED)
 def importar(datos: ImportacionCreate, session: SessionDep):
-    """Crea las transacciones aceptadas en la vista previa (todas o ninguna)."""
+    """Crea las transacciones y transferencias aceptadas en la vista previa (todas o ninguna)."""
     return servicio.confirmar(session, datos)
