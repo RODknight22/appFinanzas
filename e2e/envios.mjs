@@ -1,4 +1,4 @@
-// Coste de los envíos entre monedas: en cada transferencia y en el widget del panel.
+// Coste de los envíos entre monedas (lista y widget) y el widget de poder adquisitivo.
 import { CAPTURAS, abrir, comprobar, prueba } from "./comun.mjs";
 
 await prueba("envios", async ({ pagina, api }) => {
@@ -29,4 +29,17 @@ await prueba("envios", async ({ pagina, api }) => {
   const contenido = await widget.textContent();
   comprobar(contenido.includes("80") && contenido.includes("1 envío"), `el widget suma el año (${contenido.replace(/\s+/g, " ").trim()})`);
   await widget.screenshot({ path: `${CAPTURAS}/envios-widget.png` });
+
+  // Poder adquisitivo: cobras en pesos y gastas en euros. Con un solo día de tasas aún no
+  // hay media de 12 meses, y el widget lo explica en vez de dar un número inventado.
+  const [sueldo] = (await api.get("/categorias")).filter((c) => c.tipo === "ingreso");
+  const [gasto] = (await api.get("/categorias")).filter((c) => c.tipo === "gasto");
+  await api.post("/transacciones", { monto: "40000", tipo: "ingreso", fecha: hoy, cuenta_id: pesos.id, categoria_id: sueldo.id });
+  await api.post("/transacciones", { monto: "1500", tipo: "gasto", fecha: hoy, cuenta_id: euros.id, categoria_id: gasto.id });
+  await abrir(pagina, "/dashboard");
+  const poder = pagina.getByText("Rinde tu MXN en EUR").locator("xpath=ancestor::div[contains(@class, 'rounded-3xl')][1]");
+  await poder.waitFor();
+  const textoPoder = (await poder.textContent()).replace(/\s+/g, " ");
+  await poder.screenshot({ path: `${CAPTURAS}/poder-widget.png` });
+  comprobar(textoPoder.includes("Hacen falta unas semanas de tasas"), `poder adquisitivo sin historial (${textoPoder.trim()})`);
 });
