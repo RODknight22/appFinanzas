@@ -155,3 +155,67 @@ def test_las_transacciones_en_la_moneda_principal_no_cambian(
     _importar(client, cuenta, ANTES, monto="99.90")
     transaccion = client.get("/transacciones").json()[0]
     assert (transaccion["monto_cuenta"], transaccion["monto_principal"]) == ("99.90", "99.90")
+
+
+# --- Transferencias -------------------------------------------------------------
+def test_la_transferencia_estimada_se_corrige_al_llegar_la_tasa_de_su_dia(
+    client: TestClient, session: Session, revolut: dict, descargas: FalsoFrankfurter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pesos = client.post("/cuentas", json={"nombre": "BBVA", "tipo": "debito", "moneda": "MXN"}).json()
+    monkeypatch.setattr(divisas, "_pedir_json_historico", FalsoFrankfurter(error=OSError("sin red")))
+    envio = client.post("/transferencias", json={
+        "cuenta_origen_id": pesos["id"], "cuenta_destino_id": revolut["id"],
+        "monto_origen": "2250", "fecha": ANTES.isoformat(),
+    }).json()
+    assert envio["monto_destino"] == "112.50"  # sin red: con la de hoy (1 EUR = 20 MXN)
+
+    monkeypatch.setattr(divisas, "_pedir_json_historico", descargas)
+    monkeypatch.setattr(divisas, "_ultimo_fallo_historicas", None)
+    divisas.asegurar_tasas_historicas(session, ANTES)
+    session.commit()
+
+    corregido = client.get(f"/transferencias/{envio['id']}").json()
+    # Aquel día 1 EUR = 22,50 MXN: llegaron 100 EUR. Lo que salió (real) no cambia.
+    assert (corregido["monto_origen"], corregido["monto_destino"]) == ("2250.00", "100.00")
+
+
+def test_al_importar_lo_que_llega_se_corrige_lo_que_salio(
+    client: TestClient, session: Session, revolut: dict, descargas: FalsoFrankfurter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pesos = client.post("/cuentas", json={"nombre": "BBVA", "tipo": "debito", "moneda": "MXN"}).json()
+    ingreso = client.post("/categorias", json={"nombre": "I", "tipo": "ingreso"}).json()
+    monkeypatch.setattr(divisas, "_pedir_json_historico", FalsoFrankfurter(error=OSError("sin red")))
+    # Extracto de Revolut: llegaron 100 EUR desde BBVA; lo que salió de BBVA se estima.
+    respuesta = client.post("/importaciones", json={"cuenta_id": revolut["id"], "movimientos": [
+        {"fecha": ANTES.isoformat(), "monto": "100", "tipo": "ingreso", "concepto": "From MXN",
+         "categoria_id": ingreso["id"], "cuenta_transferencia_id": pesos["id"]},
+    ]})
+    assert respuesta.status_code == 201, respuesta.text
+    envio = client.get("/transferencias").json()[0]
+    assert envio["monto_origen"] == "2000.00"  # sin red: con la de hoy
+
+    monkeypatch.setattr(divisas, "_pedir_json_historico", descargas)
+    monkeypatch.setattr(divisas, "_ultimo_fallo_historicas", None)
+    divisas.asegurar_tasas_historicas(session, ANTES)
+    session.commit()
+
+    corregido = client.get(f"/transferencias/{envio['id']}").json()
+    assert (corregido["monto_origen"], corregido["monto_destino"]) == ("2250.00", "100.00")
+
+
+def test_lo_que_llego_de_verdad_no_se_toca(
+    client: TestClient, session: Session, revolut: dict, descargas: FalsoFrankfurter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pesos = client.post("/cuentas", json={"nombre": "BBVA", "tipo": "debito", "moneda": "MXN"}).json()
+    monkeypatch.setattr(divisas, "_pedir_json_historico", FalsoFrankfurter(error=OSError("sin red")))
+    envio = client.post("/transferencias", json={
+        "cuenta_origen_id": pesos["id"], "cuenta_destino_id": revolut["id"],
+        "monto_origen": "2250", "monto_destino": "97.30", "fecha": ANTES.isoformat(),
+    }).json()
+
+    monkeypatch.setattr(divisas, "_pedir_json_historico", descargas)
+    monkeypatch.setattr(divisas, "_ultimo_fallo_historicas", None)
+    divisas.asegurar_tasas_historicas(session, ANTES)
+    session.commit()
+
+    assert client.get(f"/transferencias/{envio['id']}").json()["monto_destino"] == "97.30"

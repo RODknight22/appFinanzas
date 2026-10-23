@@ -65,6 +65,11 @@ class Moneda(str, Enum):
 MONEDAS_INICIALES = (Moneda.MXN, Moneda.USD, Moneda.EUR, Moneda.GTQ, Moneda.HNL)
 
 
+class LadoTransferencia(str, Enum):
+    ORIGEN = "origen"
+    DESTINO = "destino"
+
+
 class OrigenTasa(str, Enum):
     API = "api"  # descargada de internet
     MANUAL = "manual"  # escrita por el usuario (tiene prioridad sobre la de internet)
@@ -299,6 +304,11 @@ class Transferencia(TransferenciaBase, table=True):
     # tipo de cambio real y no cuenta en el coste de los envíos.
     # None entre cuentas de la misma moneda y en las anteriores a este campo.
     destino_estimado: bool | None = None
+    # Qué lado se estimó: al anotarla a mano, lo que llegó; al importar el extracto de la
+    # cuenta que recibe, lo que salió. Con él, cuando llegan las tasas oficiales de ese día,
+    # se corrige solo ese lado. None si no hay nada estimado o si se guardó antes de este
+    # campo (entonces no se sabe cuál, y no se toca).
+    lado_estimado: LadoTransferencia | None = None
 
 
 # ---------------------------------------------------------------------------

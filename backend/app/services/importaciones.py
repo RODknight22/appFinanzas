@@ -26,7 +26,7 @@ from sqlmodel import Session, col, select
 
 from app.database import normalizar_texto
 from app.datos_iniciales import CATEGORIA_OTROS_GASTOS, CATEGORIA_OTROS_INGRESOS
-from app.models import Cuenta, Moneda, TipoMovimiento, Transaccion, Transferencia
+from app.models import Cuenta, LadoTransferencia, Moneda, TipoMovimiento, Transaccion, Transferencia
 from app.schemas import (
     FilaImportacion,
     ImportacionCreate,
@@ -241,6 +241,9 @@ def _como_transferencia(session: Session, cuenta: Cuenta, otra: Cuenta, movimien
         monto_destino=otro_lado if sale else movimiento.monto,
         fecha=movimiento.fecha, notas=movimiento.concepto or None,
         destino_estimado=None if cuenta.moneda == otra.moneda else True,
+        lado_estimado=None if cuenta.moneda == otra.moneda else (
+            LadoTransferencia.DESTINO if sale else LadoTransferencia.ORIGEN
+        ),
     )
 
 
@@ -276,6 +279,7 @@ def _completar(session: Session, cuenta: Cuenta, movimiento: MovimientoImportado
     else:
         t.monto_destino = movimiento.monto
     t.destino_estimado = False
+    t.lado_estimado = None
     session.add(t)
 
 

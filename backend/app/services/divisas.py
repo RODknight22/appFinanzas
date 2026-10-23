@@ -22,9 +22,19 @@ from decimal import Decimal
 
 from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import aliased
 from sqlmodel import Session, col, select
 
-from app.models import Configuracion, Cuenta, Moneda, OrigenTasa, TasaCambio, Transaccion
+from app.models import (
+    Configuracion,
+    Cuenta,
+    LadoTransferencia,
+    Moneda,
+    OrigenTasa,
+    TasaCambio,
+    Transaccion,
+    Transferencia,
+)
 from app.schemas import TasaRead
 from app.services.errores import ReglaDeNegocioError, ServicioExternoError
 from app.services.saldos import CENTIMOS
@@ -398,8 +408,10 @@ def recalcular_montos_desde(session: Session, desde: date) -> None:
     """Vuelve a convertir las transacciones desde `desde` con las tasas de su fecha.
 
     Se usa al guardar tasas de días que no las tenían: lo que se anotó entonces se
-    convirtió con la tasa más cercana que había, y ahora hay una mejor. No hace commit.
+    convirtió con la tasa más cercana que había, y ahora hay una mejor. También corrige
+    el lado estimado de las transferencias (nunca el real). No hace commit.
     """
+    _recalcular_transferencias_desde(session, desde)
     configuracion = session.get(Configuracion, 1)
     principal = configuracion.moneda if configuracion else Moneda.MXN
     filas = session.exec(
@@ -418,6 +430,28 @@ def recalcular_montos_desde(session: Session, desde: date) -> None:
         })
     if nuevos:
         session.execute(update(Transaccion), nuevos)
+
+
+def _recalcular_transferencias_desde(session: Session, desde: date) -> None:
+    """Vuelve a estimar el lado estimado de las transferencias desde `desde`."""
+    origen, destino = aliased(Cuenta), aliased(Cuenta)
+    filas = session.exec(
+        select(
+            Transferencia.id, Transferencia.lado_estimado, Transferencia.monto_origen,
+            Transferencia.monto_destino, Transferencia.fecha, origen.moneda, destino.moneda,
+        )
+        .join(origen, col(Transferencia.cuenta_origen_id) == col(origen.id))
+        .join(destino, col(Transferencia.cuenta_destino_id) == col(destino.id))
+        .where(Transferencia.fecha >= desde, col(Transferencia.lado_estimado).is_not(None))
+    ).all()
+    nuevos = []
+    for id_, lado, monto_origen, monto_destino, fecha, moneda_origen, moneda_destino in filas:
+        if lado == LadoTransferencia.DESTINO:
+            nuevos.append({"id": id_, "monto_destino": convertir(session, monto_origen, moneda_origen, moneda_destino, fecha)})
+        elif monto_destino is not None:
+            nuevos.append({"id": id_, "monto_origen": convertir(session, monto_destino, moneda_destino, moneda_origen, fecha)})
+    for fila in nuevos:  # un lado u otro: no todas las filas cambian la misma columna
+        session.execute(update(Transferencia).where(col(Transferencia.id) == fila.pop("id")).values(**fila))
 
 
 def asegurar_tasas_historicas(session: Session, desde: date, hasta: date | None = None) -> None:
