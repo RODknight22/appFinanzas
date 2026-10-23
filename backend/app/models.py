@@ -184,12 +184,16 @@ class Cuenta(CuentaBase, table=True):
 # ---------------------------------------------------------------------------
 # Categorías
 # ---------------------------------------------------------------------------
+# Gris pizarra: el de "Otros" y el de una categoría sin color propio (igual que el frontend).
+COLOR_CATEGORIA_POR_DEFECTO = "#64748b"
+
+
 class CategoriaBase(SQLModel):
     nombre: str = Field(min_length=1, max_length=50)
     tipo: TipoMovimiento
     # Nombre de un icono de Lucide React (https://lucide.dev/icons).
     icono: str = Field(default="circle", max_length=50)
-    color: str = Field(default="#64748b")
+    color: str = Field(default=COLOR_CATEGORIA_POR_DEFECTO)
 
     @field_validator("color")
     @classmethod

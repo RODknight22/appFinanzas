@@ -2,7 +2,7 @@
 
 from sqlmodel import Session, select
 
-from app.models import Categoria, Configuracion, TipoMovimiento
+from app.models import COLOR_CATEGORIA_POR_DEFECTO, Categoria, Configuracion, TipoMovimiento
 
 # Nombre de la categoría donde se anotan los rendimientos de las cuentas.
 CATEGORIA_RENDIMIENTOS = "Rendimientos"
@@ -29,12 +29,12 @@ CATEGORIAS_POR_DEFECTO: list[tuple[str, TipoMovimiento, str, str]] = [
     ("Mascotas", GASTO, "paw-print", "#f97316"),
     ("Viajes", GASTO, "plane", "#06b6d4"),
     (CATEGORIA_COMISIONES, GASTO, "receipt", "#94a3b8"),
-    (CATEGORIA_OTROS_GASTOS, GASTO, "circle", "#64748b"),
+    (CATEGORIA_OTROS_GASTOS, GASTO, "circle", COLOR_CATEGORIA_POR_DEFECTO),
     ("Sueldo", INGRESO, "briefcase", "#10b981"),
     ("Freelance", INGRESO, "laptop", "#3b82f6"),
     (CATEGORIA_RENDIMIENTOS, INGRESO, "trending-up", "#84cc16"),
     ("Regalos", INGRESO, "gift", "#ec4899"),
-    (CATEGORIA_OTROS_INGRESOS, INGRESO, "banknote", "#64748b"),
+    (CATEGORIA_OTROS_INGRESOS, INGRESO, "banknote", COLOR_CATEGORIA_POR_DEFECTO),
 ]
 
 
