@@ -145,7 +145,7 @@ Ejemplo:
     nada sale de tu ordenador), así que la propongo para después de la v1.3. Dos preguntas:
     1. ¿Para qué la quieres? ¿Preguntar a un asistente, guardar copias en Drive o las dos?
     2. ¿Solo leer o también que el asistente apunte gastos por ti?
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: Para preguntar a un asistente, guardar copias en Drive y tambien leer y que apunte gastos por mi
 
 <!-- Ideas grandes o difusas: "¿y si la app...?", modelos de negocio, visión a largo plazo. -->
 
