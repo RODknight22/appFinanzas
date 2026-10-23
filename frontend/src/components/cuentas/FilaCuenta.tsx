@@ -12,6 +12,8 @@ export interface FilaCuentaProps {
   saldo: number;
   onEditar: () => void;
   onEliminar: () => void;
+  /** Si no se puede borrar (p. ej. tiene subcuentas), por qué: el botón se apaga y lo explica. */
+  motivoNoEliminar?: string;
   onRegistrarRendimientos: () => void;
   /** Abre una transferencia hacia la tarjeta con la deuda ya escrita. */
   onPagar: () => void;
@@ -93,7 +95,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
 
 /** Una cuenta de la lista, con la información propia de su tipo. */
 export function FilaCuenta(props: FilaCuentaProps) {
-  const { cuenta, saldo, onEditar, onEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas, plegado } = props;
+  const { cuenta, saldo, onEditar, onEliminar, motivoNoEliminar, onRegistrarRendimientos, onPagar, onFijar, subcuenta = false, totalConSubcuentas, plegado } = props;
   const { etiqueta, icono: Icono } = TIPOS_CUENTA[cuenta.tipo];
   const esCredito = cuenta.tipo === "credito";
   const IconoFijar = cuenta.fijada ? PinOff : Pin;
@@ -157,7 +159,7 @@ export function FilaCuenta(props: FilaCuentaProps) {
           >
             <IconoFijar size={16} />
           </button>
-          <AccionesFila nombre={cuenta.nombre} onEditar={onEditar} onEliminar={onEliminar} />
+          <AccionesFila nombre={cuenta.nombre} onEditar={onEditar} onEliminar={onEliminar} motivoNoEliminar={motivoNoEliminar} />
         </div>
       </div>
       {/* Detalles debajo y alineados con el nombre (pl-14 = icono + hueco; pl-24 suma la columna

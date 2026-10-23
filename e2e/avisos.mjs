@@ -39,7 +39,14 @@ await prueba("avisos", async ({ pagina, api, errores }) => {
   await vieja.waitFor({ state: "detached" });
   comprobar(true, "al confirmar en el diálogo la cuenta se borra");
 
-  // 3. Al borrar, el foco empieza en «Cancelar»: un Intro por inercia no borra nada.
+  // 3. Una cuenta con subcuentas no se puede borrar: el botón ya lo dice, sin esperar al error.
+  const eliminarMadre = fila("Revolut", "Bolsillo").getByRole("button", { name: "Eliminar Revolut" });
+  comprobar(
+    (await eliminarMadre.getAttribute("aria-disabled")) === "true" && (await eliminarMadre.getAttribute("title")).includes("subcuentas"),
+    "la cuenta con subcuentas tiene el borrado apagado y explica por qué",
+  );
+
+  // 4. Al borrar, el foco empieza en «Cancelar»: un Intro por inercia no borra nada.
   const eliminarUsada = fila("Nómina", "Revolut").getByRole("button", { name: "Eliminar" });
   await eliminarUsada.click();
   await dialogo.waitFor();
@@ -49,7 +56,7 @@ await prueba("avisos", async ({ pagina, api, errores }) => {
   await dialogo.waitFor({ state: "hidden" });
   comprobar(await fila("Nómina", "Revolut").isVisible(), "Intro sobre Cancelar no borra");
 
-  // 4. Un error del backend (tiene movimientos) sale como toast; se confirma con Tab + Intro.
+  // 5. Un error del backend (tiene movimientos) sale como toast; se confirma con Tab + Intro.
   await eliminarUsada.click();
   await dialogo.waitFor();
   await pagina.keyboard.press("Tab");
@@ -62,7 +69,7 @@ await prueba("avisos", async ({ pagina, api, errores }) => {
   const provocado = errores.findIndex((e) => e.includes("409"));
   if (provocado !== -1) errores.splice(provocado, 1);
 
-  // 5. Cabe en 390 px: el aviso dentro de la pantalla y sin scroll horizontal.
+  // 6. Cabe en 390 px: el aviso dentro de la pantalla y sin scroll horizontal.
   const caja = await toast.boundingBox();
   comprobar(caja.x >= 0 && caja.x + caja.width <= 390, `el aviso cabe a 390 px (x=${caja.x}, ancho=${caja.width})`);
   const anchoPagina = await pagina.evaluate(() => document.documentElement.scrollWidth);
