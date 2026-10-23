@@ -4,6 +4,7 @@ Este es el único archivo que sabe *dónde* vive la base de datos. El resto del
 código solo pide una sesión mediante `SessionDep`.
 """
 
+import logging
 import os
 import threading
 import unicodedata
@@ -20,6 +21,8 @@ from sqlmodel import Session, SQLModel, create_engine, select
 # En Docker vale "/data" (un volumen montado); en local, por defecto usamos la
 # carpeta data/ en la raíz del repositorio. Así los datos sobreviven aunque se
 # borre el contenedor.
+log = logging.getLogger(__name__)
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = Path(os.getenv("DATA_DIR", _REPO_ROOT / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -72,8 +75,14 @@ def init_db() -> None:
     # registrar las tablas, y así evitamos importaciones circulares.
     from app import models  # noqa: F401
     from app.datos_iniciales import crear_datos_iniciales
-    from app.migraciones import aplicar_migraciones
+    from app.migraciones import aplicar_migraciones, copia_antes_de_migrar, hay_columnas_pendientes
 
+    ruta_bd = DATA_DIR / "finance.db"
+    if ruta_bd.exists():
+        with engine.connect() as conexion:
+            pendientes = hay_columnas_pendientes(conexion)
+        if pendientes:
+            log.info("Copia de la BD antes de migrar: %s", copia_antes_de_migrar(ruta_bd))
     SQLModel.metadata.create_all(engine)
     with engine.begin() as conexion:  # begin(): commit automático al salir
         aplicar_migraciones(conexion)

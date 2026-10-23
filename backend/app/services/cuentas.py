@@ -133,6 +133,8 @@ def actualizar(session: Session, cuenta_id: int, cambios: CuentaUpdate) -> Cuent
             raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene transacciones")
         if _tiene_transferencias(session, cuenta_id):
             raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene transferencias")
+        if existe(session, Deuda.cuenta_id, cuenta_id) or existe(session, AbonoDeuda.cuenta_id, cuenta_id):
+            raise ConflictoError("No se puede cambiar la moneda de una cuenta que ya tiene deudas o abonos")
         configuracion.comprobar_moneda_activa(session, enviados["moneda"])
 
     # Validamos el estado final completo (lo actual + lo que cambia).

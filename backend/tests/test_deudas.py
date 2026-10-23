@@ -14,6 +14,14 @@ def _deuda(client: TestClient, **datos) -> dict:
     return respuesta.json()
 
 
+def test_no_se_cambia_la_moneda_de_una_cuenta_con_deudas(client: TestClient, cuenta: dict) -> None:
+    # El saldo de la cuenta mezclaría el préstamo en la moneda vieja con la nueva.
+    _deuda(client, sentido="me_deben", monto="300", cuenta_id=cuenta["id"])
+    respuesta = client.patch(f"/cuentas/{cuenta['id']}", json={"moneda": "EUR"})
+    assert respuesta.status_code == 409
+    assert "deudas" in respuesta.json()["detail"]
+
+
 def test_prestar_resta_y_los_abonos_devuelven(client: TestClient, cuenta: dict) -> None:
     inicial = _saldo(client, cuenta)
     deuda = _deuda(client, sentido="me_deben", monto="300", cuenta_id=cuenta["id"])
