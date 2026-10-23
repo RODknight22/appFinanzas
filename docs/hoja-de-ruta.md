@@ -217,7 +217,7 @@ sus notas (24/10). 2 y 3 son de backend y 4 de frontend: pueden ir en sesiones a
 
 Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publica sin ellas.
 
-- [ ] **Ajustar el saldo de una cuenta** (P1; Rodrigo, 23/10: "que mi saldo cuadre"): escribir
+- [x] **Ajustar el saldo de una cuenta** (PR #40; P1; Rodrigo, 23/10: "que mi saldo cuadre"): escribir
   el saldo que dice el banco y que la app cree un movimiento "Ajuste de saldo" por la diferencia.
   Así el historial sigue cuadrando y se ve cuándo y cuánto se ajustó (no se pisa el saldo).
   *Hecho cuando:* tras ajustar, el saldo es el escrito y el patrimonio cuadra (test).
@@ -232,9 +232,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   aprobar a mano cada firma y compilar en el CI (ya lo hacemos). *Antes:* Rodrigo decide la
   licencia y solicita el alta en signpath.org/apply; Claude prepara la política y el paso en
   release.yml. *Hecho cuando:* el .exe publicado abre con el control activado.
+- [x] **Colores de ingreso y gasto propios**, separados del acento: tokens `ingreso`, `gasto`,
+  `exito` y `peligro` en index.css (claro y oscuro) en lugar de `emerald`/`rose` fijos.
 - [ ] **Diseño de la auditoría** (P2): navegación móvil con los mismos nombres que en escritorio y
-  una pestaña "Más"; un único recorrido de bienvenida (hoy modal, tarjeta y globos se solapan);
-  colores de ingreso y gasto propios, separados del acento (22 archivos con `emerald`).
+  una pestaña "Más"; un único recorrido de bienvenida (hoy modal, tarjeta y globos se solapan).
 - [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía (Revolut,
   banco, Wise…) frente a la tasa oficial, y cuál conviene. *Antes:* Rodrigo dice qué vías usa.
 - [ ] **Tasa de Banxico (FIX)** para las fechas pasadas de MXN (P1): hoy solo hay BCE, que mide
