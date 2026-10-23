@@ -12,7 +12,7 @@ await prueba("apariencia", async ({ pagina, api }) => {
     comprobar(llego, `${mensaje} (${nombre}=${await html.getAttribute(nombre)})`);
   }
 
-  await abrir(pagina, "/ajustes");
+  await abrir(pagina, "/ajustes/apariencia");
   const fondoInicial = await fondo();
   await pagina.getByRole("button", { name: /Medianoche/ }).click();
   // Se espera la respuesta desde antes del clic: si no, podría llegar antes de escucharla.

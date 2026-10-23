@@ -9,11 +9,21 @@ export interface Pestana {
   icono: LucideIcon;
 }
 
+interface SeccionConPestanasProps {
+  nombre: string;
+  pestanas: Pestana[];
+  /**
+   * Para secciones con muchas pestañas: en el móvil, las no activas muestran solo su
+   * icono, así caben en una fila. El nombre sigue ahí para lectores de pantalla.
+   */
+  compacta?: boolean;
+}
+
 /**
  * Varias páginas bajo una misma entrada del menú, con pestañas arriba.
  * Cada pestaña es una ruta propia: se puede enlazar, recargar y volver atrás.
  */
-export function SeccionConPestanas({ nombre, pestanas }: { nombre: string; pestanas: Pestana[] }) {
+export function SeccionConPestanas({ nombre, pestanas, compacta = false }: SeccionConPestanasProps) {
   return (
     <>
       <nav aria-label={nombre} className="mb-6 inline-flex max-w-full flex-wrap gap-1 rounded-3xl bg-superficie-2 p-1">
@@ -29,8 +39,12 @@ export function SeccionConPestanas({ nombre, pestanas }: { nombre: string; pesta
               }`
             }
           >
-            <Icono size={16} />
-            {etiqueta}
+            {({ isActive }) => (
+              <>
+                <Icono size={16} />
+                <span className={compacta && !isActive ? "sr-only sm:not-sr-only" : undefined}>{etiqueta}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

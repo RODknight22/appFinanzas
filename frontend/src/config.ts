@@ -30,16 +30,49 @@ export const ACENTOS: Record<ColorAcento, { nombre: string; muestra: string }> =
   lima: { nombre: "Lima", muestra: "#84cc16" },
 };
 
+/** Colores de un modo (claro u oscuro) de un estilo, para su vista previa en Ajustes. */
+export interface ColoresModo {
+  fondo: string;
+  tarjeta: string;
+  texto: string;
+}
+
 /**
- * Estilos visuales (los colores de verdad están en index.css). `claro` y `oscuro`
- * son el fondo de cada modo, para la muestra del selector.
+ * Estilos visuales. Los colores de verdad están en index.css; estos son una copia de
+ * --fondo, --superficie y --texto ya calculados, solo para pintar la vista previa.
+ * Si cambias un estilo en index.css, cambia también aquí sus colores.
  */
-export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string; claro: string; oscuro: string }> = {
-  fintech: { nombre: "Fintech", descripcion: "El de siempre", claro: "oklch(97.2% 0.004 275)", oscuro: "oklch(19.5% 0.01 275)" },
-  medianoche: { nombre: "Medianoche", descripcion: "Azul marino", claro: "oklch(97.2% 0.013 262)", oscuro: "oklch(19.5% 0.032 262)" },
-  grafito: { nombre: "Grafito", descripcion: "Neutro, negro puro", claro: "oklch(97.2% 0 0)", oscuro: "oklch(9% 0 0)" },
-  bosque: { nombre: "Bosque", descripcion: "Verde discreto", claro: "oklch(97.2% 0.008 165)", oscuro: "oklch(19.5% 0.02 165)" },
-  arena: { nombre: "Arena", descripcion: "Cálido, como papel", claro: "oklch(97.2% 0.01 75)", oscuro: "oklch(19.5% 0.024 75)" },
+export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string; claro: ColoresModo; oscuro: ColoresModo }> = {
+  fintech: {
+    nombre: "Fintech",
+    descripcion: "Gris con un toque lila",
+    claro: { fondo: "oklch(97.2% 0.004 275)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0.012 275)" },
+    oscuro: { fondo: "oklch(14.5% 0.008 275)", tarjeta: "oklch(19.5% 0.01 275)", texto: "oklch(97% 0.004 275)" },
+  },
+  medianoche: {
+    nombre: "Medianoche",
+    descripcion: "Azul marino",
+    claro: { fondo: "oklch(97.2% 0.013 262)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0.038 262)" },
+    oscuro: { fondo: "oklch(14.5% 0.026 262)", tarjeta: "oklch(19.5% 0.032 262)", texto: "oklch(97% 0.013 262)" },
+  },
+  grafito: {
+    nombre: "Grafito",
+    descripcion: "Gris neutro, negro puro",
+    claro: { fondo: "oklch(97.2% 0 0)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0 0)" },
+    oscuro: { fondo: "oklch(9% 0 0)", tarjeta: "oklch(16% 0 0)", texto: "oklch(97% 0 0)" },
+  },
+  bosque: {
+    nombre: "Bosque",
+    descripcion: "Verde discreto",
+    claro: { fondo: "oklch(97.2% 0.008 165)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0.024 165)" },
+    oscuro: { fondo: "oklch(14.5% 0.016 165)", tarjeta: "oklch(19.5% 0.02 165)", texto: "oklch(97% 0.008 165)" },
+  },
+  arena: {
+    nombre: "Arena",
+    descripcion: "Cálido, como papel",
+    claro: { fondo: "oklch(97.2% 0.01 75)", tarjeta: "oklch(99.4% 0.004 85)", texto: "oklch(21% 0.029 75)" },
+    oscuro: { fondo: "oklch(14.5% 0.019 75)", tarjeta: "oklch(19.5% 0.024 75)", texto: "oklch(97% 0.01 75)" },
+  },
 };
 
 export const PAGINAS_INICIO: Record<PaginaInicio, { nombre: string; ruta: string }> = {

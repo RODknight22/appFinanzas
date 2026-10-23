@@ -15,7 +15,11 @@ const cargadores = {
   "/deudas": () => import("./pages/DeudasPage"),
   "/metas/deseos": () => import("./pages/DeseosPage"),
   "/categorias": () => import("./pages/CategoriasPage"),
+  // Las cuatro pestañas de Ajustes viven en el mismo módulo: se descarga una sola vez.
   "/ajustes": () => import("./pages/AjustesPage"),
+  "/ajustes/apariencia": () => import("./pages/AjustesPage"),
+  "/ajustes/monedas": () => import("./pages/AjustesPage"),
+  "/ajustes/seguridad": () => import("./pages/AjustesPage"),
 };
 
 type Ruta = keyof typeof cargadores;
@@ -35,7 +39,10 @@ export const MetasPage = perezosa(cargadores["/metas"], "MetasPage");
 export const DeudasPage = perezosa(cargadores["/deudas"], "DeudasPage");
 export const DeseosPage = perezosa(cargadores["/metas/deseos"], "DeseosPage");
 export const CategoriasPage = perezosa(cargadores["/categorias"], "CategoriasPage");
-export const AjustesPage = perezosa(cargadores["/ajustes"], "AjustesPage");
+export const AjustesPerfilPage = perezosa(cargadores["/ajustes"], "AjustesPerfilPage");
+export const AjustesAparienciaPage = perezosa(cargadores["/ajustes"], "AjustesAparienciaPage");
+export const AjustesMonedasPage = perezosa(cargadores["/ajustes"], "AjustesMonedasPage");
+export const AjustesSeguridadPage = perezosa(cargadores["/ajustes"], "AjustesSeguridadPage");
 
 const pedidas = new Set<string>();
 

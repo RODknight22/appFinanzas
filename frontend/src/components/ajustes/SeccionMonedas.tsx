@@ -27,7 +27,7 @@ export function SeccionMonedas() {
   }
 
   return (
-    <Tarjeta titulo="Monedas">
+    <Tarjeta titulo="Monedas activas">
       <p className="mb-4 text-sm text-tenue">
         Las monedas activas aparecen en los formularios. La principal es en la que se suman los totales.
       </p>
