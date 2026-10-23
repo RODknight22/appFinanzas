@@ -293,6 +293,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
             <label className="flex items-center gap-2 text-sm text-suave">
               <input
                 type="checkbox"
+                className="accent-acento-600"
                 checked={Boolean(invertirSignos)}
                 onChange={(e) => {
                   setInvertirSignos(e.target.checked);
@@ -372,6 +373,7 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
     <li className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 ${fila.incluir ? "" : "opacity-50"}`}>
       <input
         type="checkbox"
+        className="accent-acento-600"
         checked={fila.incluir}
         onChange={onAlternar}
         aria-label={`Importar ${fila.concepto || "movimiento"} del ${formatearFecha(fila.fecha)}`}
