@@ -25,7 +25,7 @@ await prueba("avisos", async ({ pagina, api, errores }) => {
   const eliminarVieja = vieja.getByRole("button", { name: "Eliminar" });
   await eliminarVieja.click();
   await dialogo.waitFor();
-  comprobar((await dialogo.textContent()).includes('¿Eliminar la cuenta "Cuenta vieja"?'), "sale el diálogo propio con la pregunta");
+  comprobar((await dialogo.textContent()).includes("¿Eliminar la cuenta «Cuenta vieja»?"), "sale el diálogo propio con la pregunta");
   await pagina.waitForTimeout(400); // que termine la animación de entrada
   await pagina.screenshot({ path: `${CAPTURAS}/avisos-dialogo.png` });
   await pagina.keyboard.press("Escape");

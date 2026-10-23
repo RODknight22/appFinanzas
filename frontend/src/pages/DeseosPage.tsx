@@ -81,7 +81,7 @@ export function DeseosPage() {
             ingresoDiario,
             enPrincipal,
             onEditar: (d: Deseo) => setModal(d),
-            onEliminar: (d: Deseo) => confirmarYEliminar(`¿Eliminar "${d.nombre}"?`, () => deseosApi.eliminar(d.id), estado.recargar),
+            onEliminar: (d: Deseo) => confirmarYEliminar(`¿Eliminar «${d.nombre}»?`, () => deseosApi.eliminar(d.id), estado.recargar),
           };
 
           return (

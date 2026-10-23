@@ -75,14 +75,24 @@ export function formatearFecha(fecha: FechaISO): string {
   });
 }
 
+/** El mes como título o etiqueta: "Octubre de 2026", "Oct 26". */
 export function formatearMes(mes: MesAnio, formato: "corto" | "largo" = "largo"): string {
+  const texto = textoMes(mes, formato);
+  // "octubre de 2026" -> "Octubre de 2026" (CSS `capitalize` pondría también "De").
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/** El mes en mitad de una frase: "No hay presupuestos para octubre de 2026" (en español va en minúscula). */
+export function formatearMesEnFrase(mes: MesAnio): string {
+  return textoMes(mes, "largo");
+}
+
+function textoMes(mes: MesAnio, formato: "corto" | "largo"): string {
   const [anio, numeroMes] = mes.split("-").map(Number);
-  const texto = new Date(anio, numeroMes - 1, 1).toLocaleDateString(localeActual, {
+  return new Date(anio, numeroMes - 1, 1).toLocaleDateString(localeActual, {
     month: formato === "corto" ? "short" : "long",
     year: formato === "corto" ? "2-digit" : "numeric",
   });
-  // "octubre de 2026" -> "Octubre de 2026" (CSS `capitalize` pondría también "De").
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 /** Nombre corto de un mes (1-12) con el formato regional de la app: "oct", "Oct"… */

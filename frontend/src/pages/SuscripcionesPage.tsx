@@ -48,7 +48,8 @@ export function SuscripcionesPage() {
         titulo="Suscripciones"
         consejo="Al marcar un pago se anota el gasto y la fecha salta sola al siguiente cobro."
         descripcion="Pagos recurrentes y su próxima fecha de cobro"
-        acciones={<Boton onClick={() => setModal({ modo: "nueva" })}><Plus size={16} /> Nueva</Boton>}
+        // Sin suscripciones, el botón de crear ya está en el aviso de lista vacía.
+        acciones={estado.datos?.[0].length !== 0 && <Boton onClick={() => setModal({ modo: "nueva" })}><Plus size={16} /> Nueva</Boton>}
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
@@ -102,7 +103,7 @@ export function SuscripcionesPage() {
                           <AccionesFila
                             onEditar={() => setModal({ modo: "editar", suscripcion })}
                             onEliminar={() =>
-                              confirmarYEliminar(`¿Eliminar "${suscripcion.nombre}"? Los pagos ya registrados se conservan.`, () => suscripcionesApi.eliminar(suscripcion.id), estado.recargar)
+                              confirmarYEliminar(`¿Eliminar «${suscripcion.nombre}»? Los pagos ya registrados se conservan.`, () => suscripcionesApi.eliminar(suscripcion.id), estado.recargar)
                             }
                           />
                         </li>

@@ -46,7 +46,7 @@ export function MetasPage() {
           onEditar={() => setModal(meta)}
           onEliminar={() =>
             confirmarYEliminar(
-              `¿Eliminar la meta "${meta.nombre}"? El dinero de tus cuentas no cambia.`,
+              `¿Eliminar la meta «${meta.nombre}»? El dinero de tus cuentas no cambia.`,
               () => metasApi.eliminar(meta.id),
               estado.recargar,
             )
@@ -63,7 +63,8 @@ export function MetasPage() {
         titulo="Metas de ahorro"
         consejo="Una meta puede medirse con el saldo de una cuenta o con las aportaciones que vayas anotando. Al cruzar el 25, 50, 75 y 100 % lo celebramos."
         descripcion="Lo que quieres conseguir y cuánto apartar cada mes para llegar"
-        acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva meta</Boton>}
+        // Sin metas activas, el botón de crear ya está en el aviso de lista vacía.
+        acciones={!estado.datos?.[0].every((m) => m.cumplida) && <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva meta</Boton>}
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>

@@ -48,7 +48,8 @@ export function IngresosPage() {
         titulo="Ingresos fijos"
         consejo="Elige los días de la quincena, repite cada N semanas o meses, y adelanta el cobro al viernes si cae en fin de semana."
         descripcion="Nómina, rentas y otros ingresos que llegan cada cierto tiempo"
-        acciones={<Boton onClick={() => setModal({ modo: "nuevo" })}><Plus size={16} /> Nuevo</Boton>}
+        // Sin ingresos, el botón de crear ya está en el aviso de lista vacía.
+        acciones={estado.datos?.[0].length !== 0 && <Boton onClick={() => setModal({ modo: "nuevo" })}><Plus size={16} /> Nuevo</Boton>}
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
@@ -107,7 +108,7 @@ export function IngresosPage() {
                           <AccionesFila
                             onEditar={() => setModal({ modo: "editar", ingreso })}
                             onEliminar={() =>
-                              confirmarYEliminar(`¿Eliminar "${ingreso.nombre}"? Los cobros ya registrados se conservan.`, () => ingresosApi.eliminar(ingreso.id), estado.recargar)
+                              confirmarYEliminar(`¿Eliminar «${ingreso.nombre}»? Los cobros ya registrados se conservan.`, () => ingresosApi.eliminar(ingreso.id), estado.recargar)
                             }
                           />
                         </li>

@@ -71,7 +71,7 @@ export function CategoriasPage() {
                     <AccionesFila
                       onEditar={() => setModal(categoria)}
                       onEliminar={() =>
-                        confirmarYEliminar(`¿Eliminar la categoría "${categoria.nombre}"?`, () => categoriasApi.eliminar(categoria.id), estado.recargar)
+                        confirmarYEliminar(`¿Eliminar la categoría «${categoria.nombre}»?`, () => categoriasApi.eliminar(categoria.id), estado.recargar)
                       }
                     />
                   </li>

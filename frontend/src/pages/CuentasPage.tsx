@@ -50,7 +50,7 @@ export function CuentasPage() {
   async function registrarRendimientos(cuenta: Cuenta) {
     try {
       const ingreso = await cuentasApi.registrarRendimientos(cuenta.id);
-      avisar(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en "${cuenta.nombre}".`);
+      avisar(`Se registraron ${formatearDinero(ingreso.monto, ingreso.moneda)} de rendimientos en «${cuenta.nombre}».`);
       estado.recargar();
     } catch (e) {
       avisarError(e);
@@ -109,7 +109,7 @@ export function CuentasPage() {
                 {...extra}
                 onEditar={() => setModal(cuenta)}
                 onEliminar={() =>
-                  confirmarYEliminar(`¿Eliminar la cuenta "${cuenta.nombre}"?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
+                  confirmarYEliminar(`¿Eliminar la cuenta «${cuenta.nombre}»?`, () => cuentasApi.eliminar(cuenta.id), estado.recargar)
                 }
                 onRegistrarRendimientos={() => registrarRendimientos(cuenta)}
                 // En una tarjeta, el saldo negativo es la deuda.

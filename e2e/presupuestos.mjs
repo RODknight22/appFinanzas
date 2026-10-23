@@ -12,7 +12,7 @@ await prueba("presupuestos", async ({ pagina, api }) => {
 
   await pagina.setViewportSize({ width: 390, height: 844 });
   await abrir(pagina, "/presupuestos");
-  const copiar = pagina.getByRole("button", { name: "Copiar 2" });
+  const copiar = pagina.getByRole("button", { name: "Copiar 2 presupuestos" });
   await copiar.waitFor();
   const ancho = await pagina.evaluate(() => document.documentElement.scrollWidth);
   comprobar(ancho <= 390, `el aviso para repetir el mes anterior cabe en el móvil (${ancho}px)`);
@@ -22,5 +22,5 @@ await prueba("presupuestos", async ({ pagina, api }) => {
   await copiar.waitFor({ state: "detached" });
   await pagina.getByText(gasto[1].nombre).first().waitFor();
   const actuales = await api.get(`/presupuestos?mes_anio=${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`);
-  comprobar(actuales.length === 2, `«Copiar 2» repite los dos presupuestos y el aviso desaparece (${actuales.length})`);
+  comprobar(actuales.length === 2, `«Copiar 2 presupuestos» repite los dos presupuestos y el aviso desaparece (${actuales.length})`);
 });

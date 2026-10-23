@@ -1,7 +1,7 @@
 import { CheckCircle2, PiggyBank, RotateCcw, Wallet } from "lucide-react";
 
 import type { Cuenta, Meta } from "../../types";
-import { formatearDinero, formatearFecha, formatearMes, formatearPorcentaje } from "../../utils/formato";
+import { formatearDinero, formatearFecha, formatearMesEnFrase, formatearPorcentaje } from "../../utils/formato";
 import { AccionesFila } from "../ui/AccionesFila";
 import { Boton } from "../ui/Boton";
 import { BarraMeta } from "./BarraMeta";
@@ -32,7 +32,7 @@ function Consejo({ meta }: { meta: Meta }) {
     return (
       <p>
         Faltan {dinero(meta.restante)}: ahorra <strong className="text-texto">{dinero(meta.ahorro_mensual)} al mes</strong>{" "}
-        hasta {formatearMes(meta.fecha_limite.slice(0, 7)).toLowerCase()}.
+        hasta {formatearMesEnFrase(meta.fecha_limite.slice(0, 7))}.
       </p>
     );
   }
