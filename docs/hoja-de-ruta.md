@@ -72,7 +72,7 @@ da tiempo; si no, pasan a la v1.3.
 | 3 | Bienvenida al día con tutorial de globos | — | components/bienvenida/, Layout.tsx |
 | 4 | Coste real de cada envío MXN↔EUR | — | services/transferencias.py, widgets |
 | 5 | Poder adquisitivo | 4 (mismo panel) | services/dashboard.py, widgets |
-| 6 | Importación más lista | — | services/importaciones.py |
+| 6 | Importación: transferencias propias y signos (6a); reglas editables (6b) | 6b tras 6a | services/importaciones.py |
 | 7 | Presupuestos repetibles | — | services/presupuestos.py |
 | 8 | Publicar v1.2.0 | 1-7 | version.py, package.json, CHANGELOG |
 | 9 | Probar el release en la laptop (Rodrigo) | 8 | — |
@@ -105,9 +105,12 @@ da tiempo; si no, pasan a la v1.3.
 - [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas (hoy solo las
   transacciones) y fuente histórica para GTQ/HNL.
 - [ ] **Presupuestos repetibles** o "copiar del mes anterior". *Dónde:* services/presupuestos.py.
-- [ ] **Importación más lista:** reglas editables ("contiene X → categoría Y"), recordar por
-  cuenta si se invierten signos, detectar transferencias entre cuentas propias (mismo importe que
-  sale de una y entra en otra).
+- [x] **Importación: transferencias propias y signos por cuenta.** Los cambios de divisa ("To
+  MXN", "From EUR") se proponen como transferencia con tu otra cuenta (la de esa moneda, mejor
+  del mismo banco) y no inflan ingresos ni gastos; cada cuenta recuerda si se invirtieron los
+  signos. *Dónde:* services/importaciones.py, ImportarExtracto.tsx.
+- [ ] **Reglas de categoría editables** ("contiene X → categoría Y") y transferencias propias
+  por importe (lo que sale de una cuenta y llega igual a otra), además del patrón de divisa.
 
 ## v1.3: Pulido
 

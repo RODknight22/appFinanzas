@@ -1,9 +1,9 @@
-import { Check, CheckCircle2, FileUp } from "lucide-react";
+import { ArrowRightLeft, Check, CheckCircle2, FileUp } from "lucide-react";
 import { useState, type DragEvent } from "react";
 
 import { importacionesApi } from "../../api/recursos";
 import { useEnvio } from "../../hooks/useEnvio";
-import type { Categoria, Cuenta, FilaImportacion, VistaPreviaImportacion } from "../../types";
+import type { Categoria, Cuenta, FilaImportacion, ResultadoImportacion, VistaPreviaImportacion } from "../../types";
 import { formatearDinero, formatearFecha } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, CLASE_ENTRADA_BASE, Campo, ErrorFormulario } from "../ui/Campo";
@@ -24,6 +24,9 @@ type Fila = FilaImportacion & { incluir: boolean };
 
 const porRevisar = (fila: Fila) => fila.incluir && fila.confianza !== "alta";
 
+/** Lo que se elige en el desplegable de una fila: una categoría u otra cuenta tuya. */
+type Eleccion = Pick<Fila, "categoria_id" | "cuenta_transferencia_id">;
+
 /**
  * Importar un extracto bancario en tres pasos: elegir archivo → revisar → listo.
  * La vista previa se pide sola al soltar el archivo; solo hay que mirar lo dudoso.
@@ -31,7 +34,8 @@ const porRevisar = (fila: Fila) => fila.incluir && fila.confianza !== "alta";
 export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImportado, onCerrar }: ImportarExtractoProps) {
   const [cuentaId, setCuentaId] = useState(cuentaInicial ?? cuentas[0]?.id);
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [invertirSignos, setInvertirSignos] = useState(false);
+  // null = lo que se usó la última vez en la cuenta (lo dice la vista previa).
+  const [invertirSignos, setInvertirSignos] = useState<boolean | null>(null);
   const [vista, setVista] = useState<VistaPreviaImportacion | null>(null);
   const [filas, setFilas] = useState<Fila[]>([]);
   const [verTodas, setVerTodas] = useState(false);
@@ -39,11 +43,11 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   // en vez de desaparecer de golpe, y miden el progreso de la revisión.
   const [revisables, setRevisables] = useState<Set<number>>(new Set());
   const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
-  const [creadas, setCreadas] = useState<number | null>(null);
+  const [resultado, setResultado] = useState<ResultadoImportacion | null>(null);
   const lectura = useEnvio();
   const guardado = useEnvio();
 
-  async function leer(nuevoArchivo: File, cuenta: number, invertir: boolean) {
+  async function leer(nuevoArchivo: File, cuenta: number, invertir: boolean | null) {
     setArchivo(nuevoArchivo);
     setVista(null);
     if (nuevoArchivo.size > TAMANO_MAXIMO) {
@@ -51,10 +55,11 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
       return;
     }
     await lectura.ejecutar(async () => {
-      const resultado = await importacionesApi.vistaPrevia(cuenta, nuevoArchivo, invertir);
-      setVista(resultado);
-      setFilas(resultado.filas.map((fila) => ({ ...fila, incluir: !fila.duplicado })));
-      const dudosas = resultado.filas.filter((fila) => !fila.duplicado && fila.confianza !== "alta");
+      const leida = await importacionesApi.vistaPrevia(cuenta, nuevoArchivo, invertir);
+      setVista(leida);
+      setInvertirSignos(leida.invertir_signos);
+      setFilas(leida.filas.map((fila) => ({ ...fila, incluir: !fila.duplicado })));
+      const dudosas = leida.filas.filter((fila) => !fila.duplicado && fila.confianza !== "alta");
       setRevisables(new Set(dudosas.map((fila) => fila.fila)));
       setAviso(null);
       // Si nada es dudoso no hay nada que revisar: se enseña todo directamente.
@@ -68,15 +73,18 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
     if (soltado && cuentaId) void leer(soltado, cuentaId, invertirSignos);
   }
 
-  /** Cambia la categoría de una fila y de las demás con el mismo concepto que aún no estaban seguras. */
-  function elegirCategoria(fila: Fila, categoriaId: number) {
+  /** Aplica la elección a una fila y a las demás con el mismo concepto que aún no estaban seguras. */
+  function elegir(fila: Fila, eleccion: Eleccion) {
     const afectada = (f: Fila) =>
       f === fila || (f.concepto === fila.concepto && f.tipo === fila.tipo && f.confianza !== "alta");
     const otras = filas.filter(afectada).length - 1;
-    setFilas((actuales) => actuales.map((f) => (afectada(f) ? { ...f, categoria_id: categoriaId, confianza: "alta" } : f)));
+    setFilas((actuales) => actuales.map((f) => (afectada(f) ? { ...f, ...eleccion, confianza: "alta" } : f)));
     // Que se note el trabajo ahorrado: sin el aviso, las otras filas cambian sin que se vea.
     if (otras > 0) {
-      const nombre = categorias.find((c) => c.id === categoriaId)?.nombre ?? "La categoría";
+      const nombre =
+        eleccion.cuenta_transferencia_id !== null
+          ? "Transferencia"
+          : (categorias.find((c) => c.id === eleccion.categoria_id)?.nombre ?? "La categoría");
       setAviso({ id: Date.now(), texto: `${nombre} también en ${otras} movimiento${otras === 1 ? "" : "s"} igual${otras === 1 ? "" : "es"}` });
     }
   }
@@ -92,22 +100,31 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
     if (!cuentaId) return;
     const elegidas = filas.filter((f) => f.incluir);
     await guardado.ejecutar(async () => {
-      const resultado = await importacionesApi.importar(
+      const hecho = await importacionesApi.importar(
         cuentaId,
-        elegidas.map(({ fecha, monto, tipo, concepto, categoria_id }) => ({ fecha, monto, tipo, concepto, categoria_id })),
+        elegidas.map(({ fecha, monto, tipo, concepto, categoria_id, cuenta_transferencia_id }) => ({
+          fecha, monto, tipo, concepto, categoria_id, cuenta_transferencia_id,
+        })),
+        Boolean(invertirSignos),
       );
-      setCreadas(resultado.creadas);
+      setResultado(hecho);
       onImportado();
     });
   }
 
-  if (creadas !== null) {
+  if (resultado !== null) {
+    const { creadas, transferencias } = resultado;
     return (
       <div className="space-y-4 py-6 text-center">
         <CheckCircle2 size={40} className="mx-auto text-acento-500" />
         <p className="font-semibold">
           {creadas} movimiento{creadas === 1 ? "" : "s"} importado{creadas === 1 ? "" : "s"}
         </p>
+        {transferencias > 0 && (
+          <p className="text-sm text-tenue">
+            {transferencias} como transferencia{transferencias === 1 ? "" : "s"} entre tus cuentas: no cuentan como ingreso ni gasto
+          </p>
+        )}
         <Boton onClick={onCerrar}>Cerrar</Boton>
       </div>
     );
@@ -135,7 +152,8 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
               const nueva = Number(e.target.value);
               setCuentaId(nueva);
               // Los duplicados dependen de la cuenta: hay que volver a mirar el archivo.
-              if (archivo) void leer(archivo, nueva, invertirSignos);
+              // y los signos, a lo que se usó la última vez en esa cuenta.
+              if (archivo) void leer(archivo, nueva, null);
             }}
           >
             {cuentas.map((c) => (
@@ -237,7 +255,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
             <label className="flex items-center gap-2 text-sm text-suave">
               <input
                 type="checkbox"
-                checked={invertirSignos}
+                checked={Boolean(invertirSignos)}
                 onChange={(e) => {
                   setInvertirSignos(e.target.checked);
                   if (archivo && cuentaId) void leer(archivo, cuentaId, e.target.checked);
@@ -259,9 +277,10 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
                   fila={fila}
                   moneda={cuenta.moneda}
                   categorias={categorias.filter((c) => c.tipo === fila.tipo)}
+                  otrasCuentas={cuentas.filter((c) => c.id !== cuenta.id)}
                   revisada={revisables.has(fila.fila) && !porRevisar(fila)}
                   onAlternar={() => alternar(fila)}
-                  onCategoria={(id) => elegirCategoria(fila, id)}
+                  onElegir={(eleccion) => elegir(fila, eleccion)}
                 />
               ))}
             </ul>
@@ -288,15 +307,26 @@ interface FilaVistaPreviaProps {
   fila: Fila;
   moneda: Cuenta["moneda"];
   categorias: Categoria[];
+  otrasCuentas: Cuenta[];
   /** Era dudosa y ya está resuelta: se marca con ✓ en vez de quitarla de la lista. */
   revisada: boolean;
   onAlternar: () => void;
-  onCategoria: (id: number) => void;
+  onElegir: (eleccion: Eleccion) => void;
 }
 
-function FilaVistaPrevia({ fila, moneda, categorias, revisada, onAlternar, onCategoria }: FilaVistaPreviaProps) {
+function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onAlternar, onElegir }: FilaVistaPreviaProps) {
   const esGasto = fila.tipo === "gasto";
   const dudosa = porRevisar(fila);
+  const esTransferencia = fila.cuenta_transferencia_id !== null;
+  // En el desplegable conviven categorías ("12") y cuentas ("cuenta:3").
+  const valor = esTransferencia ? `cuenta:${fila.cuenta_transferencia_id}` : String(fila.categoria_id);
+  function cambiar(nuevo: string) {
+    onElegir(
+      nuevo.startsWith("cuenta:")
+        ? { categoria_id: fila.categoria_id, cuenta_transferencia_id: Number(nuevo.slice(7)) }
+        : { categoria_id: Number(nuevo), cuenta_transferencia_id: null },
+    );
+  }
   return (
     <li className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 ${fila.incluir ? "" : "opacity-50"}`}>
       <input
@@ -315,23 +345,34 @@ function FilaVistaPrevia({ fila, moneda, categorias, revisada, onAlternar, onCat
       </div>
       <select
         className={`${CLASE_ENTRADA_BASE} w-40 ${dudosa ? "ring-2 ring-amber-400/60" : ""}`}
-        value={fila.categoria_id}
-        onChange={(e) => onCategoria(Number(e.target.value))}
-        aria-label="Categoría"
-        title={fila.confianza === "media" ? "Sugerida por un concepto parecido" : undefined}
+        value={valor}
+        onChange={(e) => cambiar(e.target.value)}
+        aria-label="Categoría o transferencia"
+        title={
+          esTransferencia
+            ? "Dinero entre tus cuentas: no es ingreso ni gasto"
+            : fila.confianza === "media" ? "Sugerida por un concepto parecido" : undefined
+        }
       >
         {/* "Otros…" puede haberse recreado al leer el archivo y no estar aún en la lista */}
         {!categorias.some((c) => c.id === fila.categoria_id) && <option value={fila.categoria_id}>Otros</option>}
         {categorias.map((c) => (
           <option key={c.id} value={c.id}>{c.nombre}</option>
         ))}
+        {otrasCuentas.length > 0 && (
+          <optgroup label="Transferencia entre tus cuentas">
+            {otrasCuentas.map((c) => (
+              <option key={c.id} value={`cuenta:${c.id}`}>{esGasto ? "A" : "Desde"} {c.nombre}</option>
+            ))}
+          </optgroup>
+        )}
       </select>
       {/* Mismo ancho en los tres casos para que la columna del importe no baile */}
       <span className="flex w-8 justify-center">
         {dudosa ? (
           <button
             type="button"
-            onClick={() => onCategoria(fila.categoria_id)}
+            onClick={() => onElegir({ categoria_id: fila.categoria_id, cuenta_transferencia_id: fila.cuenta_transferencia_id })}
             aria-label={`Aceptar la sugerencia para ${fila.concepto || "este movimiento"}`}
             title="Dar por buena"
             className="rounded-full p-1.5 text-tenue ring-1 ring-linea transition hover:bg-realce hover:text-emerald-600 active:scale-90"
@@ -342,7 +383,13 @@ function FilaVistaPrevia({ fila, moneda, categorias, revisada, onAlternar, onCat
           revisada && <CheckCircle2 size={18} className="animate-pop text-emerald-500" aria-label="Revisada" />
         )}
       </span>
-      <span className={`w-28 text-right text-sm font-semibold tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+      {/* Una transferencia no es ingreso ni gasto: en neutro y con su icono */}
+      <span
+        className={`flex w-28 items-center justify-end gap-1 text-sm font-semibold tabular-nums ${
+          esTransferencia ? "text-suave" : esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+        }`}
+      >
+        {esTransferencia && <ArrowRightLeft size={14} className="text-tenue" aria-label="Transferencia" />}
         {esGasto ? "−" : "+"}{formatearDinero(fila.monto, moneda)}
       </span>
     </li>

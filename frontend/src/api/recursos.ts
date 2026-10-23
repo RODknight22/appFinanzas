@@ -27,6 +27,7 @@ import type {
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
+  ResultadoImportacion,
   SentidoDeuda,
   Suscripcion,
   TipoMovimiento,
@@ -150,13 +151,16 @@ export const deseosApi = {
 
 /** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */
 export const importacionesApi = {
-  /** Lee el archivo (CSV, .xlsx o .xls) en el servidor sin guardar nada. */
-  vistaPrevia: (cuentaId: number, archivo: File, invertirSignos: boolean) =>
+  /**
+   * Lee el archivo (CSV, .xlsx o .xls) en el servidor sin guardar nada.
+   * `invertirSignos` null = lo que se usó la última vez en esa cuenta.
+   */
+  vistaPrevia: (cuentaId: number, archivo: File, invertirSignos: boolean | null) =>
     http.post<VistaPreviaImportacion>("/importaciones/vista-previa", archivo, {
       cuenta_id: cuentaId,
-      invertir_signos: invertirSignos ? "true" : undefined,
+      invertir_signos: invertirSignos === null ? undefined : String(invertirSignos),
     }),
-  /** Crea todas las transacciones o ninguna. */
-  importar: (cuentaId: number, movimientos: MovimientoImportado[]) =>
-    http.post<{ creadas: number }>("/importaciones", { cuenta_id: cuentaId, movimientos }),
+  /** Crea todas las transacciones (y transferencias) o ninguna; la cuenta recuerda los signos. */
+  importar: (cuentaId: number, movimientos: MovimientoImportado[], invertirSignos: boolean) =>
+    http.post<ResultadoImportacion>("/importaciones", { cuenta_id: cuentaId, movimientos, invertir_signos: invertirSignos }),
 };

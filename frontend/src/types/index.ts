@@ -121,6 +121,11 @@ export interface FilaImportacion {
   confianza: "alta" | "media" | "ninguna";
   /** Ya registrado en la cuenta: no se importa salvo que se marque. */
   duplicado: boolean;
+  /**
+   * Otra cuenta tuya si parece una transferencia ("To MXN"): se importa como tal, no como
+   * gasto ni ingreso. Ingreso = viene de esa cuenta; gasto = va a ella.
+   */
+  cuenta_transferencia_id: number | null;
 }
 
 export interface VistaPreviaImportacion {
@@ -128,9 +133,20 @@ export interface VistaPreviaImportacion {
   columnas: Record<string, string>;
   filas: FilaImportacion[];
   filas_ignoradas: number;
+  /** Los signos usados: los pedidos o, si no, los de la última importación en esa cuenta. */
+  invertir_signos: boolean;
 }
 
-export type MovimientoImportado = Pick<FilaImportacion, "fecha" | "monto" | "tipo" | "concepto" | "categoria_id">;
+export type MovimientoImportado = Pick<
+  FilaImportacion,
+  "fecha" | "monto" | "tipo" | "concepto" | "categoria_id" | "cuenta_transferencia_id"
+>;
+
+export interface ResultadoImportacion {
+  /** En total, transferencias incluidas. */
+  creadas: number;
+  transferencias: number;
+}
 
 /** Dinero que pasa de una cuenta a otra (no es ingreso ni gasto). */
 export interface Transferencia {

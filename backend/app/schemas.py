@@ -146,12 +146,17 @@ class FilaImportacion(SQLModel):
     confianza: Literal["alta", "media", "ninguna"]
     # Ya registrado en la cuenta (como transacción o transferencia): no se importa por defecto.
     duplicado: bool
+    # Si parece dinero que va a (gasto) o viene de (ingreso) otra cuenta tuya, cuál.
+    # Se importa como transferencia, no como gasto ni ingreso.
+    cuenta_transferencia_id: int | None = None
 
 
 class VistaPreviaImportacion(SQLModel):
     columnas: dict[str, str]  # qué columna del archivo se usó para cada dato
     filas: list[FilaImportacion]
     filas_ignoradas: int
+    # Los signos usados: los indicados o, si no, los que se usaron la última vez en la cuenta.
+    invertir_signos: bool = False
 
 
 class MovimientoImportado(SQLModel):
@@ -160,15 +165,20 @@ class MovimientoImportado(SQLModel):
     tipo: TipoMovimiento
     concepto: str = Field(max_length=500)
     categoria_id: int
+    # Con otra cuenta: se guarda como transferencia (y `categoria_id` no se usa).
+    cuenta_transferencia_id: int | None = None
 
 
 class ImportacionCreate(SQLModel):
     cuenta_id: int
     movimientos: list[MovimientoImportado] = Field(min_length=1, max_length=5000)
+    # Se recuerda en la cuenta para proponerlo en la próxima importación.
+    invertir_signos: bool | None = None
 
 
 class ResultadoImportacion(SQLModel):
-    creadas: int
+    creadas: int  # en total, transferencias incluidas
+    transferencias: int = 0
 
 
 # --- Transferencias --------------------------------------------------------

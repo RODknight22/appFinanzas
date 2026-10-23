@@ -106,7 +106,7 @@ def test_confirmar_crea_las_transacciones_y_mueven_el_saldo(client: TestClient, 
     ]
     respuesta = client.post("/importaciones", json={"cuenta_id": cuenta["id"], "movimientos": movimientos})
     assert respuesta.status_code == 201, respuesta.text
-    assert respuesta.json() == {"creadas": 4}
+    assert respuesta.json() == {"creadas": 4, "transferencias": 0}
 
     notas = {t["notas"] for t in client.get("/transacciones").json()}
     assert "NOMINA ACME SL" in notas
@@ -176,3 +176,61 @@ def test_archivo_de_mas_de_1_mb_se_rechaza_tambien_en_desarrollo(client: TestCli
     )
     assert respuesta.status_code == 413
     assert "1 MB" in respuesta.json()["detail"]
+
+
+# --- Transferencias entre cuentas propias y signos recordados ---------------------
+REVOLUT_MXN = (
+    b"Type,Started Date,Completed Date,Description,Amount,Fee,Balance\n"
+    b"TRANSFER,2026-10-02 10:00:00,2026-10-02 10:00:05,To MXN,2000.00,0.00,2000.00\n"
+    b"CARD_PAYMENT,2026-10-03 12:00:00,2026-10-04 09:00:00,Tienda Ejemplo,-150.00,0.00,1850.00\n"
+)
+
+
+def _movimientos(vista: dict) -> list[dict]:
+    claves = ("fecha", "monto", "tipo", "concepto", "categoria_id", "cuenta_transferencia_id")
+    return [{k: f[k] for k in claves} for f in vista["filas"] if not f["duplicado"]]
+
+
+def test_un_cambio_de_divisa_se_importa_como_transferencia(client: TestClient, cuenta: dict, tasas: None) -> None:
+    """"To MXN" en la cuenta de pesos de Revolut viene de la de euros del mismo banco."""
+    revolut_mxn = client.post("/cuentas", json={"nombre": "Revolut MXN", "tipo": "debito", "moneda": "MXN"}).json()
+    revolut_eur = client.post("/cuentas", json={"nombre": "Revolut", "tipo": "debito", "moneda": "EUR"}).json()
+    client.post("/cuentas", json={"nombre": "Santander", "tipo": "debito", "moneda": "EUR"})
+
+    vista = _vista_previa(client, revolut_mxn["id"], REVOLUT_MXN)
+    cambio, compra = vista["filas"]
+    assert (cambio["cuenta_transferencia_id"], cambio["confianza"]) == (revolut_eur["id"], "alta")
+    assert compra["cuenta_transferencia_id"] is None
+
+    respuesta = client.post("/importaciones", json={"cuenta_id": revolut_mxn["id"], "movimientos": _movimientos(vista)})
+    assert respuesta.json() == {"creadas": 2, "transferencias": 1}
+    [transferencia] = client.get("/transferencias").json()
+    # Llegaron 2000 MXN; lo que salió en euros se estima (1 EUR = 20 MXN) y no cuenta como coste.
+    assert (transferencia["cuenta_origen_id"], transferencia["cuenta_destino_id"]) == (revolut_eur["id"], revolut_mxn["id"])
+    assert (transferencia["monto_origen"], transferencia["monto_destino"], transferencia["coste"]) == ("100.00", "2000.00", None)
+    resumen = client.get("/dashboard/resumen", params={"mes_anio": "2026-10"}).json()
+    assert (resumen["ingresos"], resumen["gastos"]) == ("0.00", "150.00")  # no es un ingreso
+    assert all(f["duplicado"] for f in _vista_previa(client, revolut_mxn["id"], REVOLUT_MXN)["filas"])
+
+
+def test_si_hay_varias_cuentas_posibles_la_transferencia_queda_por_revisar(
+    client: TestClient, cuenta: dict, tasas: None
+) -> None:
+    client.post("/cuentas", json={"nombre": "BBVA", "tipo": "debito", "moneda": "EUR"})
+    client.post("/cuentas", json={"nombre": "Santander", "tipo": "debito", "moneda": "EUR"})
+    [fila] = _vista_previa(client, cuenta["id"], b"Fecha;Concepto;Importe\n02/10/2026;From EUR;500,00\n")["filas"]
+    assert fila["cuenta_transferencia_id"] is not None and fila["confianza"] == "media"
+    # Un concepto cualquiera, o un código que no es una moneda, no es una transferencia.
+    filas = _vista_previa(client, cuenta["id"], b"Fecha;Concepto;Importe\n02/10/2026;To XYZ;5,00\n")["filas"]
+    assert filas[0]["cuenta_transferencia_id"] is None
+
+
+def test_la_cuenta_recuerda_si_se_invirtieron_los_signos(client: TestClient, cuenta: dict) -> None:
+    extracto = b"Fecha;Concepto;Importe\n02/10/2026;Amazon;23,99\n"
+    vista = _vista_previa(client, cuenta["id"], extracto, invertir_signos="true")
+    client.post("/importaciones", json={
+        "cuenta_id": cuenta["id"], "movimientos": _movimientos(vista), "invertir_signos": True,
+    })
+    # La próxima vez, sin decir nada, se proponen invertidos.
+    siguiente = _vista_previa(client, cuenta["id"], b"Fecha;Concepto;Importe\n05/10/2026;Libro;12,00\n")
+    assert siguiente["invertir_signos"] is True and siguiente["filas"][0]["tipo"] == "gasto"
