@@ -129,12 +129,15 @@ def _esperado(monto: str, de: str, a: str) -> str:
     return str((Decimal(monto) / _POR_USD[de] * _POR_USD[a]).quantize(Decimal("0.01")))
 
 
-@pytest.mark.parametrize("principal", _MONEDAS)
+# Todas las parejas con tres principales distintas (todas por todas serían 648 casos):
+# la que usa Rodrigo, la de la otra mitad de su dinero y una sin decimales en la vida real.
+@pytest.mark.parametrize("principal", ["MXN", "EUR", "CLP"])
 @pytest.mark.parametrize(("de", "a"), list(permutations(_MONEDAS, 2)))
 def test_cualquier_par_de_monedas_con_cualquier_principal(
     client: TestClient, tasas: None, principal: str, de: str, a: str
 ) -> None:
-    assert client.patch("/configuracion", json={"moneda": principal}).status_code == 200
+    configuracion = {"moneda": principal, "monedas_activas": _MONEDAS}
+    assert client.patch("/configuracion", json=configuracion).status_code == 200
     origen = client.post("/cuentas", json={"nombre": "Origen", "tipo": "debito", "moneda": de, "balance_inicial": "1000"}).json()
     destino = client.post("/cuentas", json={"nombre": "Destino", "tipo": "debito", "moneda": a}).json()
 

@@ -164,7 +164,7 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
 - [x] **react-router 7 y limpieza.** `react-router-dom` 6.30.6 → `react-router` 7.18.4 (la 8
   exige React 19: queda para la v1.4); `npm audit` sin vulnerabilidades. `#64748b` →
   `COLOR_CATEGORIA_POR_DEFECTO` y el mensaje de error repetido → `utils/errores.ts`.
-- [ ] **Monedas de Latinoamérica:** COP, ARS, CLP y PEN (elegidas por Rodrigo). Aditivo: el enum
+- [x] **Monedas de Latinoamérica:** COP, ARS, CLP y PEN (elegidas por Rodrigo). Aditivo: el enum
   `Moneda` se guarda como texto. Revisar `_validar_tasas` (que falte una no debe tumbar la
   descarga de las demás), `SelectMoneda`, `MONEDAS` en config.ts y las tasas de ejemplo de los
   tests. El BCE no da tasas históricas de estas: se usa la más cercana (decirlo en la app).
@@ -186,14 +186,15 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
   identidad) o un certificado de firma de pago. *Antes:* Rodrigo elige y lo contrata; Claude
   prepara la comparación y el paso de firma en release.yml. *Hecho cuando:* el .exe publicado
   abre con el control activado.
-- [ ] **A. Seguridad y guía** (P1): máximo de columnas al importar (un CSV de 1 MB podía colgar
-  la app), errores claros en vez de 500, acciones del CI fijadas por SHA, Docker sin registro de
-  accesos y con zona horaria, y docs/como-funciona.md para Rodrigo.
-- [ ] **B. Todo o nada** (P1): la descarga de tasas hacía commit en mitad de una importación;
-  copia de la BD antes de migrar; índices que faltaban en columnas migradas; no cambiar la moneda
-  de una cuenta con deudas.
-- [ ] **C. Pulido del frontend** (P1): totales que contaban como 0 lo que no tiene tasa, foco en
-  los diálogos, carreras al cambiar de cuenta al importar, formato de % y €, contraste, chunks.
+- [x] **A. Seguridad y guía** (P1, PR #31): máximo de columnas al importar (un CSV de 1 MB podía
+  colgar la app), errores claros en vez de 500, acciones del CI fijadas por SHA, Docker sin registro
+  de accesos y con zona horaria, y docs/como-funciona.md para Rodrigo.
+- [x] **B. Todo o nada** (P1, PR #32): la descarga de tasas hacía commit en mitad de una
+  importación; copia de la BD antes de migrar; índices que faltaban en columnas migradas; no cambiar
+  la moneda de una cuenta con deudas.
+- [x] **C. Pulido del frontend** (P1, PR #33): totales que contaban como 0 lo que no tiene tasa,
+  foco en los diálogos, carreras al cambiar de cuenta al importar, formato de % y €, contraste,
+  chunks.
 - [ ] **Resto de la auditoría** (P2, una PR pequeña cada uno):
   - Pagar una suscripción o cobrar un ingreso fijo dos veces con un doble clic (idempotencia).
   - Un mismo movimiento a unir en dos filas de una importación; `IntegrityError` → 409.

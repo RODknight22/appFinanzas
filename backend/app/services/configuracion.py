@@ -8,7 +8,7 @@ from collections.abc import Callable
 
 from sqlmodel import Session
 
-from app.models import ColorAcento, Configuracion, EstiloVisual, Moneda, PaginaInicio
+from app.models import MONEDAS_INICIALES, ColorAcento, Configuracion, EstiloVisual, Moneda, PaginaInicio
 from app.schemas import ConfiguracionRead, ConfiguracionUpdate, WidgetDisposicion
 from app.services import divisas
 from app.services.comun import guardar
@@ -25,7 +25,7 @@ def _obtener_fila(session: Session) -> Configuracion:
 
 def monedas_activas(configuracion: Configuracion) -> list[Moneda]:
     if not configuracion.monedas_activas:
-        return list(Moneda)  # null = todas activas
+        return list(MONEDAS_INICIALES)  # sin elegir: las de siempre (las nuevas se activan)
     return [Moneda(codigo) for codigo in configuracion.monedas_activas.split(",")]
 
 

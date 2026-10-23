@@ -10,7 +10,14 @@ export const MONEDAS: Record<Moneda, { nombre: string; locale: string }> = {
   EUR: { nombre: "Euro", locale: "es-ES" },
   GTQ: { nombre: "Quetzal", locale: "es-GT" },
   HNL: { nombre: "Lempira", locale: "es-HN" },
+  COP: { nombre: "Peso colombiano", locale: "es-CO" },
+  ARS: { nombre: "Peso argentino", locale: "es-AR" },
+  CLP: { nombre: "Peso chileno", locale: "es-CL" },
+  PEN: { nombre: "Sol", locale: "es-PE" },
 };
+
+/** Las únicas con tasas oficiales de días pasados (BCE); las demás usan la guardada más cercana. */
+export const MONEDAS_CON_HISTORICO: readonly Moneda[] = ["MXN", "USD", "EUR"];
 
 export const MONEDA_POR_DEFECTO: Moneda = "MXN";
 
