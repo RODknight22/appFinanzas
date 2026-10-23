@@ -158,7 +158,7 @@ export function FormularioIngreso({ inicial, cuentas, categoriasIngreso, onGuard
           </div>
         )}
         {quincenal && diaQuincena1 >= diaQuincena2 && (
-          <p className="text-xs text-rose-600 dark:text-rose-400">El primer cobro debe ser antes que el segundo.</p>
+          <p className="text-xs text-peligro">El primer cobro debe ser antes que el segundo.</p>
         )}
         {(quincenal || mensual) && (
           <label className="flex items-center gap-2 text-sm text-suave">

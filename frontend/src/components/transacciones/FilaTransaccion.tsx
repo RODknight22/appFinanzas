@@ -29,7 +29,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
         </p>
       </div>
       <span className="text-right">
-        <span className={`block font-semibold tabular-nums ${esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+        <span className={`block font-semibold tabular-nums ${esGasto ? "text-gasto" : "text-ingreso"}`}>
           {esGasto ? "−" : "+"}{formatearDinero(transaccion.monto, transaccion.moneda)}
         </span>
         {/* Pagado en otra divisa: lo que movió en la cuenta */}

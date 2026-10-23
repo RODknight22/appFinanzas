@@ -15,7 +15,7 @@ export function ListaPagos({ pagos }: { pagos: PagoProximo[] }) {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate font-medium">{pago.nombre}</span>
-            <span className={`text-xs ${diasHasta(pago.fecha) < 0 ? "text-rose-600" : "text-tenue"}`}>
+            <span className={`text-xs ${diasHasta(pago.fecha) < 0 ? "text-peligro" : "text-tenue"}`}>
               {textoVencimiento(pago.fecha)} · {formatearFecha(pago.fecha)}
             </span>
           </span>

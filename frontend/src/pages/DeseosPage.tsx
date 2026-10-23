@@ -31,7 +31,7 @@ function textoRestante(hasta: string): string {
   return `faltan ${Math.round(horas / 24)} días`;
 }
 
-const COLOR_PRIORIDAD = { alta: "text-rose-600 dark:text-rose-400", media: "text-amber-600 dark:text-amber-400", baja: "text-tenue" };
+const COLOR_PRIORIDAD = { alta: "text-peligro", media: "text-amber-600 dark:text-amber-400", baja: "text-tenue" };
 
 export function DeseosPage() {
   const [modal, setModal] = useState<EstadoModal>(null);
@@ -97,7 +97,7 @@ export function DeseosPage() {
                 </Tarjeta>
                 <Tarjeta>
                   <p className="text-sm font-semibold text-tenue">Dinero que no gastaste</p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400"><TotalConvertido suma={noGastado} /></p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-ingreso"><TotalConvertido suma={noGastado} /></p>
                 </Tarjeta>
               </div>
 
@@ -182,7 +182,7 @@ export function DeseosPage() {
                       {historial.map((deseo) => (
                         <li key={deseo.id} className="flex items-center gap-3 py-2.5">
                           <span className="min-w-0 flex-1 truncate">{deseo.nombre}</span>
-                          <span className={`text-xs ${deseo.estado === "descartado" ? "text-emerald-600 dark:text-emerald-400" : "text-tenue"}`}>
+                          <span className={`text-xs ${deseo.estado === "descartado" ? "text-ingreso" : "text-tenue"}`}>
                             {deseo.estado === "descartado" ? "No lo compraste" : "Comprado"}
                             {deseo.fecha_decision && ` · ${formatearFecha(deseo.fecha_decision)}`}
                           </span>

@@ -35,7 +35,7 @@ export function Campo({ etiqueta, children, ayuda }: CampoProps) {
 export function ErrorFormulario({ mensaje }: { mensaje: string | null }) {
   if (!mensaje) return null;
   return (
-    <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">
+    <p className="rounded-lg bg-peligro/10 px-3 py-2 text-sm text-peligro">
       {mensaje}
     </p>
   );

@@ -23,6 +23,20 @@
   --color-tenue: var(--tenue); /* ayudas, fechas, etiquetas */
   --color-tenue-2: var(--tenue-2); /* iconos y detalles casi apagados (no para texto: poco contraste) */
 
+  /* Colores con significado, propios y fijos: no cambian con el acento. Así un ingreso no se
+     confunde con un botón (el acento por defecto también es verde) ni un gasto con un acento rosa.
+     - ingreso / gasto: dinero que entra o sale, tendencias buenas o malas, saldos negativos.
+     - exito / peligro: estados de la interfaz (guardado, cumplido; errores, borrar, vencido).
+     Para fondos suaves, con opacidad: bg-gasto/15. */
+  --color-ingreso: var(--ingreso);
+  --color-gasto: var(--gasto);
+  --color-exito: var(--exito);
+  --color-peligro: var(--peligro);
+  /* Rellenos sólidos con texto blanco encima (botones, chapas): iguales en claro y oscuro. */
+  --color-ingreso-fuerte: oklch(52.7% 0.154 150.069);
+  --color-gasto-fuerte: oklch(57.7% 0.245 27.325);
+  --color-peligro-fuerte: oklch(57.7% 0.245 27.325);
+
   /* backwards (no both): al terminar no deja un transform puesto, que rompería los position: fixed de dentro */
   --animate-entrada: entrada 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   @keyframes entrada {
@@ -64,6 +78,11 @@
   --suave: oklch(40% calc(0.014 * var(--viveza)) var(--tinte));
   --tenue: oklch(54% calc(0.014 * var(--viveza)) var(--tinte));
   --tenue-2: oklch(68% calc(0.012 * var(--viveza)) var(--tinte));
+  /* Verde y rojo oscuros: contraste ≥ 4,5 sobre las superficies claras. */
+  --ingreso: oklch(52.7% 0.154 150.069);
+  --gasto: oklch(57.7% 0.245 27.325);
+  --exito: var(--ingreso);
+  --peligro: var(--gasto);
   /* Sombra de las tarjetas: suave en claro, sin sombra en oscuro (no se vería). */
   --sombra: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -12px oklch(0% 0 0 / 0.08);
 }
@@ -80,6 +99,8 @@
   --suave: oklch(84% calc(0.01 * var(--viveza)) var(--tinte));
   --tenue: oklch(67% calc(0.014 * var(--viveza)) var(--tinte));
   --tenue-2: oklch(52% calc(0.014 * var(--viveza)) var(--tinte));
+  --ingreso: oklch(79.2% 0.209 151.711);
+  --gasto: oklch(70.4% 0.191 22.216);
   --sombra: none;
   color-scheme: dark; /* barras de desplazamiento y controles nativos oscuros */
 }

@@ -72,7 +72,7 @@ export function DeudasPage() {
                     }`}
                   >
                     <p className="text-sm font-semibold text-tenue">{PESTANAS[lado].titulo}</p>
-                    <p className={`mt-1 text-2xl font-bold tabular-nums ${lado === "me_deben" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                    <p className={`mt-1 text-2xl font-bold tabular-nums ${lado === "me_deben" ? "text-ingreso" : "text-gasto"}`}>
                       <TotalConvertido suma={pendiente(lado)} />
                     </p>
                   </button>
@@ -168,7 +168,7 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
             {deuda.notas && ` · ${deuda.notas}`}
           </p>
           {saldada ? (
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">Saldada el {formatearFecha(deuda.fecha_saldada!)}</p>
+            <p className="text-xs text-exito">Saldada el {formatearFecha(deuda.fecha_saldada!)}</p>
           ) : (
             deuda.fecha_vencimiento && (
               <p className={`text-xs ${deuda.vencida ? "text-amber-600 dark:text-amber-400" : "text-tenue"}`}>
@@ -211,7 +211,7 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
                     {abono.cuenta_id !== null && cuentaPorId.get(abono.cuenta_id)?.nombre}
                     {abono.notas && ` · ${abono.notas}`}
                   </span>
-                  <button type="button" onClick={() => onEliminarAbono(abono.id)} aria-label="Eliminar abono" className="rounded p-1 text-tenue-2 hover:text-rose-600">
+                  <button type="button" onClick={() => onEliminarAbono(abono.id)} aria-label="Eliminar abono" className="rounded p-1 text-tenue-2 hover:text-peligro">
                     <Trash2 size={12} />
                   </button>
                 </li>

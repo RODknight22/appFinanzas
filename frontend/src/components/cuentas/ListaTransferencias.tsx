@@ -67,7 +67,7 @@ function CosteEnvio({ coste, porcentaje }: { coste: number; porcentaje: number }
   const gano = coste < 0;
   return (
     <span
-      className={`block text-xs ${gano ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
+      className={`block text-xs ${gano ? "text-ingreso" : "text-amber-600 dark:text-amber-400"}`}
       title="Frente a la tasa del Banco Central Europeo de ese día, comisión incluida"
     >
       {gano ? "Ganaste" : "Te costó"} {formatearDinero(Math.abs(coste))} ({formatearPorcentaje(Math.abs(porcentaje))})

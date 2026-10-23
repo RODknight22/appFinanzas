@@ -73,7 +73,7 @@ export function CalendarioGastos({ mes, datos }: { mes: MesAnio; datos: GastoDia
         </span>
       </div>
       {sinGastos > 0 && (
-        <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+        <p className="mt-2 text-xs font-semibold text-ingreso">
           🎉 {sinGastos} {sinGastos === 1 ? "día" : "días"} sin gastar nada este mes
         </p>
       )}

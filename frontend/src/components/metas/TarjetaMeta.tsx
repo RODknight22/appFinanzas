@@ -20,7 +20,7 @@ function Consejo({ meta }: { meta: Meta }) {
   const dinero = (valor: string) => formatearDinero(valor, meta.moneda);
   if (meta.cumplida) {
     return (
-      <p className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+      <p className="flex items-center gap-1.5 text-exito">
         <CheckCircle2 size={16} /> ¡Cumplida el {formatearFecha(meta.fecha_cumplida!)}!
       </p>
     );

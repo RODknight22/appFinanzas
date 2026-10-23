@@ -32,7 +32,7 @@ export function GraficoPatrimonio({ datos }: { datos: PuntoPatrimonio[] }) {
     <div className="flex h-full flex-col">
       <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="text-3xl font-bold tracking-tight tabular-nums">{formatearDinero(actual)}</p>
-        <p className={`text-sm font-semibold ${sube ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+        <p className={`text-sm font-semibold ${sube ? "text-ingreso" : "text-gasto"}`}>
           {sube ? "+" : "−"}
           {formatearDinero(Math.abs(cambio))}
           {porcentaje !== null && ` (${formatearPorcentaje(Math.abs(porcentaje))})`}

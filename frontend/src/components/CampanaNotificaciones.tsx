@@ -75,7 +75,7 @@ export function CampanaNotificaciones({ avisos, marcarLeidas }: EstadoNotificaci
       >
         <Bell size={18} />
         {sinLeer.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-peligro-fuerte px-1 text-[10px] font-bold text-white">
             {sinLeer.length > 9 ? "9+" : sinLeer.length}
           </span>
         )}
@@ -112,7 +112,7 @@ export function CampanaNotificaciones({ avisos, marcarLeidas }: EstadoNotificaci
                       >
                         <span
                           className={`mt-0.5 rounded-lg p-1.5 ${
-                            aviso.urgente ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400" : "bg-superficie-2 text-acento-600 dark:text-acento-400"
+                            aviso.urgente ? "bg-peligro/15 text-peligro" : "bg-superficie-2 text-acento-600 dark:text-acento-400"
                           }`}
                         >
                           <Icono size={16} />

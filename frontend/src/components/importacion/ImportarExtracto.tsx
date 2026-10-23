@@ -244,7 +244,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
                 {dudosas > 0 ? (
                   <span>Revisa <strong className="tabular-nums">{dudosas}</strong> de {revisables.size} categorías dudosas</span>
                 ) : (
-                  <span className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                  <span className="flex items-center gap-1.5 font-medium text-exito">
                     <CheckCircle2 size={16} /> Todo revisado: listo para importar
                   </span>
                 )}
@@ -263,7 +263,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
                 aria-valuenow={revisadas}
               >
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${dudosas === 0 ? "bg-emerald-500" : "bg-acento-500"}`}
+                  className={`h-full rounded-full transition-all duration-500 ${dudosas === 0 ? "bg-exito" : "bg-acento-500"}`}
                   style={{ width: `${(revisadas / revisables.size) * 100}%` }}
                 />
               </div>
@@ -427,18 +427,18 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
             onClick={() => onElegir({ categoria_id: fila.categoria_id, cuenta_transferencia_id: fila.cuenta_transferencia_id })}
             aria-label={`Aceptar la sugerencia para ${fila.concepto || "este movimiento"}`}
             title="Dar por buena"
-            className="rounded-full p-1.5 text-tenue ring-1 ring-linea transition hover:bg-realce hover:text-emerald-600 active:scale-90"
+            className="rounded-full p-1.5 text-tenue ring-1 ring-linea transition hover:bg-realce hover:text-exito active:scale-90"
           >
             <Check size={14} />
           </button>
         ) : (
-          revisada && <CheckCircle2 size={18} className="animate-pop text-emerald-500" aria-label="Revisada" />
+          revisada && <CheckCircle2 size={18} className="animate-pop text-exito" aria-label="Revisada" />
         )}
       </span>
       {/* Una transferencia no es ingreso ni gasto: en neutro y con su icono */}
       <span
         className={`flex w-28 items-center justify-end gap-1 text-sm font-semibold tabular-nums ${
-          esTransferencia ? "text-suave" : esGasto ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+          esTransferencia ? "text-suave" : esGasto ? "text-gasto" : "text-ingreso"
         }`}
       >
         {esTransferencia && <ArrowRightLeft size={14} className="text-tenue" aria-label="Transferencia" />}

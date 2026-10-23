@@ -63,7 +63,7 @@ export function ReglasImportacion() {
                           type="button"
                           onClick={() => borrar(regla.id)}
                           aria-label={`Borrar la regla «${regla.texto}»`}
-                          className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-rose-600"
+                          className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-peligro"
                         >
                           <Trash2 size={16} />
                         </button>

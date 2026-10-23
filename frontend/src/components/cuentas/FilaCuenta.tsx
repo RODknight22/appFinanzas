@@ -55,7 +55,7 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
         <div className="max-w-sm">
           <div className="h-1.5 overflow-hidden rounded-full bg-superficie-2">
             <div
-              className={`h-full rounded-full ${usado >= 80 ? "bg-rose-500" : "bg-sky-500"}`}
+              className={`h-full rounded-full ${usado >= 80 ? "bg-peligro" : "bg-sky-500"}`}
               style={{ width: `${usado}%` }}
             />
           </div>
@@ -89,7 +89,7 @@ function DetalleRendimientos({ cuenta, saldo, onRegistrar }: { cuenta: Cuenta; s
           <Sparkles size={14} /> Registrar {diasPendientes} día{diasPendientes === 1 ? "" : "s"} (≈ {formatearDinero(pendiente, cuenta.moneda)})
         </Boton>
       ) : (
-        <span className="text-emerald-600 dark:text-emerald-400">Rendimientos registrados hasta hoy</span>
+        <span className="text-exito">Rendimientos registrados hasta hoy</span>
       )}
     </div>
   );
@@ -142,7 +142,7 @@ export function FilaCuenta(props: FilaCuentaProps) {
           </div>
           <div className="mt-1 sm:mt-0 sm:text-right">
             <p className="hidden text-xs text-tenue sm:block">{esCredito ? "Deuda" : "Saldo actual"}</p>
-            <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
+            <p className={`font-semibold tabular-nums ${esCredito && saldo < 0 ? "text-gasto" : ""}`}>
               {esCredito && <span className="text-xs font-normal text-tenue sm:hidden">Deuda </span>}
               {formatearDinero(esCredito ? Math.max(-saldo, 0) : saldo, cuenta.moneda)}
             </p>

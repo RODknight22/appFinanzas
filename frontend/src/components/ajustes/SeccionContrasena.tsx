@@ -47,7 +47,7 @@ export function SeccionContrasena() {
           </Campo>
         </div>
         <ErrorFormulario mensaje={errorLocal ?? error} />
-        {aviso && <p className="text-sm text-emerald-600 dark:text-emerald-400">{aviso}</p>}
+        {aviso && <p className="text-sm text-exito">{aviso}</p>}
         <div className="flex justify-end">
           <Boton type="submit" disabled={enviando}>{enviando ? "Guardando…" : "Cambiar contraseña"}</Boton>
         </div>

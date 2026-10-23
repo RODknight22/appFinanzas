@@ -99,7 +99,7 @@ export function IngresosPage() {
                               </span>
                             </p>
                           </div>
-                          <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+                          <span className="font-semibold tabular-nums text-ingreso">
                             +{formatearDinero(ingreso.monto, ingreso.moneda)}
                           </span>
                           <Boton variante="secundario" className="px-2.5 py-1.5 text-xs" onClick={() => setModal({ modo: "cobrar", ingreso })}>
