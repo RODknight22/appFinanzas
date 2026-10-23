@@ -27,6 +27,7 @@ import type {
   PaginaTransacciones,
   PagoSuscripcion,
   Presupuesto,
+  ReglaCategoria,
   ResultadoImportacion,
   SentidoDeuda,
   Suscripcion,
@@ -148,6 +149,8 @@ export const deseosApi = {
   reflexionar: (id: number, dias: number) => http.post<Deseo>(`/deseos/${id}/reflexionar`, { dias }),
   crearMeta: (id: number) => http.post<Deseo>(`/deseos/${id}/crear-meta`, {}),
 };
+
+export const reglasCategoriaApi = crearRecurso<ReglaCategoria>("/reglas-categoria");
 
 /** Importar un extracto bancario: primero se ve lo que entraría y luego se confirma. */
 export const importacionesApi = {
