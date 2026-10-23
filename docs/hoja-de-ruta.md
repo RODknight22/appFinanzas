@@ -149,9 +149,9 @@ dos tocan services/divisas.py.
 | 2 | Monedas de Latinoamérica | 1 | models.py (`Moneda`), services/divisas.py, config.ts |
 | 3 | Recalcular transferencias antiguas | 2 | services/transferencias.py, divisas.py, importaciones.py |
 | 4 | Estilo personalizado | 1 | SeccionApariencia.tsx, index.css, Configuración |
-| 5 | Widgets personalizables | 1; ideas de Rodrigo (cuaderno) | components/dashboard/ |
-| 6 | Firmar el ejecutable | Rodrigo elige y contrata el certificado | release.yml, empaquetado/ |
-| 7 | Publicar v1.3.0 | 1-5 (y 6 si está) | version.py, package.json, CHANGELOG |
+| 5 | Widgets personalizables (pasa a la v1.4) | 1; ideas de Rodrigo (cuaderno) | components/dashboard/ |
+| 6 | Firmar el ejecutable (pasa a la v1.4) | Rodrigo elige y contrata el certificado | release.yml, empaquetado/ |
+| 7 | Publicar v1.3.0 (hecho) | 1-4 | version.py, package.json, CHANGELOG |
 | 8 | Probar el release en la laptop (Rodrigo) | 7 | — |
 | A | Auditoría 23/10: seguridad y guía (P1) | — | lector_extractos, seguridad_http, CI, docs/ |
 | B | Auditoría 23/10: todo o nada (P1) | — | divisas.py, migraciones.py, cuentas.py |
@@ -177,15 +177,8 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
   ya calcula los colores de `--tinte` y `--viveza`: basta guardarlos en Configuración (columnas
   opcionales) y escribirlos en el `style` de `<html>`. *Hecho cuando:* se ve igual al recargar
   y con buen contraste en claro y oscuro (E2E con capturas).
-- [ ] **Widgets personalizables** (idea de Rodrigo): más tamaños, elegir cómo muestran los datos
-  y widgets nuevos. *Antes:* Rodrigo dice en el cuaderno qué widgets echa de menos y qué quiere
-  ver distinto. *Dónde:* components/dashboard/.
-- [ ] **Firmar el ejecutable de Windows.** "Control de aplicaciones inteligentes" bloquea el
-  .exe sin firma (le pasó a Rodrigo el 23/10). Opciones: SignPath Foundation (gratis para código
-  abierto, si aceptan el proyecto), Azure Trusted Signing (de pago mensual, verificación de
-  identidad) o un certificado de firma de pago. *Antes:* Rodrigo elige y lo contrata; Claude
-  prepara la comparación y el paso de firma en release.yml. *Hecho cuando:* el .exe publicado
-  abre con el control activado.
+- [-] **Widgets personalizables** y **firmar el ejecutable** → pasan a la v1.4 (Rodrigo quiere
+  probar los widgets antes; la firma con SignPath, cuando tenga tiempo).
 - [x] **A. Seguridad y guía** (P1, PR #31): máximo de columnas al importar (un CSV de 1 MB podía
   colgar la app), errores claros en vez de 500, acciones del CI fijadas por SHA, Docker sin registro
   de accesos y con zona horaria, y docs/como-funciona.md para Rodrigo.
@@ -195,20 +188,26 @@ Si la firma (6) no está lista al terminar la 5, la v1.3 se publica sin ella y p
 - [x] **C. Pulido del frontend** (P1, PR #33): totales que contaban como 0 lo que no tiene tasa,
   foco en los diálogos, carreras al cambiar de cuenta al importar, formato de % y €, contraste,
   chunks.
-- [ ] **Resto de la auditoría** (P2, una PR pequeña cada uno):
-  - ✓ Pagar una suscripción o cobrar un ingreso fijo dos veces con un doble clic (idempotencia).
-  - ✓ Un mismo movimiento a unir en dos filas de una importación; `IntegrityError` → 409.
-  - ✓ `assets/` inexistente devuelve index.html cacheado un año: debe ser 404.
-  - Navegación móvil con los mismos nombres que en escritorio y una pestaña "Más".
-  - Un único recorrido de bienvenida (hoy hay modal, tarjeta y globos que se solapan).
-  - Colores de ingreso/gasto propios, separados del acento elegido (22 archivos con `emerald`).
-- [ ] **Publicar v1.3.0.**
+- [x] **Resto de la auditoría** (P2, PR #36): pagos dobles por un doble clic, mismo movimiento
+  en dos filas al importar, `IntegrityError` → 409 y `assets/` inexistente → 404. El diseño
+  (navegación móvil, bienvenida, colores) pasa a la v1.4.
+- [x] **Publicar v1.3.0.**
 
 ## v1.4: Remesas
 
 **La innovación:** antes de mandar dinero, saber cuánto te va a costar por cada vía y si es buen
 momento. Ninguna app de finanzas lo hace; es lo que más valor da a quien vive entre dos monedas.
 
+- [ ] **Widgets personalizables** (P1, idea de Rodrigo): más tamaños, elegir cómo muestran los
+  datos y widgets nuevos. *Antes:* Rodrigo los prueba y dice en el cuaderno qué echa de menos y
+  qué quiere ver distinto. *Dónde:* components/dashboard/.
+- [ ] **Firmar el ejecutable de Windows** (P1) con SignPath Foundation (gratis para código abierto;
+  Rodrigo lo eligió el 23/10). "Control de aplicaciones inteligentes" bloquea el .exe sin firma.
+  *Antes:* Rodrigo solicita el alta; Claude prepara la página de política de firma y el paso de
+  firma en release.yml. *Hecho cuando:* el .exe publicado abre con el control activado.
+- [ ] **Diseño de la auditoría** (P2): navegación móvil con los mismos nombres que en escritorio y
+  una pestaña "Más"; un único recorrido de bienvenida (hoy modal, tarjeta y globos se solapan);
+  colores de ingreso y gasto propios, separados del acento (22 archivos con `emerald`).
 - [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía (Revolut,
   banco, Wise…) frente a la tasa oficial, y cuál conviene. *Antes:* Rodrigo dice qué vías usa.
 - [ ] **Tasa de Banxico (FIX)** para las fechas pasadas de MXN (P1): hoy solo hay BCE, que mide

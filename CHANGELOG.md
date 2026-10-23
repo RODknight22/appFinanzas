@@ -3,9 +3,11 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [SemVer](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [1.3.0] - 2026-10-23
 
 ### Añadido
+- Estilo personalizado: elige tu propio tono e intensidad de color en Ajustes → Apariencia,
+  con vista previa en claro y oscuro.
 - Monedas de Latinoamérica: peso colombiano (COP), argentino (ARS) y chileno (CLP), y sol
   peruano (PEN). Se activan en Ajustes → Monedas; las que no tienen tasas oficiales de días
   pasados lo indican («sin histórico») y usan la tasa guardada más cercana.
@@ -19,6 +21,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Porcentajes con el formato de tu región y el euro como «€» cuando no es la moneda principal.
 - Ventanas: el foco entra al abrirlas y no se escapa; al borrar, el foco empieza en «Cancelar».
 - Docker: hora de España por defecto (`-e TZ=...` para otra zona) y sin registro de accesos.
+- Un doble clic al pagar una suscripción, cobrar un ingreso fijo u omitirlo ya no lo anota dos
+  veces.
 
 ### Arreglado
 - Las transferencias entre monedas anotadas sin la tasa de su día se corrigen solas cuando
@@ -27,6 +31,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Un extracto manipulado con miles de columnas podía colgar la app.
 - Índices que faltaban en bases de datos actualizadas desde versiones antiguas.
 - Ya no se puede cambiar la moneda de una cuenta con deudas (mezclaría dos divisas).
+- Al importar, el mismo movimiento ya no se puede unir dos veces (contaría doble).
+- Una pestaña abierta de una versión anterior ya no se queda rota tras actualizar.
 
 ## [1.2.0] - 2026-10-23
 

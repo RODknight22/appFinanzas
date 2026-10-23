@@ -142,7 +142,7 @@ scripts/verificar.sh --e2e    # además recorre la app en un navegador (Playwrig
 
 **Publicar una versión**: cambia `backend/app/version.py` y `frontend/package.json`, añade los
 cambios a `CHANGELOG.md` y `NOTAS_RELEASE.md`, y sube una etiqueta:
-`git tag v1.2.0 && git push origin v1.2.0`. GitHub Actions fabrica los ejecutables y la imagen
+`git tag v1.3.0 && git push origin v1.3.0`. GitHub Actions fabrica los ejecutables y la imagen
 Docker y crea el Release.
 
 ## Licencia
