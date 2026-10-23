@@ -104,13 +104,16 @@ da tiempo; si no, pasan a la v1.3.
   Revisar `_validar_tasas`, `SelectMoneda` y qué fuente da sus tasas históricas.
 - [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas (hoy solo las
   transacciones) y fuente histórica para GTQ/HNL.
-- [ ] **Presupuestos repetibles** o "copiar del mes anterior". *Dónde:* services/presupuestos.py.
+- [x] **Presupuestos repetibles:** "¿Repites los de septiembre? [Copiar N]" copia los del último
+  mes que los tiene sin pisar los que ya hay. *Dónde:* services/presupuestos.py.
 - [x] **Importación: transferencias propias y signos por cuenta.** Los cambios de divisa ("To
   MXN", "From EUR") se proponen como transferencia con tu otra cuenta (la de esa moneda, mejor
   del mismo banco) y no inflan ingresos ni gastos; cada cuenta recuerda si se invirtieron los
   signos. *Dónde:* services/importaciones.py, ImportarExtracto.tsx.
-- [ ] **Reglas de categoría editables** ("contiene X → categoría Y") y transferencias propias
-  por importe (lo que sale de una cuenta y llega igual a otra), además del patrón de divisa.
+- [x] **Reglas de categoría editables** ("contiene X → categoría Y", en Categorías) que mandan
+  sobre el historial; al importar, se une lo ya registrado en otra cuenta: completa la
+  transferencia hecha desde el otro extracto (coste real) o une un ingreso o gasto suelto con
+  el mismo importe. *Dónde:* services/reglas_categoria.py, services/importaciones.py.
 
 ## v1.3: Pulido
 
