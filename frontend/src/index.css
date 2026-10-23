@@ -21,7 +21,7 @@
   --color-texto: var(--texto); /* texto principal */
   --color-suave: var(--suave); /* texto secundario */
   --color-tenue: var(--tenue); /* ayudas, fechas, etiquetas */
-  --color-tenue-2: var(--tenue-2); /* iconos y detalles casi apagados */
+  --color-tenue-2: var(--tenue-2); /* iconos y detalles casi apagados (no para texto: poco contraste) */
 
   /* backwards (no both): al terminar no deja un transform puesto, que rompería los position: fixed de dentro */
   --animate-entrada: entrada 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;

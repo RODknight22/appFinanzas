@@ -84,7 +84,7 @@ export function SeccionTasas() {
           ))}
         </ul>
       )}
-      <p className="mt-4 text-xs text-tenue-2">
+      <p className="mt-4 text-xs text-tenue">
         <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer" className="hover:underline">
           Tasas por ExchangeRate-API
         </a>

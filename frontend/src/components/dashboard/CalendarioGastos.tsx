@@ -42,7 +42,7 @@ export function CalendarioGastos({ mes, datos }: { mes: MesAnio; datos: GastoDia
     <div>
       <div className="grid grid-cols-7 gap-1.5 text-center">
         {DIAS_SEMANA.map((letra) => (
-          <span key={letra} className="text-[11px] font-semibold text-tenue-2">{letra}</span>
+          <span key={letra} className="text-[11px] font-semibold text-tenue">{letra}</span>
         ))}
         {Array.from({ length: huecos }, (_, i) => <span key={`hueco-${i}`} />)}
         {dias.map((dia) => {
