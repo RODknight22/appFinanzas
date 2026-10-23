@@ -71,7 +71,8 @@ export function PresupuestosPage() {
           const totalGastado = progresos.reduce((suma, p) => suma + Number(p.gastado_principal), 0);
 
           return (
-            <>
+            // Al cambiar de mes, mientras llegan los datos nuevos se ven los del mes anterior: atenuados.
+            <div aria-busy={estado.cargando} className={`transition-opacity ${estado.cargando ? "pointer-events-none opacity-50" : ""}`}>
               {progresos.length > 0 && (
                 <p className="mb-4 text-sm text-tenue">
                   Total: <strong className="text-texto tabular-nums">{formatearDinero(totalGastado)}</strong> gastado de{" "}
@@ -130,7 +131,7 @@ export function PresupuestosPage() {
                   />
                 )}
               </Modal>
-            </>
+            </div>
           );
         }}
       </Contenido>

@@ -56,7 +56,8 @@ export function CategoriasPage() {
         ))}
       </div>
 
-      <Tarjeta>
+      {/* Al cambiar de pestaña, mientras llegan las categorías nuevas se ven las anteriores: atenuadas. */}
+      <Tarjeta className={`transition-opacity ${estado.cargando && estado.datos ? "pointer-events-none opacity-50" : ""}`}>
         <Contenido {...estado} onReintentar={estado.recargar}>
           {(categorias) =>
             categorias.length === 0 ? (
