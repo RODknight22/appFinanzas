@@ -45,21 +45,17 @@ Ejemplo:
 
 <!-- Vacía: Claude movió tus ideas a su sección. Sigue escribiendo aquí. -->
 
-- [ ] Cambiar lo de desplegar de las cuentas a la izquierda para mayor comodidad
-
-- [ ] Me gusta, pero la parte del tutorial donde te dice donde esta cada cosa estaria mejor que te la explicara con glovos de texto y la parte de los "desafios" haz que si ellos abren la cuenta, ponen una meta, etc se marque sola como completada. Tambien me gustaria que la parte de donde metes la transacciones cuando las importas, tengan un boton de aceptarlas mas rapido ya que los estados de cuenta podrian tener muchas transacciones y estar picando y bajando es tedioso, igual no se si haya alguna foma de darle una categoria por defecto sin que el usuario la tenga que elegir forzosamente o sea que el programa identifique en que categoria entra "Solo si es posible"
-
 ## ✨ Funciones nuevas
 
 <!-- Cosas que la app aún no hace. -->
 
-- [>] Selector de mes más ágil en Dashboard y Transacciones: volver al mes actual fácil y
-  saltar a meses lejanos #funcion → hoja de ruta v1.2
+- [x] ~~Selector de mes más ágil en Dashboard y Transacciones: volver al mes actual fácil y
+  saltar a meses lejanos~~ #funcion → hecho (PR #19)
   - 💬 Claude: propuesta: botón "Hoy" que aparece cuando no estás en el mes actual, y al pulsar
     el nombre del mes, una cuadrícula con los 12 meses y flechas para cambiar de año.
   - 🗣️ Rodrigo: Me parece tu idea
-- [>] Bienvenida al día: explicar lo nuevo, rápida y entretenida, para meter los datos básicos
-  #funcion → hoja de ruta v1.2
+- [~] Bienvenida al día: explicar lo nuevo, rápida y entretenida, para meter los datos básicos
+  #funcion → PR #20
   - 💬 Claude: ¿qué datos básicos son imprescindibles para ti? Propongo: moneda principal,
     primera cuenta con su saldo y, opcional, el sueldo como ingreso fijo. Con eso el panel ya
     tiene sentido desde el primer minuto.
@@ -67,6 +63,9 @@ Ejemplo:
   - 💬 Claude (23/10): propuesta: un tutorial de globos de texto que señalan cada zona de la
     pantalla, con una frase por globo (5 o 6 en total). Se puede saltar en cualquier momento y
     se repite desde Ajustes. Va en la v1.2 junto a la bienvenida.
+  - 💬 Claude (23/10): hecho en la PR #20. Al final quedaron 9 globos, uno por apartado del
+    menú, para que estén todos; cada uno es una frase y se avanza con Intro. Además hay un paso
+    opcional para apuntar el sueldo.
 
 ## 🐛 Arreglos (fixes)
 
