@@ -2,6 +2,7 @@
 
 saldo = balance inicial + ingresos − gastos − transferencias que salen + transferencias que llegan
         ± préstamos y abonos de deudas (prestar resta; que te devuelvan suma)
+        + ajustes de saldo (ya llevan su signo)
 """
 
 from collections import defaultdict
@@ -12,7 +13,7 @@ from typing import Any
 from sqlalchemy import case, func
 from sqlmodel import Session, col, select
 
-from app.models import AbonoDeuda, Cuenta, Deuda, SentidoDeuda, TipoMovimiento, Transaccion, Transferencia
+from app.models import AbonoDeuda, AjusteSaldo, Cuenta, Deuda, SentidoDeuda, TipoMovimiento, Transaccion, Transferencia
 from app.services import mes_financiero
 
 CENTIMOS = Decimal("0.01")
@@ -61,6 +62,7 @@ _FUENTES = [
     (col(Transferencia.cuenta_destino_id), col(Transferencia.monto_destino), col(Transferencia.fecha), 1),
     (col(Deuda.cuenta_id), IMPORTE_DEUDA, col(Deuda.fecha), 1),
     (col(AbonoDeuda.cuenta_id), IMPORTE_ABONO, col(AbonoDeuda.fecha), 1),
+    (col(AjusteSaldo.cuenta_id), col(AjusteSaldo.diferencia), col(AjusteSaldo.fecha), 1),
 ]
 
 

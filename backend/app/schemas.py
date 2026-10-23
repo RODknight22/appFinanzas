@@ -79,6 +79,20 @@ class CuentaUpdate(SQLModel):
     fijada: bool | None = None
 
 
+class AjusteSaldoCreate(SQLModel):
+    # El saldo que dice el banco, en la moneda de la cuenta (negativo en una tarjeta con deuda).
+    saldo_real: Decimal = Field(max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
+    notas: str | None = Field(default=None, max_length=500)
+
+
+class AjusteSaldoRead(SQLModel):
+    id: int
+    cuenta_id: int
+    fecha: date
+    diferencia: Decimal
+    notas: str | None
+
+
 # --- Categorías ------------------------------------------------------------
 class CategoriaCreate(CategoriaBase):
     pass
