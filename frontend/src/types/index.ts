@@ -154,6 +154,26 @@ export interface Transferencia {
   coste_porcentaje?: string | null;
 }
 
+/**
+ * Cuánto rinde lo que cobras en una moneda al gastarlo en otra, este mes frente a 12.
+ * Tasas en "unidades de la moneda de ingreso por 1 de la de gasto" (p. ej. 20.4 MXN por EUR).
+ */
+export interface PoderAdquisitivo {
+  mes_anio: MesAnio;
+  /** null si ingresos y gastos van en la misma moneda. */
+  moneda_ingreso: Moneda | null;
+  moneda_gasto: Moneda | null;
+  tasa_mes: string | null;
+  /** null si aún no hay tasas suficientes para una media fiable. */
+  tasa_media_12_meses: string | null;
+  /** > 0: este mes tu dinero rinde más que de media. */
+  rinde_porcentaje: string | null;
+  /** Solo si este mes hubo ingresos en esa moneda. */
+  ingresos: Dinero | null;
+  rindio: Dinero | null;
+  diferencia: Dinero | null;
+}
+
 /** Lo que costaron los envíos entre monedas de un año, en la moneda principal. */
 export interface CosteEnviosAnio {
   anio: number;

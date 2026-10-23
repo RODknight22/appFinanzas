@@ -72,7 +72,7 @@ da tiempo; si no, pasan a la v1.3.
 | 3 | Bienvenida al día con tutorial de globos | — | components/bienvenida/, Layout.tsx |
 | 4 | Coste real de cada envío MXN↔EUR | — | services/transferencias.py, widgets |
 | 5 | Poder adquisitivo | 4 (mismo panel) | services/dashboard.py, widgets |
-| 6 | Importación más lista | .xls real de Santander (Rodrigo) | services/importaciones.py |
+| 6 | Importación más lista | — | services/importaciones.py |
 | 7 | Presupuestos repetibles | — | services/presupuestos.py |
 | 8 | Publicar v1.2.0 | 1-7 | version.py, package.json, CHANGELOG |
 | 9 | Probar el release en la laptop (Rodrigo) | 8 | — |
@@ -80,9 +80,8 @@ da tiempo; si no, pasan a la v1.3.
 - [x] **Probar la importación con extractos reales** de los bancos de Rodrigo (España y México).
   *Por qué:* los tests usan formatos inventados. *Dónde:* services/lector_extractos.py.
   *Hecho cuando:* cada banco se lee bien y tiene un test con su formato (datos inventados).
-  Revolut MX (CSV) probado con su archivo real; Santander (.xls) con uno que imita el real:
-  falta subir el real a la vista previa. Ojo: los `TRANSFER "To MXN"` de Revolut entran como
-  ingreso.
+  Probados con los archivos reales (23/10, sin guardarlos): 5 CSV de Revolut (333 movimientos)
+  y el .xls de Santander (6). Ojo: los `TRANSFER` de Revolut (31) entran como ingreso o gasto.
 - [x] **Registro ágil** (idea de Rodrigo: que anotar no aburra): gasto en dos toques, varios
   seguidos con «Deshacer» y revisión de la importación con progreso. *Dónde:*
   FormularioRegistroRapido.tsx, ImportarExtracto.tsx.
@@ -98,8 +97,9 @@ da tiempo; si no, pasan a la v1.3.
   frente a la tasa del BCE de ese día más la comisión ("Te costó X (Y %)") y un widget con el
   total del año. Solo cuenta si se indicó lo que llegó (columna `destino_estimado`).
   *Dónde:* services/transferencias.py, ListaTransferencias.tsx, registroWidgets.tsx.
-- [ ] **Poder adquisitivo:** cuántos euros rindió el ingreso en pesos este mes frente a la media
-  de 12 meses. *Dónde:* dashboard + tasas históricas.
+- [x] **Poder adquisitivo:** cuántos euros rindió el ingreso en pesos este mes frente a la media
+  de 12 meses. Las monedas de ingreso y de gasto se detectan solas (las de más dinero en el
+  último año). *Dónde:* services/dashboard.py, widget en registroWidgets.tsx.
 - [ ] **Más monedas** (COP, ARS, GBP, CHF…). Aditivo: el enum `Moneda` se guarda como texto.
   Revisar `_validar_tasas`, `SelectMoneda` y qué fuente da sus tasas históricas.
 - [ ] **Recalcular transferencias antiguas** cuando lleguen tasas históricas (hoy solo las

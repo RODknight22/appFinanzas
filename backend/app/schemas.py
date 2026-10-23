@@ -185,6 +185,27 @@ class TransferenciaRead(TransferenciaBase):
     coste_porcentaje: Decimal | None = None
 
 
+class PoderAdquisitivo(SQLModel):
+    """Cuánto rindió lo que cobras en una moneda al gastarlo en otra, este mes frente a 12.
+
+    Las tasas van como "unidades de la moneda de ingreso por 1 de la de gasto"
+    (p. ej. 20.4 MXN por EUR): más alta = tu dinero rinde menos.
+    """
+
+    mes_anio: str
+    # None si ingresos y gastos van en la misma moneda (o aún no hay datos).
+    moneda_ingreso: Moneda | None = None
+    moneda_gasto: Moneda | None = None
+    tasa_mes: Decimal | None = None
+    tasa_media_12_meses: Decimal | None = None
+    # > 0: este mes tu dinero rinde más que de media; < 0: menos.
+    rinde_porcentaje: Decimal | None = None
+    # Solo si este mes hubo ingresos en la moneda de ingreso.
+    ingresos: Decimal | None = None  # en la moneda de ingreso
+    rindio: Decimal | None = None  # en la moneda de gasto, con las tasas de cada día
+    diferencia: Decimal | None = None  # frente a la tasa media, en la moneda de gasto
+
+
 class CosteEnviosAnio(SQLModel):
     """Lo que costaron los envíos entre monedas de un año, en la moneda principal."""
 

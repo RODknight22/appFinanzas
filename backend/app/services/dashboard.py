@@ -11,11 +11,12 @@ from decimal import Decimal
 from sqlalchemy import func
 from sqlmodel import Session, col, select
 
-from app.models import Categoria, Cuenta, Moneda, Presupuesto, TipoMovimiento, Transaccion
+from app.models import Categoria, Cuenta, Moneda, Presupuesto, TasaCambio, TipoMovimiento, Transaccion
 from app.schemas import (
     FlujoMensual,
     GastoDiario,
     GastoPorCategoria,
+    PoderAdquisitivo,
     ProgresoPresupuesto,
     PuntoPatrimonio,
     ResumenMes,
@@ -314,3 +315,101 @@ def gastos_diarios(session: Session, mes_anio: str) -> list[GastoDiario]:
         .order_by(col(Transaccion.fecha))
     )
     return [GastoDiario(fecha=fecha, total=a_decimal(suma)) for fecha, suma in session.exec(consulta).all()]
+
+
+# ---------------------------------------------------------------------------
+# Poder adquisitivo (cobrar en una moneda y gastar en otra)
+# ---------------------------------------------------------------------------
+_DIAS_HISTORIAL = 365
+# Con menos días de tasas, la "media de 12 meses" no sería una media de verdad.
+_MINIMO_DIAS_CON_TASA = 20
+_CUATRO_DECIMALES = Decimal("0.0001")
+
+
+def _moneda_principal_por_tipo(session: Session, desde: date, hasta: date) -> dict[TipoMovimiento, Moneda]:
+    """La moneda en la que entra (y sale) más dinero en el periodo, sumado en la principal."""
+    principal = configuracion.moneda_principal(session)
+    consulta = (
+        select(Transaccion.tipo, Transaccion.moneda, Cuenta.moneda, func.sum(Transaccion.monto_principal))
+        .join(Cuenta, col(Transaccion.cuenta_id) == col(Cuenta.id))
+        .where(Transaccion.fecha >= desde, Transaccion.fecha < hasta)
+        .group_by(col(Transaccion.tipo), col(Transaccion.moneda), col(Cuenta.moneda))
+    )
+    totales: defaultdict[TipoMovimiento, defaultdict[Moneda, Decimal]] = defaultdict(lambda: defaultdict(Decimal))
+    for tipo, moneda, moneda_cuenta, suma in session.exec(consulta).all():
+        totales[tipo][moneda or moneda_cuenta or principal] += a_decimal(suma)
+    return {tipo: max(por_moneda, key=lambda m: por_moneda[m]) for tipo, por_moneda in totales.items()}
+
+
+def _tasa_media(session: Session, de: Moneda, a: Moneda, desde: date, hasta: date) -> Decimal | None:
+    """Media de las tasas diarias (unidades de `de` por 1 de `a`) entre [desde, hasta).
+
+    Solo cuenta los días con tasa de las dos monedas (el USD siempre vale 1).
+    None si hay muy pocos días: la media no sería fiable.
+    """
+    por_dia: defaultdict[date, dict[Moneda, Decimal]] = defaultdict(dict)
+    consulta = select(TasaCambio.fecha, TasaCambio.moneda, TasaCambio.por_usd).where(
+        col(TasaCambio.moneda).in_([de, a]), TasaCambio.fecha >= desde, TasaCambio.fecha < hasta
+    )
+    for fecha, moneda, por_usd in session.exec(consulta).all():
+        por_dia[fecha][moneda] = por_usd
+    tasas = [
+        tasas_dia.get(de, Decimal(1)) / tasas_dia.get(a, Decimal(1))
+        for tasas_dia in por_dia.values()
+        if all(m in tasas_dia or m == Moneda.USD for m in (de, a))
+    ]
+    return sum(tasas, Decimal(0)) / len(tasas) if len(tasas) >= _MINIMO_DIAS_CON_TASA else None
+
+
+def poder_adquisitivo(session: Session, mes_anio: str) -> PoderAdquisitivo:
+    """Cuánto rinden tus ingresos de una moneda al gastar en otra, este mes frente a 12."""
+    inicio, fin = _rango_mes(session, mes_anio)
+    hace_un_anio = fin - timedelta(days=_DIAS_HISTORIAL)
+    monedas = _moneda_principal_por_tipo(session, hace_un_anio, fin)
+    ingreso, gasto = monedas.get(TipoMovimiento.INGRESO), monedas.get(TipoMovimiento.GASTO)
+    if ingreso is None or gasto is None or ingreso == gasto:
+        return PoderAdquisitivo(mes_anio=mes_anio)
+
+    resultado = PoderAdquisitivo(mes_anio=mes_anio, moneda_ingreso=ingreso, moneda_gasto=gasto)
+    media = _tasa_media(session, ingreso, gasto, hace_un_anio, fin)
+    if media is None:
+        return resultado
+
+    # Los ingresos del mes en esa moneda, cada uno convertido con la tasa de su día.
+    consulta = (
+        select(Transaccion.monto, Transaccion.fecha)
+        .join(Cuenta, col(Transaccion.cuenta_id) == col(Cuenta.id))
+        .where(
+            Transaccion.tipo == TipoMovimiento.INGRESO,
+            Transaccion.fecha >= inicio,
+            Transaccion.fecha < fin,
+            func.coalesce(Transaccion.moneda, Cuenta.moneda, configuracion.moneda_principal(session)) == ingreso.value,
+        )
+    )
+    ingresos = rindio = Decimal(0)
+    for monto, fecha in session.exec(consulta).all():
+        ingresos += monto
+        rindio += divisas.convertir_sin_redondeo(session, monto, ingreso, gasto, fecha)
+
+    if ingresos:
+        tasa_mes = ingresos / rindio
+        resultado.ingresos = ingresos.quantize(CENTIMOS)
+        resultado.rindio = rindio.quantize(CENTIMOS)
+        resultado.diferencia = (rindio - ingresos / media).quantize(CENTIMOS)
+    else:
+        # Sin ingresos aún este mes: la tasa de hoy (o la del último día del mes, si ya pasó).
+        tasa_mes = _tasa_del_mes(session, ingreso, gasto, inicio, fin)
+    if tasa_mes is None:
+        return resultado
+    resultado.tasa_mes = tasa_mes.quantize(_CUATRO_DECIMALES)
+    resultado.tasa_media_12_meses = media.quantize(_CUATRO_DECIMALES)
+    resultado.rinde_porcentaje = ((media / tasa_mes - 1) * 100).quantize(Decimal("0.1"))
+    return resultado
+
+
+def _tasa_del_mes(session: Session, de: Moneda, a: Moneda, inicio: date, fin: date) -> Decimal | None:
+    """La tasa del mes cuando no hay ingresos: la del último día con tasa hasta hoy."""
+    dia = min(fin - timedelta(days=1), date.today())
+    if dia < inicio:
+        return None
+    return divisas.convertir_sin_redondeo(session, Decimal(1), a, de, dia)

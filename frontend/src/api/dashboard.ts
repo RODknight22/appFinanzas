@@ -3,6 +3,7 @@ import type {
   GastoDiario,
   GastoPorCategoria,
   MesAnio,
+  PoderAdquisitivo,
   ProgresoPresupuesto,
   PuntoPatrimonio,
   ResumenMes,
@@ -10,6 +11,7 @@ import type {
 import { http } from "./cliente";
 
 export const dashboardApi = {
+  poderAdquisitivo: (mes_anio: MesAnio) => http.get<PoderAdquisitivo>("/dashboard/poder-adquisitivo", { mes_anio }),
   resumen: (mes_anio: MesAnio) => http.get<ResumenMes>("/dashboard/resumen", { mes_anio }),
   flujoMensual: (hasta_mes: MesAnio, meses = 6) =>
     http.get<FlujoMensual[]>("/dashboard/flujo-mensual", { hasta_mes, meses }),

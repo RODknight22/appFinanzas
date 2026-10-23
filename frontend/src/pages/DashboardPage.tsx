@@ -48,6 +48,7 @@ export function DashboardPage() {
         dashboardApi.gastosDiarios(mes),
         ingresosApi.listar({ proximos_dias: DIAS_PROXIMOS }),
         transferenciasApi.costes(Number(mes.slice(0, 4))),
+        dashboardApi.poderAdquisitivo(mes),
       ]),
     [mes],
     "dashboard",
@@ -91,7 +92,7 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar} esqueleto={<EsqueletoPanel />}>
-        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros, costeEnvios]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros, costeEnvios, poder]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
             resumen,
@@ -107,6 +108,7 @@ export function DashboardPage() {
             patrimonio,
             diarios,
             costeEnvios,
+            poder,
             mes,
           };
           return (

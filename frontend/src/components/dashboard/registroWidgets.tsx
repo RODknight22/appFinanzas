@@ -2,7 +2,7 @@
  * Registro de widgets del panel. Para añadir uno nuevo basta con añadirlo a
  * WIDGETS: aparecerá en el panel y en la lista de widgets que se pueden mostrar.
  */
-import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, Scale, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, Coins, Scale, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
@@ -15,6 +15,7 @@ import type {
   IngresoRecurrente,
   Meta,
   MesAnio,
+  PoderAdquisitivo,
   ProgresoPresupuesto,
   PuntoPatrimonio,
   ResumenMes,
@@ -56,6 +57,24 @@ export interface DatosPanel {
   diarios: GastoDiario[];
   /** Coste de los envíos entre monedas del año del mes que se está viendo. */
   costeEnvios: CosteEnviosAnio;
+  poder: PoderAdquisitivo;
+}
+
+/** "−8,3 %", con signo: cuánto más (o menos) rinde tu dinero que de media. */
+function textoRinde(porcentaje: string | null): string {
+  if (porcentaje === null) return "—";
+  const valor = Number(porcentaje);
+  return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${formatearNumero(Math.abs(valor), 1)} %`;
+}
+
+function detallePoder({ moneda_ingreso, moneda_gasto, tasa_mes, tasa_media_12_meses, ingresos, rindio, diferencia }: PoderAdquisitivo): string {
+  if (!moneda_ingreso || !moneda_gasto) return "Aparece cuando cobras en una moneda y gastas en otra";
+  if (!tasa_mes || !tasa_media_12_meses) return "Hacen falta unas semanas de tasas de cambio para comparar";
+  if (ingresos && rindio && diferencia) {
+    const menos = Number(diferencia) < 0;
+    return `Tus ${formatearDinero(ingresos, moneda_ingreso)} rindieron ${formatearDinero(rindio, moneda_gasto)}: ${formatearDinero(Math.abs(Number(diferencia)), moneda_gasto)} ${menos ? "menos" : "más"} que con la media de 12 meses`;
+  }
+  return `1 ${moneda_gasto} = ${formatearNumero(Number(tasa_mes), 2)} ${moneda_ingreso} este mes · media de 12 meses: ${formatearNumero(Number(tasa_media_12_meses), 2)}`;
 }
 
 interface DefinicionWidget {
@@ -180,6 +199,22 @@ export const WIDGETS = {
         )}
       </Tarjeta>
     ),
+  },
+  poder_adquisitivo: {
+    titulo: "Poder adquisitivo",
+    tamanoPorDefecto: "pequeno",
+    pintar: ({ poder }) => {
+      const rinde = Number(poder.rinde_porcentaje ?? 0);
+      return (
+        <TarjetaMetrica
+          titulo={poder.moneda_ingreso && poder.moneda_gasto ? `Rinde tu ${poder.moneda_ingreso} en ${poder.moneda_gasto}` : "Poder adquisitivo"}
+          valor={textoRinde(poder.rinde_porcentaje)}
+          icono={Coins}
+          tono={rinde > 0 ? "positivo" : rinde < 0 ? "negativo" : "neutral"}
+          detalle={detallePoder(poder)}
+        />
+      );
+    },
   },
   coste_envios: {
     titulo: "Coste de tus envíos entre monedas",
