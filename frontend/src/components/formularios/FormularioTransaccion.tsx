@@ -21,7 +21,7 @@ interface VistaPreviaProps {
 }
 
 /** "≈ 2,000.00 en MXN" cuando se paga en una moneda distinta a la de la cuenta. */
-function VistaPreviaConversion({ monto, de, a }: VistaPreviaProps) {
+export function VistaPreviaConversion({ monto, de, a }: VistaPreviaProps) {
   const { convertir } = useConfiguracion();
   if (!a || a === de || !monto) return null;
   const convertido = convertir(monto, de, a);
