@@ -102,8 +102,10 @@ certutil -hashfile AppFinanzas-vX.Y.Z-windows.exe SHA256   # Windows
 ## Privacidad y seguridad
 
 - La app **solo escucha en tu propio ordenador** (`127.0.0.1`): nadie de tu red puede conectarse.
-- Lo único que sale a internet es la descarga diaria de tasas de cambio desde
-  [ExchangeRate-API](https://www.exchangerate-api.com). No se envía ningún dato tuyo.
+- Lo único que sale a internet son las tasas de cambio: las del día, de
+  [ExchangeRate-API](https://www.exchangerate-api.com), y las de días pasados, del Banco Central
+  Europeo vía [Frankfurter](https://frankfurter.dev). La app solo pide las tasas: no se envía
+  ningún dato tuyo (ni importes, ni cuentas, ni movimientos).
 - Contraseña guardada con *scrypt* (nunca en claro); sesión en una cookie que JavaScript no puede
   leer; bloqueos crecientes tras varios intentos fallidos.
 - Protecciones frente a webs maliciosas abiertas en el mismo navegador (comprobación de `Host` y
@@ -144,6 +146,22 @@ scripts/verificar.sh --e2e    # además recorre la app en un navegador (Playwrig
 cambios a `CHANGELOG.md` y `NOTAS_RELEASE.md`, y sube una etiqueta:
 `git tag v1.3.0 && git push origin v1.3.0`. GitHub Actions fabrica los ejecutables y la imagen
 Docker y crea el Release.
+
+## Code signing policy
+
+Política de firma de los ejecutables de Windows.
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
+[SignPath Foundation](https://signpath.org).
+
+- **Autores y revisores** (pueden subir código y revisan las aportaciones de otros):
+  [RODknight22](https://github.com/RODknight22).
+- **Aprobadores** (aprueban cada firma a mano): [RODknight22](https://github.com/RODknight22).
+- Solo se firma lo que GitHub Actions compila a partir de este repositorio, al publicar una
+  versión (etiqueta `v*`). Todas las cuentas con acceso usan verificación en dos pasos.
+- **Privacidad:** este programa no envía información a otros sistemas en red salvo la petición
+  de tasas de cambio descrita en [Privacidad y seguridad](#privacidad-y-seguridad), que no
+  incluye ningún dato personal ni financiero.
 
 ## Licencia
 

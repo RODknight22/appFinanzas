@@ -211,7 +211,7 @@ sus notas (24/10). 2 y 3 son de backend y 4 de frontend: pueden ir en sesiones a
 | 6 | Comparar vías de envío (Revolut: transferencia o efectivo) | — | services/transferencias.py, widgets |
 | 7 | Aviso de buen momento | 5 | services/divisas.py, widget |
 | 8 | Más bancos al importar | Forma de los extractos (Rodrigo) | services/lector_extractos.py |
-| 9 | Firmar el ejecutable | Licencia y certificado (Rodrigo) | release.yml, docs/ |
+| 9 | Firmar el ejecutable | Alta en SignPath (Rodrigo) | release.yml, docs/ |
 | 10 | React 19 y react-router 8 | 3-5 (tocan el mismo frontend) | package.json, frontend/src |
 | 11 | Publicar v1.4.0 | 2-6 | version.py, package.json, CHANGELOG |
 
@@ -227,9 +227,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   prueba y dice en el cuaderno qué echa de menos. *Dónde:* components/dashboard/.
 - [ ] **Firmar el ejecutable de Windows** (P1). "Control de aplicaciones inteligentes" bloquea
   el .exe sin firma. SignPath Foundation es gratis, pero exige licencia OSI **sin doble licencia
-  comercial**, y Rodrigo quiere venderla algún día (cuaderno, 23/10). *Antes:* Rodrigo decide:
-  SignPath ahora (y cambiar de certificado si un día vende con otra licencia) o un certificado
-  de pago desde ya. Claude prepara la política de firma y el paso en release.yml.
+  comercial**, y Rodrigo quiere venderla algún día. **Decidido (24/10):** seguir con GPL y
+  SignPath; si un día se vende con otra licencia, se cambia a un certificado de pago.
+  *Rodrigo:* MFA en GitHub, solicitud en signpath.org/apply y, al aceptarla, el token como
+  secreto del repo. *Claude:* "Code signing policy" en el README (hecho) y el paso en release.yml.
   *Hecho cuando:* el .exe publicado abre con el control activado.
 - [x] **Colores de ingreso y gasto propios**, separados del acento: tokens `ingreso`, `gasto`,
   `exito` y `peligro` en index.css (claro y oscuro) en lugar de `emerald`/`rose` fijos.
