@@ -47,7 +47,7 @@ export function AsistenteBienvenida() {
   if (recorrido) return <RecorridoGlobos onTerminar={terminar} />;
 
   return (
-    <Modal titulo="Primeros pasos" abierto onCerrar={terminar}>
+    <Modal titulo="Bienvenida" abierto onCerrar={terminar}>
       <ol className="mb-5 flex gap-1.5" aria-label={`Paso ${paso + 1} de ${PASOS.length}`}>
         {PASOS.map((nombrePaso, i) => (
           <li key={nombrePaso} className={`h-1.5 flex-1 rounded-full ${i <= paso ? "bg-acento-500" : "bg-superficie-2"}`}>

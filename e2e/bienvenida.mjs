@@ -4,7 +4,7 @@ import { BASE, CAPTURAS, comprobar, prueba } from "./comun.mjs";
 await prueba("bienvenida", async ({ pagina, api }) => {
   // Sin abrir() de comun.mjs: ese cierra la bienvenida, y aquí es lo que se prueba.
   await pagina.goto(`${BASE}/dashboard`);
-  const ventana = pagina.getByRole("dialog", { name: "Primeros pasos" });
+  const ventana = pagina.getByRole("dialog", { name: "Bienvenida" });
   await ventana.getByRole("button", { name: "Empezar" }).click();
   await ventana.getByRole("button", { name: "Siguiente" }).click(); // moneda: la propuesta
 
@@ -27,6 +27,8 @@ await prueba("bienvenida", async ({ pagina, api }) => {
   const caja = await globo.boundingBox();
   comprobar(caja.x > enlace.x + enlace.width, "el primer globo señala el Dashboard desde la derecha");
   await pagina.screenshot({ path: `${CAPTURAS}/bienvenida-globo.png` });
+  const tarjeta = pagina.getByRole("heading", { name: "Primeros pasos" });
+  comprobar(!(await tarjeta.isVisible()), "durante la bienvenida no se ve la tarjeta de primeros pasos");
 
   const actual = pagina.locator("#recorrido-titulo");
   const titulos = [await actual.textContent()];
@@ -43,6 +45,13 @@ await prueba("bienvenida", async ({ pagina, api }) => {
   await pagina.getByRole("button", { name: "¡Listo!" }).click();
   await actual.waitFor({ state: "detached" });
   comprobar((await api.get("/configuracion")).tutorial_visto, "al terminar queda como visto");
+  await tarjeta.waitFor();
+  const pasoCuenta = pagina.getByRole("link", { name: "Crea tu primera cuenta" });
+  await pagina.waitForFunction(() =>
+    [...document.querySelectorAll("a")].some((a) => a.textContent === "Crea tu primera cuenta" && a.classList.contains("line-through")),
+  );
+  comprobar((await pasoCuenta.getAttribute("class")).includes("line-through"), "después aparecen los primeros pasos, con la cuenta ya tachada");
+  await pagina.screenshot({ path: `${CAPTURAS}/bienvenida-despues.png` });
 
   // Repetirlo desde Ajustes, en el móvil: los globos señalan la barra de abajo y caben en pantalla.
   await pagina.setViewportSize({ width: 390, height: 844 });

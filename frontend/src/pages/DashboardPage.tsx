@@ -50,7 +50,9 @@ export function DashboardPage() {
         transferenciasApi.costes(Number(mes.slice(0, 4))),
         dashboardApi.poderAdquisitivo(mes),
       ]),
-    [mes],
+    // Con tutorial_visto: al terminar la bienvenida se recarga y el panel ya ve la cuenta y el
+    // sueldo creados en ella (si no, los primeros pasos seguían sin tachar).
+    [mes, configuracion.tutorial_visto],
     "dashboard",
   );
   // Las metas también se celebran aquí: al abrir la app ves si alguna cruzó un hito.
@@ -113,7 +115,8 @@ export function DashboardPage() {
           };
           return (
             <>
-              {!configuracion.bienvenida_cerrada && (
+              {/* Después de la bienvenida, no a la vez: un solo recorrido, sin dos "primeros pasos". */}
+              {configuracion.tutorial_visto && !configuracion.bienvenida_cerrada && (
                 <TarjetaBienvenida
                   progreso={{ cuentas: cuentas.length, transacciones: ultimas.length, presupuestos: presupuestos.length, metas: metas.length }}
                 />
