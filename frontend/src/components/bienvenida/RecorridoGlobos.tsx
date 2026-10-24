@@ -18,6 +18,8 @@ const PASOS: { clave: string; titulo: string; texto: string }[] = [
   { clave: "/cuentas", titulo: "Cuentas", texto: "Bancos, tarjetas y efectivo, cada uno en su moneda." },
   { clave: "/categorias", titulo: "Categorías", texto: "Crea las tuyas, con su icono y su color." },
   { clave: "/ajustes", titulo: "Ajustes", texto: "Perfil, estilos, monedas y copia de seguridad. Aquí repites este recorrido u ocultas las bombillas de consejos." },
+  // Solo en el móvil: en escritorio no hay botón «Más» y el paso se salta solo.
+  { clave: "/mas", titulo: "Más", texto: "Metas, deudas, pagos fijos, categorías y Ajustes, donde repites este recorrido." },
 ];
 
 const ANCHO = 288;
