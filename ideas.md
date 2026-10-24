@@ -85,6 +85,9 @@ Ejemplo:
     Si alguno no se tachó, dime cuál y qué hiciste. Puede que la tarjeta solo se actualice al
     recargar la página, y eso lo arreglamos.
   - 🗣️ Rodrigo:
+  - 💬 Claude (24/10): encontrado y arreglado en la PR #45. La cuenta creada en la bienvenida no
+    se tachaba porque el panel había cargado antes. Ahora la tarjeta sale al terminar la
+    bienvenida y ya tachada. Si ves otro que no se tache, dímelo aquí.
 - [x] ~~Aceptar los movimientos importados más rápido, con una categoría por defecto~~ #mejora
   → hecho (PR #18; llega en la v1.2)
   - 💬 Claude (23/10): esto lo hizo otra sesión una hora antes de que lo escribieras: ✓ en
