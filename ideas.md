@@ -222,6 +222,7 @@ claras. Con tus respuestas Claude ajusta la hoja de ruta.
         licencia, cambias a un certificado de pago entonces. (Mi recomendación: no frena nada hoy.)
      2. **Licencia propia desde ya** y certificado de pago (decenas o cientos de € al año).
      ¿Cuál prefieres? Respóndeme con 1 o 2.
+   - 🗣️ Rodrigo (24/10, en el chat): la 1. → Apuntado en la hoja de ruta (PR #44).
 20. ¿Quieres ganar algo de dinero con ella o es aprendizaje y portafolio? 🗣️ Rodrigo: Ambos
    - 💬 Claude (23/10): importa para la firma del .exe. SignPath es gratis pero exige no
      vender la app con otra licencia (doble licencia). Si algún día quieres venderla, habría
