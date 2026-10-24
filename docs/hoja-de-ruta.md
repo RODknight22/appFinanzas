@@ -203,17 +203,17 @@ sus notas (24/10). 2 y 3 son de backend y 4 de frontend: pueden ir en sesiones a
 
 | Orden | Tarea | Depende de | Zona que toca |
 | --- | --- | --- | --- |
-| 1 | Tasa FIX de Banxico | — | services/divisas.py, nuevo services/banxico.py |
+| 1 | ~~Tasa FIX de Banxico~~ (descartada, ver abajo) | — | — |
 | 2 | Ajustar el saldo de una cuenta | — | services/cuentas.py, CuentasPage |
 | 3 | Colores de ingreso y gasto propios | — | index.css, los 22 archivos con `emerald` |
 | 4 | Navegación móvil y una sola bienvenida | 3 | Layout.tsx, components/bienvenida/ |
 | 5 | Widgets personalizables y Dashboard más ligero | Notas de Rodrigo; 3 | components/dashboard/ |
-| 6 | Comparar vías de envío | Vías de Rodrigo; 1 | services/transferencias.py, widgets |
-| 7 | Aviso de buen momento | 1, 5 | services/divisas.py, widget |
+| 6 | Comparar vías de envío (Revolut: transferencia o efectivo) | — | services/transferencias.py, widgets |
+| 7 | Aviso de buen momento | 5 | services/divisas.py, widget |
 | 8 | Más bancos al importar | Forma de los extractos (Rodrigo) | services/lector_extractos.py |
-| 9 | Firmar el ejecutable | Alta en SignPath y licencia (Rodrigo) | release.yml, docs/ |
+| 9 | Firmar el ejecutable | Licencia y certificado (Rodrigo) | release.yml, docs/ |
 | 10 | React 19 y react-router 8 | 3-5 (tocan el mismo frontend) | package.json, frontend/src |
-| 11 | Publicar v1.4.0 | 1-6 y 9 | version.py, package.json, CHANGELOG |
+| 11 | Publicar v1.4.0 | 2-6 | version.py, package.json, CHANGELOG |
 
 Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publica sin ellas.
 
@@ -225,27 +225,30 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   elegir cómo muestran los datos y widgets nuevos; Rodrigo lo nota "recargado" pero le gustan
   las gráficas: menos widgets a la vista por defecto, más para elegir. *Antes:* Rodrigo los
   prueba y dice en el cuaderno qué echa de menos. *Dónde:* components/dashboard/.
-- [ ] **Firmar el ejecutable de Windows** (P1) con SignPath Foundation (gratis para código abierto;
-  Rodrigo lo eligió el 23/10). "Control de aplicaciones inteligentes" bloquea el .exe sin firma.
-  *Lo que pide SignPath:* licencia OSI **sin doble licencia comercial** (choca con la idea de la
-  v2.0), MFA en GitHub, una sección "Code signing policy" en el README con roles y privacidad,
-  aprobar a mano cada firma y compilar en el CI (ya lo hacemos). *Antes:* Rodrigo decide la
-  licencia y solicita el alta en signpath.org/apply; Claude prepara la política y el paso en
-  release.yml. *Hecho cuando:* el .exe publicado abre con el control activado.
+- [ ] **Firmar el ejecutable de Windows** (P1). "Control de aplicaciones inteligentes" bloquea
+  el .exe sin firma. SignPath Foundation es gratis, pero exige licencia OSI **sin doble licencia
+  comercial**, y Rodrigo quiere venderla algún día (cuaderno, 23/10). *Antes:* Rodrigo decide:
+  SignPath ahora (y cambiar de certificado si un día vende con otra licencia) o un certificado
+  de pago desde ya. Claude prepara la política de firma y el paso en release.yml.
+  *Hecho cuando:* el .exe publicado abre con el control activado.
 - [x] **Colores de ingreso y gasto propios**, separados del acento: tokens `ingreso`, `gasto`,
   `exito` y `peligro` en index.css (claro y oscuro) en lugar de `emerald`/`rose` fijos.
 - [x] **Navegación móvil** con los mismos nombres que en escritorio: barra con Dashboard,
   Transacciones, Presupuestos, Cuentas y "Más" (el resto, Ajustes, modo y salir).
 - [ ] **Un único recorrido de bienvenida** (P2): hoy modal, tarjeta y globos se solapan.
-- [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía (Revolut,
-  banco, Wise…) frente a la tasa oficial, y cuál conviene. *Antes:* Rodrigo dice qué vías usa.
-- [ ] **Tasa de Banxico (FIX)** para las fechas pasadas de MXN (P1): hoy solo hay BCE, que mide
-  el euro; para el peso la referencia natural es Banxico. Fuente pública y gratuita.
+- [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía frente a
+  la tasa oficial, y cuál conviene. Las de Rodrigo (cuaderno, 23/10): de Revolut México a
+  Santander España por **transferencia**, o **sacar efectivo** y depositarlo (comisión del cajero
+  y tasa del cambio).
+- [-] ~~Tasa de Banxico (FIX)~~ → descartada (23/10): su API exige que cada usuario se registre
+  y pegue un token, y para MXN↔EUR el BCE ya da la tasa directa. Solo mejoraría MXN↔USD.
 - [ ] **Aviso de buen momento** (P2): "el euro está un 3 % por debajo de su media de 3 meses".
-- [ ] **Más bancos al importar** (P1): BBVA México/España, Nu, Wise, CaixaBank. Cada lector con su
-  test y un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
+- [ ] **Más bancos al importar** (P1): los de Rodrigo (cuaderno, 23/10): Nu México, BBVA México y
+  en Centroamérica BAC, Promerica y Ficohsa (HNL y GTQ ya existen). Cada lector con su test y
+  un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
 - [ ] **Etiquetas / viajes** (P2): agrupar gastos de varias categorías y monedas ("Viaje CDMX").
-- [ ] Inversiones y ahorro con valoración (P3): valor por fecha, aportado frente a valor actual.
+- [ ] Inversiones con valoración (P3; Rodrigo tiene cripto y acciones de EE. UU.): valor por
+  fecha, aportado frente a valor actual.
 - [ ] Monedas de Europa (GBP, CHF: tienen tasas del BCE) y fuente histórica para GTQ/HNL (P3).
 - [ ] Recordatorios por correo y seguir precios de los deseos (P3).
 - [ ] Atajo ASCII en `normalizar_texto` si la búsqueda se nota lenta (medido: 35×) (P3).
@@ -261,6 +264,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
 - [ ] **Interfaz en inglés** (P1): sin inglés el alcance se queda en una fracción. Textos en un
   archivo por idioma; el español sigue siendo el principal.
 - [ ] **Copias automáticas programadas** (P1): una al día en la carpeta que elijas, guardando 30.
+- [ ] **Gastos compartidos** (P2; Rodrigo, 23/10): dividir un gasto con alguien (pareja, piso) y
+  que su parte quede como "me deben" en Deudas.
+- [ ] **Apartados que se pueden desactivar** (P2; Rodrigo, 23/10: "que les sobre y puedan quitar
+  funciones"): en Ajustes, ocultar Deudas, Metas, Efectivo… del menú y del panel.
 - [ ] Paleta de comandos y apunte en lenguaje natural ("32 cena revolut ayer") (P2).
 - [ ] "Cierre de mes": 4-5 tarjetas al empezar un mes nuevo con lo más llamativo del anterior (P3).
 - [ ] Publicar en winget y plantillas de una línea para servidores caseros (P2; con el .exe
