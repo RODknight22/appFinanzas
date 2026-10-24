@@ -272,6 +272,27 @@ class CosteEnviosAnio(SQLModel):
     porcentaje_medio: Decimal | None  # sobre todo lo enviado; None sin envíos
 
 
+class ViaEnvio(SQLModel):
+    """Una vía para cambiar de moneda: de una cuenta a otra (p. ej. al cajero = a la cartera)."""
+
+    cuenta_origen_id: int
+    cuenta_destino_id: int
+    origen: str
+    destino: str
+    a_efectivo: bool  # el destino es una cartera: sacar del cajero
+    envios: int
+    # En la moneda principal: lo enviado, lo que costó frente al BCE y su porcentaje.
+    enviado: Decimal
+    coste: Decimal
+    porcentaje_medio: Decimal
+
+
+class ViasEnvio(SQLModel):
+    moneda: Moneda
+    desde: date
+    vias: list[ViaEnvio]  # de la más barata (menor porcentaje) a la más cara
+
+
 class TransferenciaUpdate(SQLModel):
     cuenta_origen_id: int | None = None
     cuenta_destino_id: int | None = None

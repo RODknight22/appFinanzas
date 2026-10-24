@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query, status
 
 from app.database import SessionDep
-from app.schemas import CosteEnviosAnio, TransferenciaCreate, TransferenciaRead, TransferenciaUpdate
+from app.schemas import CosteEnviosAnio, TransferenciaCreate, TransferenciaRead, TransferenciaUpdate, ViasEnvio
 from app.services import transferencias as servicio
 
 router = APIRouter(prefix="/transferencias", tags=["Transferencias"])
@@ -20,6 +20,13 @@ def listar_transferencias(
 ):
     """Lista transferencias, de la más reciente a la más antigua, con el coste de los envíos."""
     return servicio.con_coste(session, servicio.listar(session, cuenta_id=cuenta_id, offset=offset, limit=limit))
+
+
+# Antes que "/{transferencia_id}": si no, "vias" se tomaría por un id.
+@router.get("/vias", response_model=ViasEnvio)
+def comparar_vias(session: SessionDep, meses: Annotated[int, Query(ge=1, le=60)] = 12):
+    """Lo que costó cada vía de envío entre monedas (pareja de cuentas), de la más barata a la más cara."""
+    return servicio.vias_de_envio(session, meses)
 
 
 # Antes que "/{transferencia_id}": si no, "costes" se tomaría por un id.
