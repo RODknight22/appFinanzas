@@ -231,6 +231,27 @@ export interface CosteEnviosAnio {
   porcentaje_medio: string | null;
 }
 
+/** Una vía para cambiar de moneda (pareja de cuentas) y lo que costó, en la moneda principal. */
+export interface ViaEnvio {
+  cuenta_origen_id: number;
+  cuenta_destino_id: number;
+  origen: string;
+  destino: string;
+  /** El destino es una cartera: sacar del cajero. */
+  a_efectivo: boolean;
+  envios: number;
+  enviado: Dinero;
+  coste: Dinero;
+  porcentaje_medio: string;
+}
+
+export interface ViasEnvio {
+  moneda: Moneda;
+  desde: FechaISO;
+  /** De la más barata a la más cara. */
+  vias: ViaEnvio[];
+}
+
 /** Presupuestos que se pueden copiar (o se copiaron) desde el último mes que los tiene. */
 export interface CopiaPresupuestos {
   /** El mes de origen; null si no hay ninguno anterior con presupuestos. */

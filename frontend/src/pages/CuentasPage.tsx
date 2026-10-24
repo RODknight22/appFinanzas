@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { dashboardApi } from "../api/dashboard";
 import { cuentasApi, transferenciasApi } from "../api/recursos";
+import { ComparadorVias } from "../components/cuentas/ComparadorVias";
 import { FilaCuenta, type FilaCuentaProps } from "../components/cuentas/FilaCuenta";
 import { ListaTransferencias } from "../components/cuentas/ListaTransferencias";
 import { PanelAjusteSaldo } from "../components/cuentas/PanelAjusteSaldo";
@@ -38,7 +39,13 @@ export function CuentasPage() {
   const { estaPlegada, alternar: alternarPlegada } = useCuentasPlegadas();
   // Las cuentas vienen con su saldo actual calculado en el resumen del dashboard.
   const estado = useDatos(
-    () => Promise.all([cuentasApi.listar(), dashboardApi.resumen(mesActual()), transferenciasApi.listar({ limit: 20 })]),
+    () =>
+      Promise.all([
+        cuentasApi.listar(),
+        dashboardApi.resumen(mesActual()),
+        transferenciasApi.listar({ limit: 20 }),
+        transferenciasApi.vias(),
+      ]),
     [],
     "cuentas",
   );
@@ -103,7 +110,7 @@ export function CuentasPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
-        {([cuentas, resumen, transferencias]) => {
+        {([cuentas, resumen, transferencias, vias]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const enPrincipal = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo_principal)]));
           // El efectivo tiene su propia pestaña.
@@ -162,6 +169,12 @@ export function CuentasPage() {
                   </ul>
                 )}
               </Tarjeta>
+
+              {vias.vias.length > 0 && (
+                <Tarjeta titulo="¿Por dónde te sale más barato cambiar?">
+                  <ComparadorVias datos={vias} />
+                </Tarjeta>
+              )}
 
               {cuentas.length >= 2 && (
                 <Tarjeta titulo="Últimas transferencias">

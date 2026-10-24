@@ -238,7 +238,7 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   Transacciones, Presupuestos, Cuentas y "Más" (el resto, Ajustes, modo y salir).
 - [x] **Un único recorrido de bienvenida:** ventana "Bienvenida" → globos → y solo después la
   tarjeta "Primeros pasos", que ya ve la cuenta creada (antes salía a la vez y sin tachar).
-- [ ] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía frente a
+- [x] **Comparar vías de envío** (P1): con tus envíos pasados, cuánto te costó cada vía frente a
   la tasa oficial, y cuál conviene. Las de Rodrigo (cuaderno, 23/10): de Revolut México a
   Santander España por **transferencia**, o **sacar efectivo** y depositarlo (comisión del cajero
   y tasa del cambio).
