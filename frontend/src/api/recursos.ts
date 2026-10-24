@@ -36,6 +36,7 @@ import type {
   TipoMovimiento,
   Transaccion,
   Transferencia,
+  ViasEnvio,
   VistaPreviaImportacion,
 } from "../types";
 import { http } from "./cliente";
@@ -92,6 +93,8 @@ export const transferenciasApi = {
   ...crearRecurso<Transferencia, { cuenta_id?: number; limit?: number }>("/transferencias"),
   /** Lo que costaron los envíos entre monedas del año, frente a la tasa del BCE. */
   costes: (anio: number) => http.get<CosteEnviosAnio>("/transferencias/costes", { anio }),
+  /** Lo que costó cada vía de envío (pareja de cuentas) en los últimos 12 meses. */
+  vias: () => http.get<ViasEnvio>("/transferencias/vias"),
 };
 export const presupuestosApi = {
   ...crearRecurso<Presupuesto, { mes_anio?: MesAnio }>("/presupuestos"),

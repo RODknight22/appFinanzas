@@ -1,5 +1,6 @@
 """Transferencias: mueven saldos entre cuentas sin contar como ingreso ni gasto."""
 
+from datetime import date, timedelta
 from decimal import Decimal
 from itertools import permutations
 
@@ -227,3 +228,35 @@ def test_las_anteriores_al_campo_solo_cuentan_si_no_coinciden_con_la_tasa(
 
     costes = {t["id"]: t["coste"] for t in client.get("/transferencias").json()}
     assert costes == {estimada["id"]: None, real["id"]: "10.00"}
+
+
+def test_comparar_vias_de_envio(client: TestClient, cuenta: dict, cuenta_eur: dict) -> None:
+    """Cada pareja origen → destino entre monedas es una vía; la más barata va primero."""
+    cartera = client.post("/cuentas", json={"nombre": "Cartera", "tipo": "efectivo", "moneda": "EUR"}).json()
+    hace_un_mes = (date.today() - timedelta(days=30)).isoformat()
+    # Transferencia: 300 MXN → 14.50 EUR en vez de 15 (10 MXN) + 5 de comisión = 5 %.
+    _transferir(client, cuenta, cuenta_eur, monto_destino="14.50", comision="5", fecha=hace_un_mes)
+    # Cajero: 300 MXN → 14.85 EUR (3 MXN = 1 %) y 600 MXN → 29.70 EUR (6 MXN = 1 %).
+    _transferir(client, cuenta, cartera, monto_destino="14.85", fecha=hace_un_mes)
+    _transferir(client, cuenta, cartera, monto_origen="600", monto_destino="29.70", fecha=hace_un_mes)
+    # No cuentan: estimada, de hace más de un año y entre la misma moneda.
+    _transferir(client, cuenta, cartera, fecha=hace_un_mes)
+    _transferir(client, cuenta, cuenta_eur, monto_destino="10", fecha=(date.today() - timedelta(days=400)).isoformat())
+    otra_eur = client.post("/cuentas", json={"nombre": "Santander", "tipo": "debito", "moneda": "EUR"}).json()
+    _transferir(client, cartera, otra_eur, monto_origen="10", fecha=hace_un_mes)
+
+    resultado = client.get("/transferencias/vias").json()
+    assert resultado["moneda"] == "MXN" and resultado["desde"] == (date.today() - timedelta(days=365)).isoformat()
+    resumen = [
+        (v["origen"], v["destino"], v["a_efectivo"], v["envios"], v["enviado"], v["coste"], v["porcentaje_medio"])
+        for v in resultado["vias"]
+    ]
+    assert resumen == [
+        ("Banco", "Cartera", True, 2, "900.00", "9.00", "1.00"),
+        ("Banco", "Revolut", False, 1, "300.00", "15.00", "5.00"),
+    ]
+
+
+def test_sin_envios_no_hay_vias(client: TestClient, cuenta: dict, cuenta_eur: dict) -> None:
+    _transferir(client, cuenta, cuenta_eur, fecha=date.today().isoformat())  # estimada
+    assert client.get("/transferencias/vias").json()["vias"] == []

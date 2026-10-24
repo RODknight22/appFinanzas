@@ -8,14 +8,23 @@ Entre monedas, además, se calcula lo que costó el envío frente a la tasa del 
 de su fecha (ver `coste_envio`).
 """
 
-from datetime import date
+from collections import defaultdict
+from collections.abc import Iterator
+from datetime import date, timedelta
 from decimal import Decimal
 
 from sqlmodel import Session, col, or_, select
 
 from app.datos_iniciales import CATEGORIA_COMISIONES
-from app.models import Cuenta, LadoTransferencia, Moneda, TipoMovimiento, Transaccion, Transferencia
-from app.schemas import CosteEnviosAnio, TransferenciaCreate, TransferenciaRead, TransferenciaUpdate
+from app.models import Cuenta, LadoTransferencia, Moneda, TipoCuenta, TipoMovimiento, Transaccion, Transferencia
+from app.schemas import (
+    CosteEnviosAnio,
+    TransferenciaCreate,
+    TransferenciaRead,
+    TransferenciaUpdate,
+    ViaEnvio,
+    ViasEnvio,
+)
 from app.services import categorias, configuracion, divisas
 from app.services.comun import cambios_parciales, obtener_o_404, obtener_referencia
 from app.services.errores import ReglaDeNegocioError
@@ -204,24 +213,65 @@ def con_coste(session: Session, transferencias: list[Transferencia]) -> list[Tra
     return resultado
 
 
-def coste_del_anio(session: Session, anio: int) -> CosteEnviosAnio:
-    """Suma lo que costaron los envíos entre monedas de un año (widget del panel)."""
-    principal = configuracion.moneda_principal(session)
+def _envios_con_coste(
+    session: Session, principal: Moneda, desde: date, hasta: date
+) -> Iterator[tuple[Transferencia, Decimal, Decimal]]:
+    """(transferencia, coste, enviado) de los envíos entre monedas con coste conocido, en la principal."""
     monedas = _monedas(session, principal)
-    total = enviado = Decimal(0)
-    envios = 0
-    consulta = select(Transferencia).where(
-        Transferencia.fecha >= date(anio, 1, 1), Transferencia.fecha <= date(anio, 12, 31)
-    )
+    consulta = select(Transferencia).where(Transferencia.fecha >= desde, Transferencia.fecha <= hasta)
     for transferencia in session.exec(consulta).all():
         de, a = monedas[transferencia.cuenta_origen_id], monedas[transferencia.cuenta_destino_id]
         coste = coste_envio(session, transferencia, de, a, principal)
-        if coste is None:
-            continue
-        total += coste[0]
-        enviado += divisas.convertir_sin_redondeo(session, transferencia.monto_origen, de, principal, transferencia.fecha)
+        if coste is not None:
+            enviado = divisas.convertir_sin_redondeo(session, transferencia.monto_origen, de, principal, transferencia.fecha)
+            yield transferencia, coste[0], enviado
+
+
+def coste_del_anio(session: Session, anio: int) -> CosteEnviosAnio:
+    """Suma lo que costaron los envíos entre monedas de un año (widget del panel)."""
+    principal = configuracion.moneda_principal(session)
+    total = enviado = Decimal(0)
+    envios = 0
+    for _, coste, importe in _envios_con_coste(session, principal, date(anio, 1, 1), date(anio, 12, 31)):
+        total += coste
+        enviado += importe
         envios += 1
     return CosteEnviosAnio(
         anio=anio, moneda=principal, total=total.quantize(CENTIMOS), envios=envios,
         porcentaje_medio=(total / enviado * 100).quantize(_PORCENTAJE) if enviado else None,
     )
+
+
+def vias_de_envio(session: Session, meses: int = 12, hoy: date | None = None) -> ViasEnvio:
+    """Compara lo que costó cada vía (pareja de cuentas) en los últimos `meses`.
+
+    El porcentaje medio pesa cada envío por lo enviado: uno grande cuenta más que uno pequeño.
+    """
+    principal = configuracion.moneda_principal(session)
+    hoy = hoy or date.today()
+    desde = hoy - timedelta(days=round(meses * 365 / 12))
+    # (origen, destino) → [envíos, coste, enviado]
+    sumas: defaultdict[tuple[int, int], list] = defaultdict(lambda: [0, Decimal(0), Decimal(0)])
+    for transferencia, coste, enviado in _envios_con_coste(session, principal, desde, hoy):
+        suma = sumas[(transferencia.cuenta_origen_id, transferencia.cuenta_destino_id)]
+        suma[0] += 1
+        suma[1] += coste
+        suma[2] += enviado
+    cuentas = {c.id: c for c in session.exec(select(Cuenta)).all()}
+    vias = [
+        ViaEnvio(
+            cuenta_origen_id=origen_id,
+            cuenta_destino_id=destino_id,
+            origen=cuentas[origen_id].nombre,
+            destino=cuentas[destino_id].nombre,
+            a_efectivo=cuentas[destino_id].tipo == TipoCuenta.EFECTIVO,
+            envios=envios,
+            enviado=enviado.quantize(CENTIMOS),
+            coste=coste.quantize(CENTIMOS),
+            porcentaje_medio=(coste / enviado * 100).quantize(_PORCENTAJE),
+        )
+        for (origen_id, destino_id), (envios, coste, enviado) in sumas.items()
+        if enviado > 0
+    ]
+    vias.sort(key=lambda via: via.porcentaje_medio)
+    return ViasEnvio(moneda=principal, desde=desde, vias=vias)
