@@ -99,6 +99,21 @@ certutil -hashfile AppFinanzas-vX.Y.Z-windows.exe SHA256   # Windows
   `docker exec finanzas python -m app.restablecer_contrasena`). Se borra el usuario, **no** tus
   datos: al abrirla, creas uno nuevo.
 
+## Desinstalar
+
+La app no se instala: no añade entradas al registro, accesos directos ni servicios. Para quitarla
+del todo:
+
+1. **Haz una copia** antes si quieres conservar tus datos (Ajustes → Seguridad y datos).
+2. **Cierra la app** (la ventana de la consola).
+3. **Borra el ejecutable** que descargaste.
+4. **Borra la carpeta de datos** (contiene `finance.db` y las copias automáticas
+   `finance.antes-de-migrar-*.db`):
+   - Windows: escribe `%APPDATA%` en la barra del Explorador y borra la carpeta `AppFinanzas`.
+   - Linux: `rm -r ~/.local/share/AppFinanzas`
+5. **Docker:** `docker rm -f finanzas`, después `docker volume rm finanzas` (borra los datos) y
+   `docker image rm ghcr.io/rodknight22/appfinanzas`.
+
 ## Privacidad y seguridad
 
 - La app **solo escucha en tu propio ordenador** (`127.0.0.1`): nadie de tu red puede conectarse.

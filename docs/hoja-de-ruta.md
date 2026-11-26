@@ -230,7 +230,8 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   comercial**, y Rodrigo quiere venderla algún día. **Decidido (24/10):** seguir con GPL y
   SignPath; si un día se vende con otra licencia, se cambia a un certificado de pago.
   *Rodrigo:* MFA en GitHub, solicitud en signpath.org/apply y, al aceptarla, el token como
-  secreto del repo. *Claude:* "Code signing policy" en el README (hecho) y el paso en release.yml.
+  secreto del repo. *Claude:* "Code signing policy" en el README y en las notas de release, cómo
+  desinstalar (hecho) y el paso en release.yml.
   *Hecho cuando:* el .exe publicado abre con el control activado.
 - [x] **Colores de ingreso y gasto propios**, separados del acento: tokens `ingreso`, `gasto`,
   `exito` y `peligro` en index.css (claro y oscuro) en lugar de `emerald`/`rose` fijos.
