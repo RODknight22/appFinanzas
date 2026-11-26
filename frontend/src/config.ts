@@ -59,7 +59,13 @@ export interface ColoresModo {
 export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string; claro: ColoresModo; oscuro: ColoresModo }> = {
   orvyn: {
     nombre: "ORVYN",
-    descripcion: "Obsidian e Ivory",
+    descripcion: "Negro puro e Ivory",
+    claro: { fondo: "#f5f0e8", tarjeta: "#fcfaf6", texto: "#171717" },
+    oscuro: { fondo: "#000000", tarjeta: "#121212", texto: "#f5f0e8" },
+  },
+  obsidian: {
+    nombre: "Obsidian",
+    descripcion: "Gris muy oscuro e Ivory",
     claro: { fondo: "#f5f0e8", tarjeta: "#fcfaf6", texto: "#171717" },
     oscuro: { fondo: "#171717", tarjeta: "#242424", texto: "#f5f0e8" },
   },
@@ -74,12 +80,6 @@ export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string
     descripcion: "Azul marino",
     claro: { fondo: "oklch(97.2% 0.013 262)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0.038 262)" },
     oscuro: { fondo: "oklch(14.5% 0.026 262)", tarjeta: "oklch(19.5% 0.032 262)", texto: "oklch(97% 0.013 262)" },
-  },
-  grafito: {
-    nombre: "Grafito",
-    descripcion: "Gris neutro, negro puro",
-    claro: { fondo: "oklch(97.2% 0 0)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0 0)" },
-    oscuro: { fondo: "oklch(9% 0 0)", tarjeta: "oklch(16% 0 0)", texto: "oklch(97% 0 0)" },
   },
   bosque: {
     nombre: "Bosque",
@@ -105,12 +105,14 @@ export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string
  * Los colores de la vista previa del estilo personal, con las mismas fórmulas que index.css
  * (`oklch(claridad calc(croma * var(--viveza)) var(--tinte))`). `viveza` en centésimas.
  */
-export function coloresPersonales(tinte: number, viveza: number): { claro: ColoresModo; oscuro: ColoresModo } {
+export function coloresPersonales(tinte: number, viveza: number, negro = false): { claro: ColoresModo; oscuro: ColoresModo } {
   const v = viveza / 100;
   const color = (claridad: number, croma: number) => `oklch(${claridad}% ${(croma * v).toFixed(4)} ${tinte})`;
   return {
     claro: { fondo: color(97.2, 0.004), tarjeta: "oklch(100% 0 0)", texto: color(21, 0.012) },
-    oscuro: { fondo: color(14.5, 0.008), tarjeta: color(19.5, 0.01), texto: color(97, 0.004) },
+    oscuro: negro
+      ? { fondo: "oklch(0% 0 0)", tarjeta: color(15, 0.008), texto: color(97, 0.004) }
+      : { fondo: color(14.5, 0.008), tarjeta: color(19.5, 0.01), texto: color(97, 0.004) },
   };
 }
 

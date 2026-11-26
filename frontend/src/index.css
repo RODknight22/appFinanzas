@@ -116,7 +116,8 @@
 /* ORVYN, el estilo de la marca (por defecto). Colores exactos del sistema de marca
    "Obsidian × Saffron": no salen de --tinte/--viveza. :not(.dark) y .dark suben la
    especificidad para ganar a :root.dark, que se declara antes. */
-:root[data-estilo="orvyn"]:not(.dark) {
+:root[data-estilo="orvyn"]:not(.dark),
+:root[data-estilo="obsidian"]:not(.dark) {
   --fondo: #f5f0e8; /* Ivory: nunca blanco puro */
   --superficie: #fcfaf6;
   --superficie-2: #ede6da;
@@ -131,13 +132,14 @@
   --gasto: #b83333;
   --sombra: none; /* la marca separa con bordes, no con sombras */
 }
-:root[data-estilo="orvyn"].dark {
-  --fondo: #171717; /* Obsidian */
-  --superficie: #242424; /* Graphite */
-  --superficie-2: #343434; /* Slate */
-  --realce: #2d2d2d;
-  --linea: #2f2f2f;
-  --linea-fuerte: #75716a;
+:root[data-estilo="orvyn"].dark,
+:root[data-estilo="obsidian"].dark {
+  --fondo: #000000; /* negro puro: el naranja resalta y en OLED gasta menos */
+  --superficie: #121212;
+  --superficie-2: #1c1c1c;
+  --realce: #181818;
+  --linea: #222222;
+  --linea-fuerte: #6b6760;
   --texto: #f5f0e8; /* Ivory */
   --suave: #b8b2a8;
   --tenue: #948f87;
@@ -152,15 +154,24 @@
   --viveza: 3.2;
 }
 
-/* Gris neutro; en oscuro, negro casi puro (ahorra batería en pantallas OLED). */
-:root[data-estilo="grafito"] {
-  --viveza: 0;
+/* Obsidian: el gris muy oscuro original de la marca (sustituye a Grafito). Comparte con ORVYN
+   el modo claro y los textos; aquí solo cambian fondos y bordes del oscuro. */
+:root[data-estilo="obsidian"].dark {
+  --fondo: #171717; /* Obsidian */
+  --superficie: #242424; /* Graphite */
+  --superficie-2: #343434; /* Slate */
+  --realce: #2d2d2d;
+  --linea: #2f2f2f;
+  --linea-fuerte: #75716a;
 }
-:root[data-estilo="grafito"].dark {
-  --fondo: oklch(9% 0 0);
-  --superficie: oklch(16% 0 0);
-  --superficie-2: oklch(21% 0 0);
-  --realce: oklch(24% 0 0);
+
+/* Estilo personal con "Negro puro": en oscuro el fondo es negro y las tarjetas casi negras,
+   con un toque del tono elegido. */
+:root[data-estilo="personal"][data-negro].dark {
+  --fondo: oklch(0% 0 0);
+  --superficie: oklch(15% calc(0.008 * var(--viveza)) var(--tinte));
+  --superficie-2: oklch(19.5% calc(0.01 * var(--viveza)) var(--tinte));
+  --realce: oklch(17.5% calc(0.01 * var(--viveza)) var(--tinte));
 }
 
 /* Verde bosque discreto. */

@@ -47,7 +47,7 @@ export function SeccionApariencia() {
             const activo = configuracion.estilo_visual === valor;
             const { nombre, descripcion } = estilo;
             // El personalizado se previsualiza con lo que se está eligiendo.
-            const { claro, oscuro } = valor === "personal" ? coloresPersonales(personal.tinte, personal.viveza) : estilo;
+            const { claro, oscuro } = valor === "personal" ? coloresPersonales(personal.tinte, personal.viveza, configuracion.negro_personal) : estilo;
             return (
               <button
                 key={valor}
@@ -90,6 +90,19 @@ export function SeccionApariencia() {
               fondo={`linear-gradient(to right, oklch(70% 0 0), oklch(70% 0.15 ${personal.tinte}))`}
               onCambio={(viveza) => mover({ viveza })}
             />
+            <label className="flex cursor-pointer items-center gap-3 text-sm sm:col-span-2">
+              <input
+                id="negro-personal"
+                type="checkbox"
+                checked={configuracion.negro_personal}
+                onChange={(e) => elegir({ negro_personal: e.target.checked })}
+                className="h-4 w-4 accent-acento-600"
+              />
+              <span>
+                <span className="font-semibold text-texto">Negro puro</span>
+                <span className="block text-xs text-tenue">En modo oscuro, el fondo en negro de verdad (ahorra batería en pantallas OLED).</span>
+              </span>
+            </label>
           </div>
         )}
       </fieldset>

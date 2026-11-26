@@ -42,6 +42,7 @@ const CONFIGURACION_INICIAL: Configuracion = {
   estilo_visual: "orvyn",
   tinte_personal: 275,
   viveza_personal: 100,
+  negro_personal: false,
   pagina_inicio: "dashboard",
   dia_inicio_mes: 1,
   widgets: null,
@@ -75,8 +76,8 @@ export function pintarEstiloPersonal(valores: { tinte: number; viveza: number } 
 }
 
 /** Pone acento y estilo en <html> (los leen las variables CSS de index.css). */
-function aplicarApariencia({ color_acento: acento, estilo_visual: estilo, tinte_personal: tinte, viveza_personal: viveza }: Configuracion) {
-  const personal = estilo === "personal" ? `${tinte} ${viveza}` : "";
+function aplicarApariencia({ color_acento: acento, estilo_visual: estilo, tinte_personal: tinte, viveza_personal: viveza, negro_personal: negro }: Configuracion) {
+  const personal = estilo === "personal" ? `${tinte} ${viveza} ${negro}` : "";
   if (pedida.acento === acento && pedida.estilo === estilo && pedida.personal === personal) return;
   pedida.acento = acento;
   pedida.estilo = estilo;
@@ -87,6 +88,9 @@ function aplicarApariencia({ color_acento: acento, estilo_visual: estilo, tinte_
     html.dataset.acento = acento;
     html.dataset.estilo = estilo;
     pintarEstiloPersonal(personal ? { tinte, viveza } : null);
+    // Negro puro solo existe en el estilo personal (ORVYN ya es negro).
+    if (personal && negro) html.dataset.negro = "";
+    else delete html.dataset.negro;
   });
   try {
     // Copia local para que index.html lo aplique antes de pintar en la próxima visita.
@@ -94,6 +98,7 @@ function aplicarApariencia({ color_acento: acento, estilo_visual: estilo, tinte_
     localStorage.setItem("estilo", estilo);
     localStorage.setItem("tinte", String(tinte));
     localStorage.setItem("viveza", String(viveza));
+    localStorage.setItem("negro", negro ? "1" : "");
   } catch {
     // Navegación privada: no pasa nada, solo se verán los colores un instante después.
   }

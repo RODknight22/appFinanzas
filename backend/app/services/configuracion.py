@@ -47,6 +47,13 @@ def comprobar_moneda_activa(session: Session, moneda: Moneda) -> None:
         raise ReglaDeNegocioError(f"La moneda {moneda.value} está desactivada. Actívala en Ajustes.")
 
 
+def _estilo_vigente(estilo: EstiloVisual | None) -> EstiloVisual:
+    """El estilo que se muestra: ORVYN si no se eligió ninguno; Grafito ya no existe y es Obsidian."""
+    if estilo is None:
+        return EstiloVisual.ORVYN
+    return EstiloVisual.OBSIDIAN if estilo == EstiloVisual.GRAFITO else estilo
+
+
 def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
     """Rellena los valores por defecto de lo que aún no se ha personalizado."""
     widgets = None
@@ -58,10 +65,11 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         nombre=configuracion.nombre,
         avatar=configuracion.avatar,
         color_acento=configuracion.color_acento or ColorAcento.SAFFRON,
-        estilo_visual=configuracion.estilo_visual or EstiloVisual.ORVYN,
+        estilo_visual=_estilo_vigente(configuracion.estilo_visual),
         # `is None`: 0 es un valor válido (rojo / gris puro), no "sin elegir".
         tinte_personal=TINTE_POR_DEFECTO if configuracion.tinte_personal is None else configuracion.tinte_personal,
         viveza_personal=VIVEZA_POR_DEFECTO if configuracion.viveza_personal is None else configuracion.viveza_personal,
+        negro_personal=bool(configuracion.negro_personal),
         pagina_inicio=configuracion.pagina_inicio or PaginaInicio.DASHBOARD,
         dia_inicio_mes=configuracion.dia_inicio_mes or 1,
         widgets=widgets,
@@ -119,7 +127,8 @@ def actualizar(session: Session, cambios: ConfiguracionUpdate) -> ConfiguracionR
             setattr(configuracion, campo, (enviados[campo] or "").strip() or None)
 
     for campo in (
-        "color_acento", "estilo_visual", "tinte_personal", "viveza_personal", "pagina_inicio", "dia_inicio_mes",
+        "color_acento", "estilo_visual", "tinte_personal", "viveza_personal", "negro_personal",
+        "pagina_inicio", "dia_inicio_mes",
         "tutorial_visto", "bienvenida_cerrada",
         "mostrar_consejos", "recordatorio_diario", "hora_recordatorio",
     ):
