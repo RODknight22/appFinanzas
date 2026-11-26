@@ -36,7 +36,7 @@ export function Consejo({ texto, alinear = "inicio" }: ConsejoProps) {
       {abierto && (
         <span
           role="tooltip"
-          className={`absolute top-full z-40 mt-1.5 w-64 max-w-[80vw] animate-entrada rounded-xl bg-superficie p-3 text-left text-xs leading-relaxed font-normal tracking-normal text-suave shadow-2xl ring-1 ring-linea ${ALINEACION[alinear]}`}
+          className={`absolute top-full z-40 mt-1.5 w-64 max-w-[80vw] origin-top animate-aparecer rounded-xl bg-superficie p-3 text-left text-xs leading-relaxed font-normal tracking-normal text-suave shadow-2xl ring-1 ring-linea ${ALINEACION[alinear]}`}
         >
           {texto}
         </span>

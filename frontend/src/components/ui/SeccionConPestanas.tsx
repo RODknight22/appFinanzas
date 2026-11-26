@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { NavLink, Outlet } from "react-router";
+import { useRef } from "react";
+import { NavLink, Outlet, useLocation } from "react-router";
 
+import { useIndicadorActivo } from "../../hooks/useIndicadorActivo";
 import { precarga } from "../../paginas";
 
 export interface Pestana {
@@ -24,9 +26,19 @@ interface SeccionConPestanasProps {
  * Cada pestaña es una ruta propia: se puede enlazar, recargar y volver atrás.
  */
 export function SeccionConPestanas({ nombre, pestanas, compacta = false }: SeccionConPestanasProps) {
+  const menu = useRef<HTMLElement>(null);
+  const indicador = useIndicadorActivo(menu, useLocation().pathname);
   return (
     <>
-      <nav aria-label={nombre} className="mb-6 inline-flex max-w-full flex-wrap gap-1 rounded-3xl bg-superficie-2 p-1">
+      <nav ref={menu} aria-label={nombre} className="relative mb-6 inline-flex max-w-full flex-wrap gap-1 rounded-3xl bg-superficie-2 p-1">
+        {/* La píldora de la pestaña activa va aparte y se desliza de una a otra al cambiar. */}
+        {indicador && (
+          <span
+            aria-hidden
+            style={indicador}
+            className="pointer-events-none absolute top-0 left-0 rounded-full bg-superficie shadow-[var(--sombra)] duration-(--duracion-media) ease-muelle"
+          />
+        )}
         {pestanas.map(({ ruta, etiqueta, icono: Icono }) => (
           <NavLink
             key={ruta}
@@ -34,8 +46,9 @@ export function SeccionConPestanas({ nombre, pestanas, compacta = false }: Secci
             end // la primera pestaña ("/metas") no debe quedar activa en "/metas/deseos"
             {...precarga(ruta)}
             className={({ isActive }) =>
-              `flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                isActive ? "bg-superficie text-texto shadow-[var(--sombra)] [&>svg]:text-acento-500" : "text-tenue hover:text-texto"
+              // relative: por encima de la píldora, que es absolute.
+              `relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                isActive ? "text-texto [&>svg]:text-acento-500" : "text-tenue hover:text-texto"
               }`
             }
           >

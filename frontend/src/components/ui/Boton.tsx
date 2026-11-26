@@ -20,7 +20,7 @@ export function Boton({ variante = "primario", className = "", type = "button", 
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-500 disabled:cursor-not-allowed disabled:opacity-50 ${ESTILOS[variante]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-500 disabled:cursor-not-allowed disabled:opacity-50 ${ESTILOS[variante]} ${className}`}
       {...props}
     />
   );

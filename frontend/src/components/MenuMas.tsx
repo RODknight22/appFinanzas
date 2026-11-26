@@ -37,7 +37,7 @@ export function MenuMas({ enlaces, tema, onAlternarTema, onCerrarSesion, usuario
 
   return createPortal(
     <div className="fixed inset-0 z-50 md:hidden">
-      <button type="button" aria-label="Cerrar menú" tabIndex={-1} onClick={onCerrar} className="absolute inset-0 bg-black/40" />
+      <button type="button" aria-label="Cerrar menú" tabIndex={-1} onClick={onCerrar} className="sin-pulsar absolute inset-0 animate-fundido bg-black/40" />
       <div
         ref={panel}
         role="dialog"

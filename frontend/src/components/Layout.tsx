@@ -14,11 +14,12 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 
 import { useAcceso } from "../hooks/useAcceso";
 import { useConfiguracion } from "../hooks/useConfiguracion";
+import { useIndicadorActivo } from "../hooks/useIndicadorActivo";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 import { useTema } from "../hooks/useTema";
 import { precarga, precargarEnReposo } from "../paginas";
@@ -55,13 +56,22 @@ const EN_MAS = [...MENU.filter((item) => !item.enBarra), { ruta: "/ajustes", eti
 // tracking-tight: así «Transacciones» cabe entero hasta en móviles de 360 px.
 const CLASE_BARRA = "flex min-w-0 flex-col items-center gap-0.5 py-2 text-[10px] font-medium tracking-tight";
 
+// La "píldora" de superficie que marca el apartado activo del menú lateral.
+const CLASE_PILDORA = "rounded-full bg-superficie shadow-[var(--sombra)] ring-1 ring-linea";
+
 /** Clases de un enlace del menú lateral según esté activo o no. */
 function claseEnlace({ isActive }: { isActive: boolean }): string {
-  // Activa: una "píldora" de superficie con el icono en el color de acento.
+  // Activa: la píldora con el icono en el color de acento.
   return `flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-    isActive
-      ? "bg-superficie text-texto shadow-[var(--sombra)] ring-1 ring-linea [&>svg]:text-acento-500"
-      : "text-tenue hover:bg-realce hover:text-texto"
+    isActive ? `${CLASE_PILDORA} text-texto [&>svg]:text-acento-500` : "text-tenue hover:bg-realce hover:text-texto"
+  }`;
+}
+
+/** Igual, para los enlaces del <nav> principal: ahí la píldora es aparte y se desliza (useIndicadorActivo). */
+function claseEnlaceDeslizante({ isActive }: { isActive: boolean }): string {
+  // relative: por encima de la píldora, que es absolute.
+  return `relative flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+    isActive ? "text-texto [&>svg]:text-acento-500" : "text-tenue hover:bg-realce hover:text-texto"
   }`;
 }
 
@@ -82,6 +92,8 @@ export function Layout() {
   const cerrarMas = useCallback(() => setMasAbierto(false), []);
   // «Más» se marca como activo si la página actual es una de las suyas.
   const enMas = EN_MAS.some(({ ruta }) => location.pathname.startsWith(ruta));
+  const menu = useRef<HTMLElement>(null);
+  const indicador = useIndicadorActivo(menu, location.pathname);
 
   // Con la app ya abierta y el navegador libre, se traen las demás páginas.
   useEffect(() => precargarEnReposo(), []);
@@ -102,9 +114,16 @@ export function Layout() {
           <CampanaNotificaciones {...notificaciones} />
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1">
+        <nav ref={menu} className="relative flex flex-1 flex-col gap-1">
+          {indicador && (
+            <span
+              aria-hidden
+              style={indicador}
+              className={`pointer-events-none absolute top-0 left-0 duration-(--duracion-media) ease-muelle ${CLASE_PILDORA}`}
+            />
+          )}
           {MENU.map(({ ruta, etiqueta, icono: Icono }) => (
-            <NavLink key={ruta} to={ruta} className={claseEnlace} data-tutorial={ruta} {...precarga(ruta)}>
+            <NavLink key={ruta} to={ruta} className={claseEnlaceDeslizante} data-tutorial={ruta} {...precarga(ruta)}>
               <Icono size={18} />
               {etiqueta}
             </NavLink>

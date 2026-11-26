@@ -25,6 +25,7 @@ import type {
 } from "../../types";
 import type { PagoProximo } from "../../utils/cuentas";
 import { formatearDinero, formatearNumero, formatearPorcentaje } from "../../utils/formato";
+import { CifraAnimada } from "../ui/CifraAnimada";
 import { Vacio } from "../ui/Estados";
 import { BarraMeta } from "../metas/BarraMeta";
 import { Tarjeta } from "../ui/Tarjeta";
@@ -95,7 +96,7 @@ export const WIDGETS = {
     pintar: ({ resumen, patrimonio }) => (
       <TarjetaMetrica
         titulo="Balance global"
-        valor={formatearDinero(resumen.balance_global)}
+        valor={<CifraAnimada valor={resumen.balance_global} />}
         icono={Wallet}
         detalle="Todas tus cuentas"
         destacada
@@ -109,7 +110,7 @@ export const WIDGETS = {
     pintar: ({ resumen, flujo }) => (
       <TarjetaMetrica
         titulo="Ingresos"
-        valor={formatearDinero(resumen.ingresos)}
+        valor={<CifraAnimada valor={resumen.ingresos} />}
         icono={ArrowUpRight}
         tono="positivo"
         serie={flujo.map((m) => Number(m.ingresos))}
@@ -122,7 +123,7 @@ export const WIDGETS = {
     pintar: ({ resumen, flujo }) => (
       <TarjetaMetrica
         titulo="Gastos"
-        valor={formatearDinero(resumen.gastos)}
+        valor={<CifraAnimada valor={resumen.gastos} />}
         icono={ArrowDownRight}
         tono="negativo"
         serie={flujo.map((m) => Number(m.gastos))}

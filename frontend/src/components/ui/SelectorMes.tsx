@@ -121,7 +121,7 @@ function PanelMeses({ disparador, mes, actual, onElegir, onCerrar }: PanelMesesP
       role="dialog"
       aria-label="Elegir mes"
       onKeyDown={alTeclear}
-      className="fixed z-[60] animate-entrada rounded-2xl bg-superficie p-3 shadow-2xl ring-1 ring-linea"
+      className="fixed z-[60] origin-top animate-aparecer rounded-2xl bg-superficie p-3 shadow-2xl ring-1 ring-linea"
       style={{ top: posicion?.top ?? 0, left: posicion?.left ?? 0, width: posicion?.ancho ?? ANCHO_PANEL, visibility: visible ? "visible" : "hidden" }}
     >
       <div className="mb-2 flex items-center justify-between">

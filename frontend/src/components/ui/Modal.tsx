@@ -70,7 +70,7 @@ function PanelModal({ titulo, onCerrar, children, ancho = "normal" }: Omit<Modal
   // animación de un contenedor puede descolocar el position: fixed.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex animate-fundido items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
       onMouseDown={onCerrar}
     >
       <div
@@ -81,7 +81,7 @@ function PanelModal({ titulo, onCerrar, children, ancho = "normal" }: Omit<Modal
         // tabIndex para poder recibir el foco al abrir cuando no hay un campo con autoFocus.
         tabIndex={-1}
         onKeyDown={alPulsarTab}
-        className={`max-h-[90vh] w-full ${ancho === "amplio" ? "max-w-3xl" : "max-w-md"} animate-entrada overflow-y-auto rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea outline-none`}
+        className={`max-h-[90vh] w-full ${ancho === "amplio" ? "max-w-3xl" : "max-w-md"} animate-aparecer overflow-y-auto rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea outline-none`}
         // Evita que un clic que empieza dentro del modal llegue al fondo y lo cierre.
         onMouseDown={(evento) => evento.stopPropagation()}
       >
