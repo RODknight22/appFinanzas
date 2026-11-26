@@ -54,7 +54,8 @@ Descarga la última versión desde la página de
 1. Descarga `AppFinanzas-vX.Y.Z-windows.exe`.
 2. Haz doble clic. Se abrirá una ventana negra (esa ventana **es** la app) y, después, tu navegador.
 3. La primera vez, Windows puede mostrar *"Windows protegió su PC"*: el ejecutable no está firmado
-   con un certificado de pago. Pulsa **Más información → Ejecutar de todas formas**.
+   con un certificado de pago. Pulsa **Más información → Ejecutar de todas formas**. Si
+   «Control de aplicaciones inteligentes» lo bloquea (no deja ejecutarlo), usa Docker.
 
 ### Linux
 
@@ -161,22 +162,6 @@ scripts/verificar.sh --e2e    # además recorre la app en un navegador (Playwrig
 cambios a `CHANGELOG.md` y `NOTAS_RELEASE.md`, y sube una etiqueta:
 `git tag v1.3.0 && git push origin v1.3.0`. GitHub Actions fabrica los ejecutables y la imagen
 Docker y crea el Release.
-
-## Code signing policy
-
-Política de firma de los ejecutables de Windows.
-
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
-[SignPath Foundation](https://signpath.org).
-
-- **Autores y revisores** (pueden subir código y revisan las aportaciones de otros):
-  [RODknight22](https://github.com/RODknight22).
-- **Aprobadores** (aprueban cada firma a mano): [RODknight22](https://github.com/RODknight22).
-- Solo se firma lo que GitHub Actions compila a partir de este repositorio, al publicar una
-  versión (etiqueta `v*`). Todas las cuentas con acceso usan verificación en dos pasos.
-- **Privacidad:** este programa no envía información a otros sistemas en red salvo la petición
-  de tasas de cambio descrita en [Privacidad y seguridad](#privacidad-y-seguridad), que no
-  incluye ningún dato personal ni financiero.
 
 ## Licencia
 
