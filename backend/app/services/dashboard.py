@@ -1,28 +1,38 @@
-"""Cálculos del dashboard: balances, flujo mensual, gastos por categoría y presupuestos.
+"""Cálculos del dashboard: balances, flujo, gastos por categoría, presupuestos y periodos.
 
 Las sumas se hacen en SQL (GROUP BY) para no cargar todas las transacciones en memoria,
 siempre sobre `monto_principal`: así se suman importes de distintas monedas.
 """
 
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 
 from sqlalchemy import func
 from sqlmodel import Session, col, select
 
+from app.database import normalizar_texto
 from app.models import Categoria, Cuenta, Moneda, Presupuesto, TasaCambio, TipoMovimiento, Transaccion
 from app.schemas import (
+    AhorroAnual,
+    AhorroMes,
+    ComparativaPeriodo,
     FlujoMensual,
     GastoDiario,
     GastoPorCategoria,
+    GastoPorComercio,
+    GastoPorCuenta,
     PoderAdquisitivo,
     ProgresoPresupuesto,
     PuntoPatrimonio,
     ResumenMes,
     SaldoCuenta,
+    TotalesPeriodo,
 )
 from app.services import configuracion, divisas, mes_financiero
+from app.services.errores import ReglaDeNegocioError
+from app.services.importaciones import clave_concepto
 from app.services.saldos import CENTIMOS, a_decimal, movimientos_por_cuenta, movimientos_por_cuenta_y_mes
 
 
@@ -51,6 +61,63 @@ def _meses_anteriores(hasta_mes: str, cantidad: int) -> list[str]:
 
 def _porcentaje(parte: Decimal, total: Decimal) -> float:
     return round(float(parte / total * 100), 1) if total else 0.0
+
+
+def _variacion(actual: Decimal, anterior: Decimal) -> float | None:
+    """Cuánto cambió en %; None si antes era 0 (de 0 a algo no es un porcentaje con sentido)."""
+    return round(float((actual - anterior) / anterior * 100), 1) if anterior else None
+
+
+# ---------------------------------------------------------------------------
+# Periodo: el rango de fechas que se está viendo
+# ---------------------------------------------------------------------------
+# Un año largo de margen sobre el periodo más largo del selector (1 año): evita
+# consultas absurdas sin limitar el uso normal.
+MAX_DIAS_PERIODO = 3 * 366
+
+
+@dataclass(frozen=True)
+class Periodo:
+    """[inicio, fin) de los datos del dashboard.
+
+    Por defecto es un mes financiero (`es_mes`); con `desde`/`hasta` es un rango
+    libre ("últimos 7 días"). `mes_anio` es el mes de referencia en los dos casos.
+    """
+
+    mes_anio: str
+    inicio: date
+    fin: date
+    es_mes: bool = True
+
+    @property
+    def hasta(self) -> date:
+        """Último día incluido (para mostrarlo: el `fin` no se incluye)."""
+        return self.fin - timedelta(days=1)
+
+
+def periodo_del_mes(session: Session, mes_anio: str) -> Periodo:
+    return Periodo(mes_anio, *_rango_mes(session, mes_anio))
+
+
+def resolver_periodo(session: Session, mes_anio: str, desde: date | None, hasta: date | None) -> Periodo:
+    """El mes `mes_anio` si no se indica rango; si no, [desde, hasta] (los dos días incluidos)."""
+    if desde is None and hasta is None:
+        return periodo_del_mes(session, mes_anio)
+    if desde is None or hasta is None:
+        raise ReglaDeNegocioError("Indica las dos fechas del periodo: desde y hasta")
+    if desde > hasta:
+        raise ReglaDeNegocioError("La fecha de inicio del periodo no puede ser posterior a la final")
+    if (hasta - desde).days >= MAX_DIAS_PERIODO:
+        raise ReglaDeNegocioError("El periodo no puede superar los tres años")
+    return Periodo(mes_anio, desde, hasta + timedelta(days=1), es_mes=False)
+
+
+def periodo_anterior(session: Session, periodo: Periodo) -> Periodo:
+    """El mes anterior si se ve un mes; si no, el mismo número de días justo antes."""
+    if periodo.es_mes:
+        return periodo_del_mes(session, _meses_anteriores(periodo.mes_anio, 2)[0])
+    dias = periodo.fin - periodo.inicio
+    return Periodo(periodo.mes_anio, periodo.inicio - dias, periodo.inicio, es_mes=False)
 
 
 # ---------------------------------------------------------------------------
@@ -100,8 +167,7 @@ def _totales_por_tipo(session: Session, inicio: date, fin: date) -> dict[TipoMov
     return totales
 
 
-def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decimal]:
-    inicio, fin = _rango_mes(session, mes_anio)
+def _gastos_por_categoria_id(session: Session, inicio: date, fin: date) -> dict[int, Decimal]:
     consulta = (
         select(Transaccion.categoria_id, func.sum(Transaccion.monto_principal))
         .where(
@@ -117,13 +183,19 @@ def _gastos_por_categoria_id(session: Session, mes_anio: str) -> dict[int, Decim
 # ---------------------------------------------------------------------------
 # Funciones públicas (una por endpoint)
 # ---------------------------------------------------------------------------
-def resumen(session: Session, mes_anio: str) -> ResumenMes:
-    """Balance global (todas las cuentas, de siempre) y flujo del mes indicado."""
+def resumen(session: Session, mes_anio: str, periodo: Periodo | None = None) -> ResumenMes:
+    """Balance global (todas las cuentas, de siempre) y flujo del mes o del periodo indicado.
+
+    El balance no depende del periodo: es el dinero que tienes hoy.
+    """
+    periodo = periodo or periodo_del_mes(session, mes_anio)
     cuentas = _saldos_por_cuenta(session)
-    totales = _totales_por_tipo(session, *_rango_mes(session, mes_anio))
+    totales = _totales_por_tipo(session, periodo.inicio, periodo.fin)
     ingresos, gastos = totales[TipoMovimiento.INGRESO], totales[TipoMovimiento.GASTO]
     return ResumenMes(
         mes_anio=mes_anio,
+        desde=periodo.inicio,
+        hasta=periodo.hasta,
         balance_global=sum((c.saldo_principal for c in cuentas), Decimal("0.00")),
         ingresos=ingresos,
         gastos=gastos,
@@ -159,9 +231,10 @@ def flujo_mensual(session: Session, hasta_mes: str, meses: int) -> list[FlujoMen
     return resultado
 
 
-def gastos_por_categoria(session: Session, mes_anio: str) -> list[GastoPorCategoria]:
-    """Reparto de los gastos del mes por categoría (para el gráfico de anillo)."""
-    totales = _gastos_por_categoria_id(session, mes_anio)
+def gastos_por_categoria(session: Session, mes_anio: str, periodo: Periodo | None = None) -> list[GastoPorCategoria]:
+    """Reparto de los gastos del mes (o del periodo) por categoría (para el gráfico de anillo)."""
+    periodo = periodo or periodo_del_mes(session, mes_anio)
+    totales = _gastos_por_categoria_id(session, periodo.inicio, periodo.fin)
     if not totales:
         return []
     total_mes = sum(totales.values(), Decimal("0.00"))
@@ -214,7 +287,7 @@ def progreso_presupuestos(session: Session, mes_anio: str, hoy: date | None = No
     mes, si ya pasó): un límite es una cantidad fija, no un gasto con fecha propia.
     """
     principal = configuracion.moneda_principal(session)
-    gastado_principal = _gastos_por_categoria_id(session, mes_anio)
+    gastado_principal = _gastos_por_categoria_id(session, *_rango_mes(session, mes_anio))
     consulta = (
         select(Presupuesto, Categoria)
         .join(Categoria, col(Categoria.id) == col(Presupuesto.categoria_id))
@@ -315,6 +388,140 @@ def gastos_diarios(session: Session, mes_anio: str) -> list[GastoDiario]:
         .order_by(col(Transaccion.fecha))
     )
     return [GastoDiario(fecha=fecha, total=a_decimal(suma)) for fecha, suma in session.exec(consulta).all()]
+
+
+# ---------------------------------------------------------------------------
+# Widgets del periodo: comparativa, comercios, cuentas y ahorro del año
+# ---------------------------------------------------------------------------
+# Las transferencias viven en su propia tabla: sumar Transaccion ya las deja fuera
+# de ingresos y gastos (solo su comisión, que sí es un gasto, es una Transaccion).
+def _totales_periodo(session: Session, periodo: Periodo) -> TotalesPeriodo:
+    totales = _totales_por_tipo(session, periodo.inicio, periodo.fin)
+    ingresos, gastos = totales[TipoMovimiento.INGRESO], totales[TipoMovimiento.GASTO]
+    return TotalesPeriodo(
+        desde=periodo.inicio, hasta=periodo.hasta, ingresos=ingresos, gastos=gastos, flujo_neto=ingresos - gastos
+    )
+
+
+def comparativa(session: Session, periodo: Periodo) -> ComparativaPeriodo:
+    """Ingresos y gastos del periodo frente al anterior (el mes anterior o los mismos días antes)."""
+    actual = _totales_periodo(session, periodo)
+    anterior = _totales_periodo(session, periodo_anterior(session, periodo))
+    return ComparativaPeriodo(
+        actual=actual,
+        anterior=anterior,
+        variacion_ingresos=_variacion(actual.ingresos, anterior.ingresos),
+        variacion_gastos=_variacion(actual.gastos, anterior.gastos),
+    )
+
+
+def _clave_comercio(notas: str) -> str:
+    """Agrupa variantes del mismo comercio ("COMPRA TARJ 1234 MERCADONA" y "Mercadona").
+
+    Si el concepto solo tiene números o relleno, se agrupa por el texto tal cual.
+    """
+    return clave_concepto(notas) or normalizar_texto(notas.strip()) or ""
+
+
+def top_comercios(session: Session, periodo: Periodo, limite: int = 5) -> list[GastoPorComercio]:
+    """Dónde más se gastó en el periodo, por la descripción (notas) de cada gasto.
+
+    No hay un campo "comercio": la descripción es lo que lo identifica (la escribe el
+    usuario o viene del extracto al importar). Los gastos sin descripción no entran
+    en la lista, pero sí en el total del que sale el porcentaje.
+    """
+    consulta = (
+        select(Transaccion.notas, func.count(), func.sum(Transaccion.monto_principal))
+        .where(
+            Transaccion.tipo == TipoMovimiento.GASTO,
+            Transaccion.fecha >= periodo.inicio,
+            Transaccion.fecha < periodo.fin,
+            col(Transaccion.notas).is_not(None),
+        )
+        .group_by(col(Transaccion.notas))
+    )
+    # Por comercio: (nombre a mostrar, total, número de gastos).
+    grupos: dict[str, tuple[str, Decimal, int]] = {}
+    for notas, cantidad, suma in session.exec(consulta).all():
+        clave = _clave_comercio(notas)
+        if not clave:
+            continue
+        nombre, total, movimientos = grupos.get(clave, (notas.strip(), Decimal("0.00"), 0))
+        # El texto más corto suele ser el más limpio: "Mercadona" antes que "COMPRA TARJ. MERCADONA 02/10".
+        nombre = min(nombre, notas.strip(), key=len)
+        grupos[clave] = (nombre, total + a_decimal(suma), movimientos + cantidad)
+
+    total_gastos = _totales_por_tipo(session, periodo.inicio, periodo.fin)[TipoMovimiento.GASTO]
+    ordenados = sorted(grupos.values(), key=lambda g: (-g[1], g[0].casefold()))[:limite]
+    return [
+        GastoPorComercio(nombre=nombre, total=total, movimientos=movimientos, porcentaje=_porcentaje(total, total_gastos))
+        for nombre, total, movimientos in ordenados
+    ]
+
+
+def gastos_por_cuenta(session: Session, periodo: Periodo) -> list[GastoPorCuenta]:
+    """Reparto del gasto del periodo entre cuentas, en la principal y en la moneda de cada cuenta."""
+    consulta = (
+        select(Cuenta, func.sum(Transaccion.monto_principal), func.sum(Transaccion.monto_cuenta))
+        .join(Cuenta, col(Transaccion.cuenta_id) == col(Cuenta.id))
+        .where(
+            Transaccion.tipo == TipoMovimiento.GASTO,
+            Transaccion.fecha >= periodo.inicio,
+            Transaccion.fecha < periodo.fin,
+        )
+        .group_by(col(Cuenta.id))
+    )
+    principal = configuracion.moneda_principal(session)
+    filas = [
+        (cuenta, a_decimal(en_principal), a_decimal(en_cuenta))
+        for cuenta, en_principal, en_cuenta in session.exec(consulta).all()
+    ]
+    total = sum((en_principal for _, en_principal, _ in filas), Decimal("0.00"))
+    resultado = [
+        GastoPorCuenta(
+            cuenta_id=cuenta.id,
+            nombre=cuenta.nombre,
+            moneda=cuenta.moneda or principal,
+            total=en_principal,
+            total_cuenta=en_cuenta,
+            porcentaje=_porcentaje(en_principal, total),
+        )
+        for cuenta, en_principal, en_cuenta in filas
+    ]
+    return sorted(resultado, key=lambda g: (-g.total, g.nombre.casefold()))
+
+
+def ahorro_anual(session: Session, anio: int, hoy: date | None = None) -> AhorroAnual:
+    """Ingresos − gastos de cada mes del año y su acumulado, hasta el mes en curso.
+
+    Los meses que aún no han llegado no se muestran: en la gráfica serían un falso cero.
+    """
+    actual = mes_financiero.mes_actual(configuracion.dia_inicio_mes(session), hoy)
+    ultimo = min(f"{anio:04d}-12", actual)  # "YYYY-MM" se ordena bien como texto
+    if ultimo < f"{anio:04d}-01":
+        cero = Decimal("0.00")
+        return AhorroAnual(anio=anio, ingresos=cero, gastos=cero, ahorro=cero, meses=[])
+
+    meses: list[AhorroMes] = []
+    acumulado = Decimal("0.00")
+    for flujo in flujo_mensual(session, ultimo, int(ultimo[5:])):
+        acumulado += flujo.flujo_neto
+        meses.append(
+            AhorroMes(
+                mes_anio=flujo.mes_anio,
+                ingresos=flujo.ingresos,
+                gastos=flujo.gastos,
+                ahorro=flujo.flujo_neto,
+                acumulado=acumulado,
+            )
+        )
+    return AhorroAnual(
+        anio=anio,
+        ingresos=sum((m.ingresos for m in meses), Decimal("0.00")),
+        gastos=sum((m.gastos for m in meses), Decimal("0.00")),
+        ahorro=acumulado,
+        meses=meses,
+    )
 
 
 # ---------------------------------------------------------------------------
