@@ -450,6 +450,8 @@ export interface ComparativaPeriodo {
   /** En %; null si en el periodo anterior era 0. */
   variacion_ingresos: number | null;
   variacion_gastos: number | null;
+  /** Mes en curso: lo que va de mes frente a los mismos días del anterior. */
+  en_curso: boolean;
 }
 
 export interface GastoPorComercio {

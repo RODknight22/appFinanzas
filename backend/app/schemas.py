@@ -640,6 +640,8 @@ class ComparativaPeriodo(SQLModel):
     # En %; None si en el periodo anterior era 0.
     variacion_ingresos: float | None
     variacion_gastos: float | None
+    # Mes en curso: se compara lo que va de mes con los mismos días del anterior.
+    en_curso: bool = False
 
 
 class GastoPorComercio(SQLModel):

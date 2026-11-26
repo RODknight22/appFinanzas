@@ -1,7 +1,7 @@
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 import type { ComparativaPeriodo, Dinero } from "../../../types";
-import { formatearDinero, formatearPorcentaje } from "../../../utils/formato";
+import { formatearDinero, formatearPorcentaje, formatearRangoCorto } from "../../../utils/formato";
 import { Vacio } from "../../ui/Estados";
 
 interface FilaProps {
@@ -68,6 +68,13 @@ export function Comparativa({ datos }: { datos: ComparativaPeriodo }) {
         subirEsMalo={false}
         color="var(--color-ingreso)"
       />
+      {/* A mitad de mes no se compara con el mes entero: se dice qué días entran. */}
+      {datos.en_curso && (
+        <p className="text-xs text-tenue">
+          En lo que va de mes: {formatearRangoCorto(actual.desde, actual.hasta)} vs{" "}
+          {formatearRangoCorto(anterior.desde, anterior.hasta)}
+        </p>
+      )}
     </div>
   );
 }

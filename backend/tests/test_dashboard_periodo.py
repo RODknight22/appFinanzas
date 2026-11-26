@@ -230,3 +230,50 @@ def test_ahorro_anual_de_un_anio_pasado_tiene_doce_meses(client: TestClient) -> 
 def test_ahorro_anual_de_un_anio_futuro_esta_vacio(session: Session) -> None:
     ahorro = servicio.ahorro_anual(session, 2030, hoy=date(2026, 3, 20))
     assert ahorro.meses == []
+
+
+def test_comparativa_del_mes_en_curso_usa_los_mismos_dias(
+    client: TestClient, session: Session, cuenta: dict, categoria_gasto: dict
+) -> None:
+    _anotar(client, cuenta, categoria_gasto, "10", "2026-10-05")  # mismos días del anterior
+    _anotar(client, cuenta, categoria_gasto, "900", "2026-10-20")  # resto de octubre: no cuenta
+    _anotar(client, cuenta, categoria_gasto, "15", "2026-11-05")  # hoy
+    _anotar(client, cuenta, categoria_gasto, "70", "2026-11-06")  # después de hoy: no cuenta
+
+    periodo = servicio.periodo_del_mes(session, "2026-11")
+    comparativa = servicio.comparativa(session, periodo, hoy=date(2026, 11, 5))
+
+    assert comparativa.en_curso is True
+    assert (comparativa.actual.desde, comparativa.actual.hasta) == (date(2026, 11, 1), date(2026, 11, 5))
+    assert (comparativa.anterior.desde, comparativa.anterior.hasta) == (date(2026, 10, 1), date(2026, 10, 5))
+    assert (str(comparativa.actual.gastos), str(comparativa.anterior.gastos)) == ("15.00", "10.00")
+    assert comparativa.variacion_gastos == 50.0
+
+
+def test_comparativa_en_curso_recorta_al_fin_de_un_mes_corto(
+    client: TestClient, session: Session, cuenta: dict, categoria_gasto: dict
+) -> None:
+    _anotar(client, cuenta, categoria_gasto, "28", "2026-02-28")
+    _anotar(client, cuenta, categoria_gasto, "31", "2026-03-31")
+
+    periodo = servicio.periodo_del_mes(session, "2026-03")
+    comparativa = servicio.comparativa(session, periodo, hoy=date(2026, 3, 31))
+
+    # 31 días de marzo frente a todo febrero (28), sin pasar a marzo.
+    assert (comparativa.anterior.desde, comparativa.anterior.hasta) == (date(2026, 2, 1), date(2026, 2, 28))
+    assert (str(comparativa.actual.gastos), str(comparativa.anterior.gastos)) == ("31.00", "28.00")
+
+
+def test_comparativa_de_un_mes_pasado_compara_meses_completos(
+    client: TestClient, session: Session, cuenta: dict, categoria_gasto: dict
+) -> None:
+    _anotar(client, cuenta, categoria_gasto, "40", "2026-09-30")
+    _anotar(client, cuenta, categoria_gasto, "20", "2026-10-31")
+
+    periodo = servicio.periodo_del_mes(session, "2026-10")
+    comparativa = servicio.comparativa(session, periodo, hoy=date(2026, 11, 5))
+
+    assert comparativa.en_curso is False
+    assert (comparativa.actual.desde, comparativa.actual.hasta) == (date(2026, 10, 1), date(2026, 10, 31))
+    assert (comparativa.anterior.desde, comparativa.anterior.hasta) == (date(2026, 9, 1), date(2026, 9, 30))
+    assert comparativa.variacion_gastos == -50.0

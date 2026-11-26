@@ -403,15 +403,28 @@ def _totales_periodo(session: Session, periodo: Periodo) -> TotalesPeriodo:
     )
 
 
-def comparativa(session: Session, periodo: Periodo) -> ComparativaPeriodo:
-    """Ingresos y gastos del periodo frente al anterior (el mes anterior o los mismos días antes)."""
+def comparativa(session: Session, periodo: Periodo, hoy: date | None = None) -> ComparativaPeriodo:
+    """Ingresos y gastos del periodo frente al anterior (el mes anterior o los mismos días antes).
+
+    En el mes en curso se compara lo que va de mes con los mismos días del anterior:
+    a día 5, cinco días de gasto frente a un mes entero haría parecer que gastas menos.
+    """
+    hoy = hoy or date.today()
+    previo = periodo_anterior(session, periodo)
+    en_curso = periodo.es_mes and periodo.inicio <= hoy < periodo.fin
+    if en_curso:
+        transcurrido = hoy + timedelta(days=1) - periodo.inicio
+        periodo = Periodo(periodo.mes_anio, periodo.inicio, hoy + timedelta(days=1))
+        # Recortado al fin del mes anterior: un 31 de marzo se compara con todo febrero.
+        previo = Periodo(previo.mes_anio, previo.inicio, min(previo.inicio + transcurrido, previo.fin))
     actual = _totales_periodo(session, periodo)
-    anterior = _totales_periodo(session, periodo_anterior(session, periodo))
+    anterior = _totales_periodo(session, previo)
     return ComparativaPeriodo(
         actual=actual,
         anterior=anterior,
         variacion_ingresos=_variacion(actual.ingresos, anterior.ingresos),
         variacion_gastos=_variacion(actual.gastos, anterior.gastos),
+        en_curso=en_curso,
     )
 
 
