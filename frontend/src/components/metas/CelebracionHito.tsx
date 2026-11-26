@@ -38,12 +38,12 @@ export function CelebracionHito({ celebracion, onCerrar }: { celebracion: Celebr
 
   // Portal a <body>, como Modal: nada de la página puede descolocarla.
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={onCerrar}>
+    <div className="fixed inset-0 z-[60] flex animate-fundido items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={onCerrar}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={mensaje.titulo}
-        className="w-full max-w-sm animate-pop rounded-3xl bg-superficie p-8 text-center shadow-2xl ring-1 ring-linea"
+        className="w-full max-w-sm animate-muelle rounded-3xl bg-superficie p-8 text-center shadow-2xl ring-1 ring-linea"
         onMouseDown={(evento) => evento.stopPropagation()}
       >
         <div className="relative mx-auto h-36 w-36">
@@ -67,10 +67,11 @@ export function CelebracionHito({ celebracion, onCerrar }: { celebracion: Celebr
           </div>
         </div>
 
-        <h2 className="mt-5 text-2xl font-bold tracking-tight">{mensaje.titulo}</h2>
-        <p className="mt-1 font-semibold text-acento-500">{meta.nombre}</p>
-        <p className="mt-3 text-sm text-tenue">{mensaje.texto(formatearDinero(meta.restante, meta.moneda))}</p>
-        <p className="mt-3 text-sm tabular-nums">
+        {/* El texto entra escalonado tras la tarjeta: se lee en orden, como una frase que se revela. */}
+        <h2 className="mt-5 animate-entrada text-2xl font-bold tracking-tight [animation-delay:200ms]">{mensaje.titulo}</h2>
+        <p className="mt-1 animate-entrada font-semibold text-acento-500 [animation-delay:260ms]">{meta.nombre}</p>
+        <p className="mt-3 animate-entrada text-sm text-tenue [animation-delay:320ms]">{mensaje.texto(formatearDinero(meta.restante, meta.moneda))}</p>
+        <p className="mt-3 animate-entrada text-sm tabular-nums [animation-delay:380ms]">
           <strong>{formatearDinero(meta.ahorrado, meta.moneda)}</strong>
           <span className="text-tenue"> de {formatearDinero(meta.monto_objetivo, meta.moneda)}</span>
         </p>
