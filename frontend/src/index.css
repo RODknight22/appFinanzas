@@ -235,6 +235,8 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Sin esto, lo que entra escalonado se quedaría invisible durante su retraso. */
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
 }

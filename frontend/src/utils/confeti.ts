@@ -236,9 +236,11 @@ function avanzarYPintar(m: Motor, f: number): void {
       const escala = Math.min(1, (p.vida - edad) / ENCOGER_MS) * d;
       const cos = Math.cos(p.giro) * escala;
       const sin = Math.sin(p.giro) * escala;
-      // cos(volteo) en el ancho: el papelito parece dar vueltas en 3D (nunca 0: la matriz dejaría de ser válida).
-      let voltear = Math.cos(p.volteo);
-      if (Math.abs(voltear) < 0.08) voltear = voltear < 0 ? -0.08 : 0.08;
+      // |cos(volteo)| en el ancho: el papelito parece dar vueltas en 3D. Siempre positivo: un ancho
+      // negativo invierte el sentido del trazo y, al rellenar todo el color de una vez (regla
+      // nonzero), dos piezas solapadas en sentidos opuestos dejarían un hueco. Nunca 0: la matriz
+      // dejaría de ser válida.
+      const voltear = Math.max(0.08, Math.abs(Math.cos(p.volteo)));
       // Matriz = mover a (x, y) · girar · estrechar el ancho, todo multiplicado por la densidad.
       ctx.setTransform(cos * voltear, sin * voltear, -sin, cos, p.x * d, p.y * d);
       if (p.forma === "circulo") {
