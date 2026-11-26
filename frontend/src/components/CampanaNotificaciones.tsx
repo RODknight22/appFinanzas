@@ -87,7 +87,7 @@ export function CampanaNotificaciones({ avisos, marcarLeidas }: EstadoNotificaci
             ref={refPanel}
             role="dialog"
             aria-label="Notificaciones"
-            className="fixed inset-x-2 top-16 z-50 max-h-[75vh] animate-entrada overflow-y-auto rounded-2xl bg-superficie p-2 shadow-2xl ring-1 ring-linea md:inset-x-auto md:top-4 md:left-64 md:w-96"
+            className="fixed inset-x-2 top-16 z-50 max-h-[75vh] origin-top animate-aparecer overflow-y-auto rounded-2xl bg-superficie p-2 shadow-2xl ring-1 ring-linea md:inset-x-auto md:top-4 md:left-64 md:w-96"
           >
             <header className="flex items-center justify-between px-2 py-1.5">
               <h2 className="text-sm font-semibold">Notificaciones</h2>

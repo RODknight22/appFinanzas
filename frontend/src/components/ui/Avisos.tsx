@@ -86,7 +86,7 @@ function DialogoConfirmar({ confirmacion }: { confirmacion: Confirmacion }) {
   const [titulo, ...detalle] = confirmacion.mensaje.split("\n\n");
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[70] flex animate-fundido items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
       onMouseDown={() => confirmacion.responder(false)}
     >
       <div
@@ -99,7 +99,7 @@ function DialogoConfirmar({ confirmacion }: { confirmacion: Confirmacion }) {
         tabIndex={-1}
         onKeyDown={alPulsarTecla}
         onMouseDown={(evento) => evento.stopPropagation()}
-        className="w-full max-w-sm animate-entrada rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea outline-none"
+        className="w-full max-w-sm animate-aparecer rounded-3xl bg-superficie p-6 shadow-2xl ring-1 ring-linea outline-none"
       >
         <h2 id="confirmar-titulo" className="font-semibold break-words">
           {titulo}
