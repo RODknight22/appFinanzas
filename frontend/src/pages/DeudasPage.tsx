@@ -67,7 +67,7 @@ export function DeudasPage() {
                     type="button"
                     onClick={() => setSentido(lado)}
                     aria-pressed={sentido === lado}
-                    className={`rounded-3xl p-5 text-left ring-1 transition ${
+                    className={`elevable rounded-3xl p-5 text-left ring-1 ${
                       sentido === lado ? "bg-superficie shadow-[var(--sombra)] ring-acento-500" : "bg-superficie/60 ring-linea hover:bg-superficie"
                     }`}
                   >
