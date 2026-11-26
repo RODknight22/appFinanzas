@@ -206,7 +206,7 @@ function PanelCalendario({ disparador, etiqueta, valor, opcional, onElegir, onCe
                 aria-current={esHoy ? "date" : undefined}
                 className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-acento-500 ${
                   elegido
-                    ? "bg-acento-600 font-semibold text-white"
+                    ? "bg-acento-600 font-semibold text-sobre-acento"
                     : esHoy
                       ? "font-bold text-acento-600 hover:bg-realce dark:text-acento-400"
                       : "hover:bg-realce"
@@ -232,7 +232,7 @@ function PanelCalendario({ disparador, etiqueta, valor, opcional, onElegir, onCe
                 }}
                 aria-pressed={actual}
                 className={`rounded-xl py-2.5 text-sm font-medium capitalize transition-colors ${
-                  actual ? "bg-acento-600 text-white" : codigo === hoy.slice(0, 7) ? "text-acento-600 hover:bg-realce dark:text-acento-400" : "hover:bg-realce"
+                  actual ? "bg-acento-600 text-sobre-acento" : codigo === hoy.slice(0, 7) ? "text-acento-600 hover:bg-realce dark:text-acento-400" : "hover:bg-realce"
                 }`}
               >
                 {nombreMesCorto(mes)}

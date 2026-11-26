@@ -83,7 +83,7 @@ export function BarraFiltros({ filtros, cuentas, categorias, onCambiar, onLimpia
           <Boton variante="secundario" onClick={() => setAbierto(!abierto)} aria-expanded={abierto}>
             <SlidersHorizontal size={16} /> Filtros
             {avanzadosActivos > 0 && (
-              <span className="rounded-full bg-acento-600 px-1.5 text-xs font-semibold text-white">{avanzadosActivos}</span>
+              <span className="rounded-full bg-acento-600 px-1.5 text-xs font-semibold text-sobre-acento">{avanzadosActivos}</span>
             )}
           </Boton>
           {hayFiltros && (

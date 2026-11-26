@@ -57,8 +57,8 @@ def _a_lectura(configuracion: Configuracion) -> ConfiguracionRead:
         monedas_activas=monedas_activas(configuracion),
         nombre=configuracion.nombre,
         avatar=configuracion.avatar,
-        color_acento=configuracion.color_acento or ColorAcento.ESMERALDA,
-        estilo_visual=configuracion.estilo_visual or EstiloVisual.FINTECH,
+        color_acento=configuracion.color_acento or ColorAcento.SAFFRON,
+        estilo_visual=configuracion.estilo_visual or EstiloVisual.ORVYN,
         # `is None`: 0 es un valor válido (rojo / gris puro), no "sin elegir".
         tinte_personal=TINTE_POR_DEFECTO if configuracion.tinte_personal is None else configuracion.tinte_personal,
         viveza_personal=VIVEZA_POR_DEFECTO if configuracion.viveza_personal is None else configuracion.viveza_personal,

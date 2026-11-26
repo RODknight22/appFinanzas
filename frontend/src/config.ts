@@ -24,8 +24,12 @@ export const MONEDA_POR_DEFECTO: Moneda = "MXN";
 /** Gris pizarra: el de "Otros" y el de una categoría sin color propio (igual que el backend). */
 export const COLOR_CATEGORIA_POR_DEFECTO = "#64748b";
 
-/** Colores de acento, en orden de arcoíris. `muestra` es el tono 500 para pintar el selector. */
-export const ACENTOS: Record<ColorAcento, { nombre: string; muestra: string }> = {
+/**
+ * Colores de acento: primero el de la marca, luego en orden de arcoíris. `muestra` pinta el
+ * selector; `muestraOscura` indica que el check encima va en oscuro (en blanco no se leería).
+ */
+export const ACENTOS: Record<ColorAcento, { nombre: string; muestra: string; muestraOscura?: boolean }> = {
+  saffron: { nombre: "Saffron", muestra: "#f07842", muestraOscura: true },
   esmeralda: { nombre: "Esmeralda", muestra: "#10b981" },
   turquesa: { nombre: "Turquesa", muestra: "#14b8a6" },
   cian: { nombre: "Cian", muestra: "#06b6d4" },
@@ -53,6 +57,12 @@ export interface ColoresModo {
  * Si cambias un estilo en index.css, cambia también aquí sus colores.
  */
 export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string; claro: ColoresModo; oscuro: ColoresModo }> = {
+  orvyn: {
+    nombre: "ORVYN",
+    descripcion: "Obsidian e Ivory, el de la marca",
+    claro: { fondo: "#f5f0e8", tarjeta: "#fcfaf6", texto: "#171717" },
+    oscuro: { fondo: "#171717", tarjeta: "#242424", texto: "#f5f0e8" },
+  },
   fintech: {
     nombre: "Fintech",
     descripcion: "Gris con un toque lila",

@@ -55,7 +55,7 @@ export function CalendarioGastos({ mes, datos }: { mes: MesAnio; datos: GastoDia
               // Altura fija (no cuadradas): con todo el ancho, unas celdas cuadradas harían el widget enorme.
               className={`flex h-8 items-center justify-center rounded-lg text-[11px] font-medium transition-transform hover:scale-110 ${
                 NIVELES[nivel(gasto, maximo)]
-              } ${futuro ? "opacity-35" : ""} ${dia === hoy ? "ring-2 ring-acento-400" : ""} ${nivel(gasto, maximo) >= 3 ? "text-white" : "text-tenue"}`}
+              } ${futuro ? "opacity-35" : ""} ${dia === hoy ? "ring-2 ring-acento-400" : ""} ${nivel(gasto, maximo) >= 3 ? "text-sobre-acento" : "text-tenue"}`}
             >
               {Number(dia.slice(8))}
             </div>

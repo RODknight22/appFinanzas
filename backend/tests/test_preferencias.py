@@ -9,8 +9,8 @@ from app.services import mes_financiero
 
 def test_valores_por_defecto(client: TestClient) -> None:
     configuracion = client.get("/configuracion").json()
-    assert configuracion["color_acento"] == "esmeralda"
-    assert configuracion["estilo_visual"] == "fintech"
+    assert configuracion["color_acento"] == "saffron"
+    assert configuracion["estilo_visual"] == "orvyn"
     assert configuracion["pagina_inicio"] == "dashboard"
     assert configuracion["dia_inicio_mes"] == 1
     assert configuracion["nombre"] is None

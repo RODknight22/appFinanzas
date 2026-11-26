@@ -58,7 +58,7 @@ export function AsistenteBienvenida() {
 
       {paso === 0 && (
         <div className="space-y-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-acento-600 text-white">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-acento-600 text-sobre-acento">
             <Sparkles size={24} />
           </span>
           <h3 className="text-xl font-bold">¡Hola{nombre ? `, ${nombre}` : ""}! Te damos la bienvenida</h3>

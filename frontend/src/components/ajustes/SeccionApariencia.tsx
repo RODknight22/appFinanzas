@@ -97,7 +97,7 @@ export function SeccionApariencia() {
       <fieldset className="mt-6">
         <legend className="mb-3 text-sm text-tenue">Color de acento de botones, menú, gráficas y enlaces.</legend>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-          {Object.entries(ACENTOS).map(([valor, { nombre, muestra }]) => {
+          {Object.entries(ACENTOS).map(([valor, { nombre, muestra, muestraOscura }]) => {
             const activo = configuracion.color_acento === valor;
             return (
               <button
@@ -109,7 +109,7 @@ export function SeccionApariencia() {
                   activo ? "border-linea-fuerte" : "border-transparent hover:bg-realce"
                 }`}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full text-white" style={{ backgroundColor: muestra }}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full ${muestraOscura ? "text-black/80" : "text-white"}`} style={{ backgroundColor: muestra }}>
                   {activo && <Check size={16} />}
                 </span>
                 {nombre}

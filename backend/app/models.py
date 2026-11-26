@@ -75,6 +75,7 @@ class OrigenTasa(str, Enum):
     MANUAL = "manual"  # escrita por el usuario (tiene prioridad sobre la de internet)
 
 class ColorAcento(str, Enum):
+    SAFFRON = "saffron"  # el de la marca ORVYN (por defecto)
     ESMERALDA = "esmeralda"
     AZUL = "azul"
     INDIGO = "indigo"
@@ -96,6 +97,7 @@ class EstiloVisual(str, Enum):
     y su bloque de variables allí.
     """
 
+    ORVYN = "orvyn"  # el de la marca (por defecto): Obsidian en oscuro, Ivory en claro
     FINTECH = "fintech"
     MEDIANOCHE = "medianoche"
     GRAFITO = "grafito"
