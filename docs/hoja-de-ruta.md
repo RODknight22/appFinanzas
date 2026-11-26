@@ -242,6 +242,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   la tasa oficial, y cuál conviene. Las de Rodrigo (cuaderno, 23/10): de Revolut México a
   Santander España por **transferencia**, o **sacar efectivo** y depositarlo (comisión del cajero
   y tasa del cambio).
+- [x] **Marca ORVYN** (Rodrigo, 26/11; nombre de trabajo, sin verificar como marca registrada):
+  estilo ORVYN (negro puro / Ivory) y acento Saffron por defecto, Inter + Manrope, logo
+  provisional siempre en Saffron, Obsidian en lugar de Grafito y "Negro puro" en Personalizado.
+  Sistema de marca en Claude Design. Pendiente: logo definitivo y `/design-sync`.
 - [-] ~~Tasa de Banxico (FIX)~~ → descartada (23/10): su API exige que cada usuario se registre
   y pegue un token, y para MXN↔EUR el BCE ya da la tasa directa. Solo mejoraría MXN↔USD.
 - [ ] **Aviso de buen momento** (P2): "el euro está un 3 % por debajo de su media de 3 meses".
