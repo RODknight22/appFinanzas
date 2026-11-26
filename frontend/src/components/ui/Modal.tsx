@@ -91,7 +91,7 @@ function PanelModal({ titulo, onCerrar, children, ancho = "normal" }: Omit<Modal
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar"
-            className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-texto"
+            className="-mr-2 rounded-lg p-2 text-tenue hover:bg-realce hover:text-texto"
           >
             <X size={20} />
           </button>

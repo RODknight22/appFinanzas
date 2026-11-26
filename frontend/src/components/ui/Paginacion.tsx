@@ -14,7 +14,7 @@ export function Paginacion({ pagina, porPagina, total, onCambiar }: PaginacionPr
   const desde = (pagina - 1) * porPagina + 1;
   const hasta = Math.min(pagina * porPagina, total);
   const claseFlecha =
-    "rounded-lg p-1.5 text-tenue hover:bg-realce hover:text-texto disabled:opacity-30 disabled:hover:bg-transparent";
+    "rounded-lg p-2 text-tenue hover:bg-realce hover:text-texto disabled:opacity-30 disabled:hover:bg-transparent";
 
   return (
     <nav className="flex items-center justify-between gap-3 border-t border-linea pt-3 text-sm text-tenue" aria-label="Paginación">

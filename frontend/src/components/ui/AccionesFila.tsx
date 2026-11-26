@@ -11,11 +11,11 @@ interface AccionesFilaProps {
 
 /** Botones de editar y eliminar que aparecen en cada fila de una lista. */
 export function AccionesFila({ onEditar, onEliminar, nombre, motivoNoEliminar }: AccionesFilaProps) {
-  const clase =
-    "rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce";
+  // p-2.5 en móvil: el dedo necesita un objetivo de unos 40 px; con ratón basta p-1.5.
+  const clase = "rounded-lg p-2.5 text-tenue transition-colors hover:bg-realce sm:p-1.5";
   const sufijo = nombre ? ` ${nombre}` : "";
   return (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className="flex shrink-0 items-center sm:gap-1">
       <button type="button" onClick={onEditar} aria-label={`Editar${sufijo}`} className={`${clase} hover:text-texto`}>
         <Pencil size={16} />
       </button>
@@ -27,7 +27,7 @@ export function AccionesFila({ onEditar, onEliminar, nombre, motivoNoEliminar }:
           aria-disabled="true"
           aria-label={`Eliminar${sufijo}`}
           title={motivoNoEliminar}
-          className="cursor-not-allowed rounded-lg p-1.5 text-tenue-2 opacity-40"
+          className="cursor-not-allowed rounded-lg p-2.5 text-tenue opacity-40 sm:p-1.5"
         >
           <Trash2 size={16} />
         </button>
