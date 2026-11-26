@@ -1,20 +1,26 @@
 /**
  * Registro de widgets del panel. Para añadir uno nuevo basta con añadirlo a
- * WIDGETS: aparecerá en el panel y en la lista de widgets que se pueden mostrar.
+ * WIDGETS: aparecerá en "Personalizar" para añadirlo al panel (y a la vista desde
+ * el principio solo si lleva `visiblePorDefecto`).
  */
 import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, Coins, Scale, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 import type {
+  AhorroAnual,
   Categoria,
+  ComparativaPeriodo,
   CosteEnviosAnio,
   FlujoMensual,
   GastoDiario,
   GastoPorCategoria,
+  GastoPorComercio,
+  GastoPorCuenta,
   IngresoRecurrente,
   Meta,
   MesAnio,
+  Moneda,
   PoderAdquisitivo,
   ProgresoPresupuesto,
   PuntoPatrimonio,
@@ -25,8 +31,10 @@ import type {
 } from "../../types";
 import type { PagoProximo } from "../../utils/cuentas";
 import { formatearDinero, formatearNumero, formatearPorcentaje } from "../../utils/formato";
+import { PERIODOS, textoPeriodo, type Periodo } from "../../utils/periodo";
 import { CifraAnimada } from "../ui/CifraAnimada";
 import { Vacio } from "../ui/Estados";
+import { IconoCategoria } from "../ui/IconoCategoria";
 import { BarraMeta } from "../metas/BarraMeta";
 import { Tarjeta } from "../ui/Tarjeta";
 import { BarraPresupuesto } from "./BarraPresupuesto";
@@ -35,6 +43,9 @@ import { GraficoCategorias } from "./GraficoCategorias";
 import { GraficoFlujo } from "./GraficoFlujo";
 import { GraficoPatrimonio } from "./GraficoPatrimonio";
 import { TarjetaMetrica } from "./TarjetaMetrica";
+import { AhorroDelAnio } from "./widgets/AhorroDelAnio";
+import { Comparativa } from "./widgets/Comparativa";
+import { ListaBarras } from "./widgets/ListaBarras";
 import { ListaCobros } from "./widgets/ListaCobros";
 import { ListaPagos } from "./widgets/ListaPagos";
 import { ListaSaldos } from "./widgets/ListaSaldos";
@@ -44,6 +55,10 @@ import { ListaUltimas } from "./widgets/ListaUltimas";
 export interface DatosPanel {
   /** El mes que se está viendo (el calendario lo necesita para pintar sus días). */
   mes: MesAnio;
+  /** Periodo de ingresos, gastos y repartos; los widgets "del mes" o de saldos lo ignoran. */
+  periodo: Periodo;
+  /** Moneda principal: la de todos los totales. */
+  moneda: Moneda;
   resumen: ResumenMes;
   flujo: FlujoMensual[];
   gastos: GastoPorCategoria[];
@@ -59,7 +74,25 @@ export interface DatosPanel {
   /** Coste de los envíos entre monedas del año del mes que se está viendo. */
   costeEnvios: CosteEnviosAnio;
   poder: PoderAdquisitivo;
+  comparativa: ComparativaPeriodo;
+  comercios: GastoPorComercio[];
+  gastosCuenta: GastoPorCuenta[];
+  ahorro: AhorroAnual;
 }
+
+/**
+ * "Gastos · 7D": los widgets que siguen el periodo lo dicen en el título cuando no
+ * es el mes (así se distinguen de los que no cambian, como los saldos).
+ */
+function conPeriodo(titulo: string, periodo: Periodo): string {
+  if (periodo === "mes") return titulo;
+  return `${titulo} · ${PERIODOS.find((p) => p.valor === periodo)?.etiqueta ?? ""}`;
+}
+
+/** La serie mensual (sparkline y variación) solo tiene sentido junto a una cifra mensual. */
+const siEsMes = (periodo: Periodo, serie: number[]) => (periodo === "mes" ? serie : undefined);
+
+const mayuscula = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
 
 /** "−8,3 %", con signo: cuánto más (o menos) rinde tu dinero que de media. */
 function textoRinde(porcentaje: string | null): string {
@@ -81,6 +114,8 @@ function detallePoder({ moneda_ingreso, moneda_gasto, tasa_mes, tasa_media_12_me
 interface DefinicionWidget {
   titulo: string;
   tamanoPorDefecto: TamanoWidget;
+  /** Los que ve quien empieza (o restablece): un panel ligero; el resto se añade desde "Personalizar". */
+  visiblePorDefecto?: boolean;
   /** Recibe los datos ya cargados: los widgets solo pintan, no piden nada. */
   pintar: (datos: DatosPanel) => ReactNode;
 }
@@ -93,6 +128,7 @@ export const WIDGETS = {
   balance: {
     titulo: "Balance global",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ resumen, patrimonio }) => (
       <TarjetaMetrica
         titulo="Balance global"
@@ -107,26 +143,28 @@ export const WIDGETS = {
   ingresos: {
     titulo: "Ingresos del mes",
     tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen, flujo }) => (
+    visiblePorDefecto: true,
+    pintar: ({ resumen, flujo, periodo }) => (
       <TarjetaMetrica
-        titulo="Ingresos"
+        titulo={conPeriodo("Ingresos", periodo)}
         valor={<CifraAnimada valor={resumen.ingresos} />}
         icono={ArrowUpRight}
         tono="positivo"
-        serie={flujo.map((m) => Number(m.ingresos))}
+        serie={siEsMes(periodo, flujo.map((m) => Number(m.ingresos)))}
       />
     ),
   },
   gastos: {
     titulo: "Gastos del mes",
     tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen, flujo }) => (
+    visiblePorDefecto: true,
+    pintar: ({ resumen, flujo, periodo }) => (
       <TarjetaMetrica
-        titulo="Gastos"
+        titulo={conPeriodo("Gastos", periodo)}
         valor={<CifraAnimada valor={resumen.gastos} />}
         icono={ArrowDownRight}
         tono="negativo"
-        serie={flujo.map((m) => Number(m.gastos))}
+        serie={siEsMes(periodo, flujo.map((m) => Number(m.gastos)))}
         subirEsMalo
       />
     ),
@@ -143,16 +181,17 @@ export const WIDGETS = {
   flujo_neto: {
     titulo: "Flujo neto",
     tamanoPorDefecto: "pequeno",
-    pintar: ({ resumen, flujo }) => {
+    pintar: ({ resumen, flujo, periodo }) => {
       const neto = Number(resumen.flujo_neto);
+      const cuando = periodo === "mes" ? "este mes" : `en ${textoPeriodo(periodo, resumen.mes_anio)}`;
       return (
         <TarjetaMetrica
-          titulo="Flujo neto"
+          titulo={conPeriodo("Flujo neto", periodo)}
           valor={formatearDinero(neto)}
           icono={Scale}
           tono={neto >= 0 ? "positivo" : "negativo"}
-          detalle={neto >= 0 ? "Has ahorrado este mes" : "Gastaste más de lo que entró"}
-          serie={flujo.map((m) => Number(m.flujo_neto))}
+          detalle={neto >= 0 ? `Has ahorrado ${cuando}` : "Gastaste más de lo que entró"}
+          serie={siEsMes(periodo, flujo.map((m) => Number(m.flujo_neto)))}
         />
       );
     },
@@ -160,6 +199,7 @@ export const WIDGETS = {
   grafico_flujo: {
     titulo: "Ingresos vs. gastos",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ flujo }) => (
       <Tarjeta titulo="Ingresos vs. gastos (últimos 6 meses)" className="h-full">
         <GraficoFlujo datos={flujo} />
@@ -178,15 +218,39 @@ export const WIDGETS = {
   gastos_categoria: {
     titulo: "Gastos por categoría",
     tamanoPorDefecto: "mediano",
-    pintar: ({ gastos }) => (
-      <Tarjeta titulo="Gastos por categoría" className="h-full">
-        <GraficoCategorias datos={gastos} />
+    visiblePorDefecto: true,
+    pintar: ({ gastos, periodo, mes }) => (
+      <Tarjeta titulo={conPeriodo("Gastos por categoría", periodo)} className="h-full">
+        <GraficoCategorias datos={gastos} mensajeVacio={`Sin gastos en ${textoPeriodo(periodo, mes)}`} />
+      </Tarjeta>
+    ),
+  },
+  categorias_barras: {
+    titulo: "Gastos por categoría (barras)",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ gastos, periodo, mes }) => (
+      <Tarjeta titulo={conPeriodo("Gastos por categoría", periodo)} className="h-full">
+        {gastos.length === 0 ? (
+          <Vacio mensaje={`Sin gastos en ${textoPeriodo(periodo, mes)}`} />
+        ) : (
+          <ListaBarras
+            filas={gastos.slice(0, 6).map((g) => ({
+              clave: g.categoria_id,
+              nombre: g.nombre,
+              total: g.total,
+              porcentaje: g.porcentaje,
+              color: g.color,
+              inicio: <IconoCategoria icono={g.icono} color={g.color} tamano="sm" />,
+            }))}
+          />
+        )}
       </Tarjeta>
     ),
   },
   presupuestos: {
     titulo: "Presupuestos del mes",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ presupuestos }) => (
       <Tarjeta titulo="Presupuestos del mes" accion={enlace("/presupuestos", "Gestionar")} className="h-full">
         {presupuestos.length === 0 ? (
@@ -292,9 +356,79 @@ export const WIDGETS = {
   ultimas_transacciones: {
     titulo: "Últimas transacciones",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ ultimas, categorias }) => (
       <Tarjeta titulo="Últimas transacciones" accion={enlace("/transacciones", "Ver todas")} className="h-full">
         <ListaUltimas transacciones={ultimas} categorias={categorias} />
+      </Tarjeta>
+    ),
+  },
+  comparativa: {
+    titulo: "Este mes vs anterior",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ comparativa, periodo, mes }) => (
+      <Tarjeta
+        titulo={periodo === "mes" ? `${mayuscula(textoPeriodo(periodo, mes))} vs el mes anterior` : `${mayuscula(textoPeriodo(periodo, mes))} vs los anteriores`}
+        className="h-full"
+      >
+        <Comparativa datos={comparativa} />
+      </Tarjeta>
+    ),
+  },
+  top_comercios: {
+    titulo: "Top 5 comercios",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ comercios, periodo }) => (
+      <Tarjeta titulo={conPeriodo("Dónde más gastaste", periodo)} className="h-full">
+        {comercios.length === 0 ? (
+          <Vacio mensaje="Sin gastos con descripción en este periodo. El comercio sale de la descripción de cada gasto." />
+        ) : (
+          <ListaBarras
+            filas={comercios.map((c, i) => ({
+              clave: c.nombre,
+              nombre: c.nombre,
+              detalle: `${c.movimientos} ${c.movimientos === 1 ? "gasto" : "gastos"}`,
+              total: c.total,
+              porcentaje: c.porcentaje,
+              inicio: (
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-superficie-2 text-xs font-bold text-tenue">
+                  {i + 1}
+                </span>
+              ),
+            }))}
+          />
+        )}
+      </Tarjeta>
+    ),
+  },
+  ahorro_anual: {
+    titulo: "Ahorro del año",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ ahorro }) => (
+      <Tarjeta titulo={`Ahorro de ${ahorro.anio}`} className="flex h-full flex-col">
+        <AhorroDelAnio datos={ahorro} />
+      </Tarjeta>
+    ),
+  },
+  gasto_por_cuenta: {
+    titulo: "Gasto por cuenta",
+    tamanoPorDefecto: "mediano",
+    pintar: ({ gastosCuenta, periodo, mes, moneda }) => (
+      <Tarjeta titulo={conPeriodo("Gasto por cuenta", periodo)} accion={enlace("/cuentas", "Ver cuentas")} className="h-full">
+        {gastosCuenta.length === 0 ? (
+          <Vacio mensaje={`Sin gastos en ${textoPeriodo(periodo, mes)}`} />
+        ) : (
+          <ListaBarras
+            filas={gastosCuenta.map((g) => ({
+              clave: g.cuenta_id,
+              nombre: g.nombre,
+              // En otra moneda, también lo que salió de la cuenta tal cual.
+              detalle: g.moneda === moneda ? undefined : `${formatearDinero(g.total_cuenta, g.moneda)} en ${g.moneda}`,
+              total: g.total,
+              porcentaje: g.porcentaje,
+            }))}
+          />
+        )}
       </Tarjeta>
     ),
   },
@@ -307,16 +441,20 @@ export function esIdWidget(id: string): id is IdWidget {
   return id in WIDGETS;
 }
 
-/** El orden en que están escritos en WIDGETS, todos visibles. */
+/**
+ * El orden en que están escritos en WIDGETS; a la vista solo los marcados como
+ * `visiblePorDefecto` (un panel ligero), el resto espera en "Personalizar".
+ */
 export const DISPOSICION_POR_DEFECTO: WidgetDisposicion[] = Object.entries(WIDGETS).map(([id, w]) => ({
   id,
   tamano: w.tamanoPorDefecto as TamanoWidget,
-  visible: true,
+  visible: "visiblePorDefecto" in w && w.visiblePorDefecto,
 }));
 
 /**
  * Une la disposición guardada con los widgets que existen hoy: descarta los
- * que ya no existen y añade al final (visibles) los que se crearon después.
+ * que ya no existen y añade al final los que se crearon después (visibles solo
+ * si lo son por defecto: un widget nuevo no debe recargar un panel ya personalizado).
  */
 export function reconciliar(guardada: WidgetDisposicion[] | null): WidgetDisposicion[] {
   if (!guardada) return DISPOSICION_POR_DEFECTO;

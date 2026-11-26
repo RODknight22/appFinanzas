@@ -18,9 +18,9 @@ function TooltipCategoria({ active, payload }: TooltipProps<number, string>) {
   );
 }
 
-/** Gráfico de anillo con el reparto del gasto del mes y su leyenda. */
-export function GraficoCategorias({ datos }: { datos: GastoPorCategoria[] }) {
-  if (datos.length === 0) return <Vacio mensaje="Sin gastos este mes" />;
+/** Gráfico de anillo con el reparto del gasto del periodo y su leyenda. */
+export function GraficoCategorias({ datos, mensajeVacio = "Sin gastos este mes" }: { datos: GastoPorCategoria[]; mensajeVacio?: string }) {
+  if (datos.length === 0) return <Vacio mensaje={mensajeVacio} />;
 
   // Recharts lee `valor` como número para calcular el tamaño de cada porción.
   const porciones = datos.map((gasto) => ({ ...gasto, valor: Number(gasto.total) }));

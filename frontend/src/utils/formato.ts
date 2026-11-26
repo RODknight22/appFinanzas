@@ -150,6 +150,16 @@ export function textoRangoMes(mes: MesAnio): string | null {
   return `${corto(desde)} – ${corto(hasta)}`;
 }
 
+/** "1–5 nov" (o "28 oct – 3 nov" si cambia de mes), con el formato regional de la app. */
+export function formatearRangoCorto(desde: FechaISO, hasta: FechaISO): string {
+  const dia = (fecha: FechaISO) => fechaLocal(fecha).toLocaleDateString(localeActual, { day: "numeric" });
+  const diaMes = (fecha: FechaISO) =>
+    fechaLocal(fecha).toLocaleDateString(localeActual, { day: "numeric", month: "short" }).replace(".", "");
+  if (desde === hasta) return diaMes(desde);
+  if (desde.slice(0, 7) === hasta.slice(0, 7)) return `${dia(desde)}–${diaMes(hasta)}`;
+  return `${diaMes(desde)} – ${diaMes(hasta)}`;
+}
+
 /** Días que faltan hasta una fecha (negativo si ya pasó). */
 export function diasHasta(fecha: FechaISO): number {
   const milisegundosPorDia = 24 * 60 * 60 * 1000;

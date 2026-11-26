@@ -586,6 +586,9 @@ class SaldoCuenta(SQLModel):
 
 class ResumenMes(SQLModel):
     mes_anio: str
+    # El periodo de ingresos y gastos (el mes o el rango pedido), los dos días incluidos.
+    desde: date | None = None
+    hasta: date | None = None
     balance_global: Decimal
     ingresos: Decimal
     gastos: Decimal
@@ -619,6 +622,61 @@ class GastoPorCategoria(SQLModel):
     color: str
     total: Decimal
     porcentaje: float
+
+
+class TotalesPeriodo(SQLModel):
+    """Ingresos y gastos de un periodo (los dos días incluidos), en la moneda principal."""
+
+    desde: date
+    hasta: date
+    ingresos: Decimal
+    gastos: Decimal
+    flujo_neto: Decimal
+
+
+class ComparativaPeriodo(SQLModel):
+    actual: TotalesPeriodo
+    anterior: TotalesPeriodo
+    # En %; None si en el periodo anterior era 0.
+    variacion_ingresos: float | None
+    variacion_gastos: float | None
+    # Mes en curso: se compara lo que va de mes con los mismos días del anterior.
+    en_curso: bool = False
+
+
+class GastoPorComercio(SQLModel):
+    nombre: str
+    total: Decimal
+    movimientos: int
+    # Sobre todo lo gastado en el periodo (también lo que no tiene descripción).
+    porcentaje: float
+
+
+class GastoPorCuenta(SQLModel):
+    cuenta_id: int
+    nombre: str
+    moneda: Moneda
+    # En la principal (para comparar cuentas) y en la de la cuenta (lo que salió de ella).
+    total: Decimal
+    total_cuenta: Decimal
+    porcentaje: float
+
+
+class AhorroMes(SQLModel):
+    mes_anio: str
+    ingresos: Decimal
+    gastos: Decimal
+    ahorro: Decimal
+    # Ahorro sumado desde el primer mes del año hasta este.
+    acumulado: Decimal
+
+
+class AhorroAnual(SQLModel):
+    anio: int
+    ingresos: Decimal
+    gastos: Decimal
+    ahorro: Decimal
+    meses: list[AhorroMes]
 
 
 class ProgresoPresupuesto(SQLModel):
