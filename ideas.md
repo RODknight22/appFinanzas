@@ -79,12 +79,12 @@ Ejemplo:
   #mejora
   - 💬 Claude (23/10): ¿te refieres a la flecha que está a la derecha del nombre de la cuenta?
     Propongo ponerla a la izquierda, antes del nombre. ¿Te cuadra?
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: Si
 - [ ] Primeros pasos: que se tachen solos al abrir una cuenta, poner una meta, etc. #fix
   - 💬 Claude (23/10): el código ya los tacha solos (cuenta, movimiento, presupuesto y meta).
     Si alguno no se tachó, dime cuál y qué hiciste. Puede que la tarjeta solo se actualice al
     recargar la página, y eso lo arreglamos.
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: 
   - 💬 Claude (24/10): encontrado y arreglado en la PR #45. La cuenta creada en la bienvenida no
     se tachaba porque el panel había cargado antes. Ahora la tarjeta sale al terminar la
     bienvenida y ya tachada. Si ves otro que no se tache, dímelo aquí.
@@ -121,7 +121,7 @@ Ejemplo:
   - 💬 Claude: ¿qué te gustaría en lugar de los iconos? Opciones: una mini vista previa de los
     colores de cada estilo (recomendada: se ve el resultado antes de elegir), un icono distinto
     o nada. Y de la descripción del primero, ¿qué no te gustó, el texto o el tono?
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: 
 - [>] Widgets más personalizables: tamaños, cómo muestran los datos y widgets nuevos
   #mejora → hoja de ruta v1.3
   - 💬 Claude: es grande, así que va después de publicar. Cuando llegue, dime qué widgets
@@ -132,7 +132,7 @@ Ejemplo:
     2. ¿Qué quieres ver distinto en los que ya hay? (p. ej. categorías en barras en vez de
        dona, el calendario por semanas…)
     3. ¿Qué tamaños te faltan? Hoy hay pequeño, mediano y ancho.
-  - 🗣️ Rodrigo:
+  - 🗣️ Rodrigo: 1. Los que me dices me gustan, tambien añade accesos directos hacia apartados de la app como la cuenta (Ya hay en algunos), transaccion, etc. 2. Quiero que tengan un boton de info y que aparezca una breve explicacion de que es lo que trackea y tambien me gustaria poner rango de tiempo, desde hace años hasta por semana. 3. Quiero que se pueda elegir completamente el tamaño o sea que el usuario arrastre las esquina inferior y la escale al tamaño que quiera y pueda apilarlos con mayor libertad tambien
 
 ## 🧭 Siguientes pasos
 
