@@ -10,7 +10,9 @@
    Cada estilo visual solo tiene que decir cuánto vale cada nombre.
    --------------------------------------------------------------------------- */
 @theme {
-  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Inter: la interfaz y las cifras (muy legible a 12-14 px). Manrope: títulos, la voz de la marca. */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
 
   --color-fondo: var(--fondo); /* detrás de todo */
   --color-superficie: var(--superficie); /* tarjetas, modales, menús */
@@ -179,6 +181,12 @@
     @apply bg-fondo font-sans text-texto antialiased;
     /* Los números con el mismo ancho: las cifras no "bailan" al cambiar. */
     font-feature-settings: "tnum" 1;
+  }
+  /* Los títulos con la fuente de la marca, sin tener que acordarse en cada componente. */
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
   }
   ::selection {
     @apply bg-acento-500/30;
