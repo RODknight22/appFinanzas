@@ -31,7 +31,7 @@ function textoRestante(hasta: string): string {
   return `faltan ${Math.round(horas / 24)} días`;
 }
 
-const COLOR_PRIORIDAD = { alta: "text-peligro", media: "text-amber-600 dark:text-amber-400", baja: "text-tenue" };
+const COLOR_PRIORIDAD = { alta: "text-peligro", media: "text-aviso", baja: "text-tenue" };
 
 export function DeseosPage() {
   const [modal, setModal] = useState<EstadoModal>(null);

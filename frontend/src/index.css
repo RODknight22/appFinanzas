@@ -29,11 +29,13 @@
      confunde con un botón (el acento por defecto también es verde) ni un gasto con un acento rosa.
      - ingreso / gasto: dinero que entra o sale, tendencias buenas o malas, saldos negativos.
      - exito / peligro: estados de la interfaz (guardado, cumplido; errores, borrar, vencido).
+     - aviso: algo pide atención pero aún no es un error (vence pronto, prioridad media).
      Para fondos suaves, con opacidad: bg-gasto/15. */
   --color-ingreso: var(--ingreso);
   --color-gasto: var(--gasto);
   --color-exito: var(--exito);
   --color-peligro: var(--peligro);
+  --color-aviso: var(--aviso);
   /* Texto e iconos sobre un relleno de acento (bg-acento-600): blanco salvo en Saffron oscuro,
      donde el naranja es tan claro que necesita texto oscuro para leerse. */
   --color-sobre-acento: var(--sobre-acento);
@@ -140,6 +142,8 @@
   --gasto: oklch(57.7% 0.245 27.325);
   --exito: var(--ingreso);
   --peligro: var(--gasto);
+  /* Ámbar oscuro (amber-700): el amber-500 de siempre no llega a 3:1 sobre blanco. */
+  --aviso: oklch(55.5% 0.163 48.998);
   --sobre-acento: oklch(100% 0 0);
   /* Sombra de las tarjetas: suave en claro, sin sombra en oscuro (no se vería). */
   --sombra: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -12px oklch(0% 0 0 / 0.08);
@@ -161,6 +165,7 @@
   --tenue-2: oklch(52% calc(0.014 * var(--viveza)) var(--tinte));
   --ingreso: oklch(79.2% 0.209 151.711);
   --gasto: oklch(70.4% 0.191 22.216);
+  --aviso: oklch(82.8% 0.189 84.429); /* amber-400 */
   --sombra: none;
   /* En oscuro la sombra no se ve: la elevación la dan el desplazamiento y un borde algo más claro. */
   --sombra-elevada: 0 0 0 1px oklch(100% 0 0 / 0.06);
@@ -184,6 +189,7 @@
   --tenue-2: #a39c90;
   --ingreso: #187544;
   --gasto: #b83333;
+  --aviso: #a05a0c; /* ≥ 4,5:1 sobre Ivory */
   --sombra: none; /* la marca separa con bordes, no con sombras */
 }
 :root[data-estilo="orvyn"].dark,
@@ -200,6 +206,7 @@
   --tenue-2: #6e6a64;
   --ingreso: #54c78a;
   --gasto: #ed7070;
+  --aviso: #e8b04a;
 }
 
 /* Azul marino profundo. */

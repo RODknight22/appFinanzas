@@ -26,7 +26,7 @@ function Consejo({ meta }: { meta: Meta }) {
     );
   }
   if (meta.vencida) {
-    return <p className="text-amber-600 dark:text-amber-400">La fecha límite ya pasó: faltan {dinero(meta.restante)}.</p>;
+    return <p className="text-aviso">La fecha límite ya pasó: faltan {dinero(meta.restante)}.</p>;
   }
   if (meta.ahorro_mensual && meta.fecha_limite) {
     return (

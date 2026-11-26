@@ -171,7 +171,7 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
             <p className="text-xs text-exito">Saldada el {formatearFecha(deuda.fecha_saldada!)}</p>
           ) : (
             deuda.fecha_vencimiento && (
-              <p className={`text-xs ${deuda.vencida ? "text-amber-600 dark:text-amber-400" : "text-tenue"}`}>
+              <p className={`text-xs ${deuda.vencida ? "text-aviso" : "text-tenue"}`}>
                 Vence: {formatearFecha(deuda.fecha_vencimiento)} ({textoVencimiento(deuda.fecha_vencimiento).toLowerCase()})
               </p>
             )

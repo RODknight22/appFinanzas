@@ -395,7 +395,7 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
         </span>
       ) : (
         <select
-          className={`${CLASE_ENTRADA_BASE} w-40 ${dudosa ? "ring-2 ring-amber-400/60" : ""}`}
+          className={`${CLASE_ENTRADA_BASE} w-40 ${dudosa ? "ring-2 ring-aviso/60" : ""}`}
           value={valor}
           onChange={(e) => cambiar(e.target.value)}
           aria-label="Categoría o transferencia"

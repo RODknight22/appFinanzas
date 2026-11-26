@@ -33,7 +33,7 @@ function FechaTarjeta({ etiqueta, dia }: { etiqueta: string; dia: number }) {
   const fecha = proximaFechaDelDia(dia);
   const urgente = diasHasta(fecha) <= 3;
   return (
-    <span className={urgente ? "text-amber-600 dark:text-amber-400" : ""}>
+    <span className={urgente ? "text-aviso" : ""}>
       {etiqueta}: {formatearFecha(fecha)} ({textoVencimiento(fecha).toLowerCase()})
     </span>
   );
@@ -55,7 +55,7 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
         <div className="max-w-sm">
           <div className="h-1.5 overflow-hidden rounded-full bg-superficie-2">
             <div
-              className={`h-full rounded-full ${usado >= 80 ? "bg-peligro" : "bg-sky-500"}`}
+              className={`h-full rounded-full ${usado >= 80 ? "bg-peligro" : "bg-acento-500"}`}
               style={{ width: `${usado}%` }}
             />
           </div>
@@ -117,7 +117,7 @@ export function FilaCuenta(props: FilaCuentaProps) {
                 aria-expanded={!plegado.plegada}
                 aria-label={`${plegado.plegada ? "Mostrar" : "Ocultar"} ${plegado.cantidad} subcuentas`}
                 title={`${plegado.plegada ? "Mostrar" : "Ocultar"} subcuentas (${plegado.cantidad})`}
-                className="flex min-h-10 w-full flex-col items-center justify-center rounded-lg text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+                className="flex min-h-10 w-full flex-col items-center justify-center rounded-lg text-tenue transition-colors hover:bg-realce hover:text-texto"
               >
                 <ChevronRight size={16} className={`transition-transform ${plegado.plegada ? "" : "rotate-90"}`} />
                 {plegado.plegada && <span className="text-[10px] font-semibold leading-none tabular-nums">{plegado.cantidad}</span>}
@@ -151,13 +151,13 @@ export function FilaCuenta(props: FilaCuentaProps) {
             )}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center sm:gap-1">
           <button
             type="button"
             onClick={onAjustar}
             aria-label={`Ajustar saldo de ${cuenta.nombre}`}
             title="Ajustar saldo (que cuadre con el banco)"
-            className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+            className="rounded-lg p-2.5 text-tenue transition-colors hover:bg-realce hover:text-texto sm:p-1.5"
           >
             <Scale size={16} />
           </button>
@@ -166,7 +166,7 @@ export function FilaCuenta(props: FilaCuentaProps) {
             onClick={onFijar}
             aria-label={cuenta.fijada ? "Dejar de fijar" : "Fijar arriba"}
             title={cuenta.fijada ? "Dejar de fijar" : "Fijar arriba"}
-            className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+            className="rounded-lg p-2.5 text-tenue transition-colors hover:bg-realce hover:text-texto sm:p-1.5"
           >
             <IconoFijar size={16} />
           </button>

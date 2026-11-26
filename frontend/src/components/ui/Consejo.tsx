@@ -29,7 +29,8 @@ export function Consejo({ texto, alinear = "inicio" }: ConsejoProps) {
         onBlur={() => setAbierto(false)}
         aria-label="Consejo"
         aria-expanded={abierto}
-        className="rounded-full p-1 text-amber-500 transition-colors hover:bg-realce"
+        // -m-1: el área táctil crece sin mover el título que tiene al lado.
+        className="-m-1 rounded-full p-2 text-aviso hover:bg-realce"
       >
         <Lightbulb size={16} />
       </button>
