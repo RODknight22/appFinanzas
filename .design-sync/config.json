@@ -1,0 +1,53 @@
+{
+  "pkg": "finanzas-frontend",
+  "globalName": "OrvynUI",
+  "shape": "package",
+  "buildCmd": "npm --prefix frontend run build && node -e \"const fs=require('fs'),d='frontend/dist/assets/';const f=fs.readdirSync(d).find(n=>/^index-.*\\.css$/.test(n));fs.writeFileSync(d+'orvyn-ui.css',fs.readFileSync(d+f,'utf8').replace(/@font-face\\{[^}]*\\}/g,''))\"",
+  "srcDir": "src/components/ui",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "dist/assets/orvyn-ui.css",
+  "componentSrcMap": {
+    "AccionesFila": "src/components/ui/AccionesFila.tsx",
+    "Avatar": "src/components/ui/Avatar.tsx",
+    "Avisos": "src/components/ui/Avisos.tsx",
+    "Boton": "src/components/ui/Boton.tsx",
+    "Campo": "src/components/ui/Campo.tsx",
+    "ErrorFormulario": "src/components/ui/Campo.tsx",
+    "Consejo": "src/components/ui/Consejo.tsx",
+    "EncabezadoPagina": "src/components/ui/EncabezadoPagina.tsx",
+    "EntradaContrasena": "src/components/ui/EntradaContrasena.tsx",
+    "Cargando": "src/components/ui/Estados.tsx",
+    "MensajeError": "src/components/ui/Estados.tsx",
+    "Vacio": "src/components/ui/Estados.tsx",
+    "Contenido": "src/components/ui/Estados.tsx",
+    "IconoCategoria": "src/components/ui/IconoCategoria.tsx",
+    "SimboloOrvyn": "src/components/ui/LogoOrvyn.tsx",
+    "LogoOrvyn": "src/components/ui/LogoOrvyn.tsx",
+    "Modal": "src/components/ui/Modal.tsx",
+    "Paginacion": "src/components/ui/Paginacion.tsx",
+    "SelectMoneda": "src/components/ui/SelectMoneda.tsx",
+    "SelectorFecha": "src/components/ui/SelectorFecha.tsx",
+    "SelectorMes": "src/components/ui/SelectorMes.tsx",
+    "Sparkline": "src/components/ui/Sparkline.tsx",
+    "Tarjeta": "src/components/ui/Tarjeta.tsx",
+    "TemaOrvyn": "src/components/ui/TemaOrvyn.tsx",
+    "TotalConvertido": "src/components/ui/TotalConvertido.tsx"
+  },
+  "provider": {
+    "component": "TemaOrvyn"
+  },
+  "extraFonts": [
+    "node_modules/@fontsource-variable/inter/index.css",
+    "node_modules/@fontsource-variable/manrope/index.css"
+  ],
+  "overrides": {
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "720x520"
+    },
+    "EncabezadoPagina": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
