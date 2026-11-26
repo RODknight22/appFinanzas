@@ -9,7 +9,7 @@ import { lanzarConfeti } from "../../utils/confeti";
 import { formatearDinero, formatearFecha, hoyISO } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
-import { Contenido } from "../ui/Estados";
+import { Contenido, Vacio } from "../ui/Estados";
 import { SelectorFecha } from "../ui/SelectorFecha";
 
 interface PanelAportacionesProps {
@@ -91,7 +91,7 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
         <Contenido {...historial} onReintentar={historial.recargar}>
           {(aportaciones) =>
             aportaciones.length === 0 ? (
-              <p className="text-sm text-tenue">Aún no hay aportaciones.</p>
+              <Vacio mensaje="Aún no hay aportaciones." />
             ) : (
               <ul className="max-h-60 divide-y divide-linea overflow-y-auto text-sm">
                 {aportaciones.map((a) => {
@@ -107,10 +107,10 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
                       <button
                         type="button"
                         aria-label="Eliminar aportación"
-                        className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-peligro"
+                        className="shrink-0 rounded-lg p-2.5 text-tenue hover:bg-realce hover:text-peligro sm:p-1.5"
                         onClick={() => confirmarYEliminar("¿Eliminar esta aportación?", () => metasApi.eliminarAportacion(meta.id, a.id), despuesDeCambiar)}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
                     </li>
                   );

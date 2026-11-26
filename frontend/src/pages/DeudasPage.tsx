@@ -211,8 +211,8 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
                     {abono.cuenta_id !== null && cuentaPorId.get(abono.cuenta_id)?.nombre}
                     {abono.notas && ` · ${abono.notas}`}
                   </span>
-                  <button type="button" onClick={() => onEliminarAbono(abono.id)} aria-label="Eliminar abono" className="rounded p-1 text-tenue-2 hover:text-peligro">
-                    <Trash2 size={12} />
+                  <button type="button" onClick={() => onEliminarAbono(abono.id)} aria-label="Eliminar abono" className="shrink-0 rounded-lg p-2.5 text-tenue hover:bg-realce hover:text-peligro sm:p-1.5">
+                    <Trash2 size={16} />
                   </button>
                 </li>
               ))}

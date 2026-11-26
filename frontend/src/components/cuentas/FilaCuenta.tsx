@@ -46,11 +46,14 @@ function DetalleCredito({ cuenta, saldo, onPagar }: { cuenta: Cuenta; saldo: num
 
   return (
     <div className="mt-2 space-y-2 text-xs text-tenue">
-      <p className="flex flex-wrap gap-x-4 gap-y-1">
-        <CalendarClock size={14} className="shrink-0" />
-        {cuenta.dia_corte && <FechaTarjeta etiqueta="Corte" dia={cuenta.dia_corte} />}
-        {cuenta.dia_pago && <FechaTarjeta etiqueta="Pago" dia={cuenta.dia_pago} />}
-      </p>
+      {/* Sin día de corte ni de pago, la línea solo tendría el icono del calendario. */}
+      {(cuenta.dia_corte || cuenta.dia_pago) && (
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
+          <CalendarClock size={14} className="shrink-0" />
+          {cuenta.dia_corte && <FechaTarjeta etiqueta="Corte" dia={cuenta.dia_corte} />}
+          {cuenta.dia_pago && <FechaTarjeta etiqueta="Pago" dia={cuenta.dia_pago} />}
+        </p>
+      )}
       {limite && (
         <div className="max-w-sm">
           <div className="h-1.5 overflow-hidden rounded-full bg-superficie-2">
