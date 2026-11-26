@@ -10,7 +10,9 @@
    Cada estilo visual solo tiene que decir cuánto vale cada nombre.
    --------------------------------------------------------------------------- */
 @theme {
-  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Inter: la interfaz y las cifras (muy legible a 12-14 px). Manrope: títulos, la voz de la marca. */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
 
   --color-fondo: var(--fondo); /* detrás de todo */
   --color-superficie: var(--superficie); /* tarjetas, modales, menús */
@@ -32,6 +34,11 @@
   --color-gasto: var(--gasto);
   --color-exito: var(--exito);
   --color-peligro: var(--peligro);
+  /* Texto e iconos sobre un relleno de acento (bg-acento-600): blanco salvo en Saffron oscuro,
+     donde el naranja es tan claro que necesita texto oscuro para leerse. */
+  --color-sobre-acento: var(--sobre-acento);
+  /* Saffron de la marca, fijo: el logo no cambia con el acento que elija el usuario. */
+  --color-marca: #f07842;
   /* Rellenos sólidos con texto blanco encima (botones, chapas): iguales en claro y oscuro. */
   --color-ingreso-fuerte: oklch(52.7% 0.154 150.069);
   --color-gasto-fuerte: oklch(57.7% 0.245 27.325);
@@ -83,6 +90,7 @@
   --gasto: oklch(57.7% 0.245 27.325);
   --exito: var(--ingreso);
   --peligro: var(--gasto);
+  --sobre-acento: oklch(100% 0 0);
   /* Sombra de las tarjetas: suave en claro, sin sombra en oscuro (no se vería). */
   --sombra: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -12px oklch(0% 0 0 / 0.08);
 }
@@ -105,21 +113,65 @@
   color-scheme: dark; /* barras de desplazamiento y controles nativos oscuros */
 }
 
+/* ORVYN, el estilo de la marca (por defecto). Colores exactos del sistema de marca
+   "Obsidian × Saffron": no salen de --tinte/--viveza. :not(.dark) y .dark suben la
+   especificidad para ganar a :root.dark, que se declara antes. */
+:root[data-estilo="orvyn"]:not(.dark),
+:root[data-estilo="obsidian"]:not(.dark) {
+  --fondo: #f5f0e8; /* Ivory: nunca blanco puro */
+  --superficie: #fcfaf6;
+  --superficie-2: #ede6da;
+  --realce: #f3eee5;
+  --linea: #e4dcce;
+  --linea-fuerte: #8f877a; /* ≥ 3:1: los bordes de campos y botones se distinguen */
+  --texto: #171717;
+  --suave: #57524a;
+  --tenue: #6a645a;
+  --tenue-2: #a39c90;
+  --ingreso: #187544;
+  --gasto: #b83333;
+  --sombra: none; /* la marca separa con bordes, no con sombras */
+}
+:root[data-estilo="orvyn"].dark,
+:root[data-estilo="obsidian"].dark {
+  --fondo: #000000; /* negro puro: el naranja resalta y en OLED gasta menos */
+  --superficie: #121212;
+  --superficie-2: #1c1c1c;
+  --realce: #181818;
+  --linea: #222222;
+  --linea-fuerte: #6b6760;
+  --texto: #f5f0e8; /* Ivory */
+  --suave: #b8b2a8;
+  --tenue: #948f87;
+  --tenue-2: #6e6a64;
+  --ingreso: #54c78a;
+  --gasto: #ed7070;
+}
+
 /* Azul marino profundo. */
 :root[data-estilo="medianoche"] {
   --tinte: 262;
   --viveza: 3.2;
 }
 
-/* Gris neutro; en oscuro, negro casi puro (ahorra batería en pantallas OLED). */
-:root[data-estilo="grafito"] {
-  --viveza: 0;
+/* Obsidian: el gris muy oscuro original de la marca (sustituye a Grafito). Comparte con ORVYN
+   el modo claro y los textos; aquí solo cambian fondos y bordes del oscuro. */
+:root[data-estilo="obsidian"].dark {
+  --fondo: #171717; /* Obsidian */
+  --superficie: #242424; /* Graphite */
+  --superficie-2: #343434; /* Slate */
+  --realce: #2d2d2d;
+  --linea: #2f2f2f;
+  --linea-fuerte: #75716a;
 }
-:root[data-estilo="grafito"].dark {
-  --fondo: oklch(9% 0 0);
-  --superficie: oklch(16% 0 0);
-  --superficie-2: oklch(21% 0 0);
-  --realce: oklch(24% 0 0);
+
+/* Estilo personal con "Negro puro": en oscuro el fondo es negro y las tarjetas casi negras,
+   con un toque del tono elegido. */
+:root[data-estilo="personal"][data-negro].dark {
+  --fondo: oklch(0% 0 0);
+  --superficie: oklch(15% calc(0.008 * var(--viveza)) var(--tinte));
+  --superficie-2: oklch(19.5% calc(0.01 * var(--viveza)) var(--tinte));
+  --realce: oklch(17.5% calc(0.01 * var(--viveza)) var(--tinte));
 }
 
 /* Verde bosque discreto. */
@@ -142,6 +194,12 @@
     @apply bg-fondo font-sans text-texto antialiased;
     /* Los números con el mismo ancho: las cifras no "bailan" al cambiar. */
     font-feature-settings: "tnum" 1;
+  }
+  /* Los títulos con la fuente de la marca, sin tener que acordarse en cada componente. */
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
   }
   ::selection {
     @apply bg-acento-500/30;
@@ -169,6 +227,29 @@
   --color-acento-600: oklch(59.6% 0.145 163.225);
   --color-acento-700: oklch(50.8% 0.118 165.612);
   --color-acento-950: oklch(26.2% 0.051 172.552);
+}
+
+/* Saffron, el acento de la marca (por defecto). El tono 600 hace de relleno de botones y de
+   texto en modo claro, así que cambia con el modo:
+   - claro: Saffron profundo, que se lee como texto sobre Ivory (4,5:1) y lleva texto blanco;
+   - oscuro: Saffron puro #F07842, con texto Obsidian encima (6,4:1; el blanco daría 2,8:1). */
+:root[data-acento="saffron"] {
+  --color-acento-50: #fdf1ea;
+  --color-acento-100: #fbe0d2;
+  --color-acento-300: #f5a882;
+  --color-acento-400: #f07842;
+  --color-acento-500: #d9622d;
+  --color-acento-600: #b84d1c;
+  --color-acento-700: #9a3f16;
+  --color-acento-950: #3a1a0b;
+}
+:root[data-acento="saffron"].dark {
+  --color-acento-300: #f8b594;
+  --color-acento-400: #f48c5e;
+  --color-acento-500: #f28150;
+  --color-acento-600: #f07842;
+  --color-acento-700: #d9662f;
+  --sobre-acento: #171717;
 }
 
 :root[data-acento="azul"] {

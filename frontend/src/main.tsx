@@ -6,7 +6,9 @@ import App from "./App";
 import { Avisos } from "./components/ui/Avisos";
 import { AccesoProvider } from "./hooks/useAcceso";
 import { ConfiguracionProvider } from "./hooks/useConfiguracion";
-// La fuente va incluida en la app (no se descarga de Google): funciona sin internet.
+// Las fuentes van incluidas en la app (no se descargan de Google): funciona sin internet.
+// Inter para la interfaz y las cifras; Manrope para los títulos (marca ORVYN).
+import "@fontsource-variable/inter";
 import "@fontsource-variable/manrope";
 import "./index.css";
 

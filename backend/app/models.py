@@ -75,6 +75,7 @@ class OrigenTasa(str, Enum):
     MANUAL = "manual"  # escrita por el usuario (tiene prioridad sobre la de internet)
 
 class ColorAcento(str, Enum):
+    SAFFRON = "saffron"  # el de la marca ORVYN (por defecto)
     ESMERALDA = "esmeralda"
     AZUL = "azul"
     INDIGO = "indigo"
@@ -96,8 +97,12 @@ class EstiloVisual(str, Enum):
     y su bloque de variables allí.
     """
 
+    ORVYN = "orvyn"  # el de la marca (por defecto): negro puro en oscuro, Ivory en claro
+    OBSIDIAN = "obsidian"  # el gris muy oscuro original de la marca (#171717)
     FINTECH = "fintech"
     MEDIANOCHE = "medianoche"
+    # Obsoleto: lo sustituyó Obsidian. Se conserva para leer configuraciones antiguas, que el
+    # servicio devuelve como Obsidian (borrarlo rompería las filas que aún lo tengan).
     GRAFITO = "grafito"
     BOSQUE = "bosque"
     ARENA = "arena"
@@ -563,6 +568,8 @@ class Configuracion(SQLModel, table=True):
     # (0 = gris puro, 100 = la de Fintech, 400 = muy teñido). null = los de Fintech.
     tinte_personal: int | None = Field(default=None, ge=0, le=360)
     viveza_personal: int | None = Field(default=None, ge=0, le=400)
+    # Estilo "personal" en modo oscuro: fondo negro puro en vez de gris muy oscuro. null = no.
+    negro_personal: bool | None = None
     pagina_inicio: PaginaInicio | None = None
     # Día en que empieza el "mes financiero" (p. ej. el día de cobro). 1-28 para
     # que exista en todos los meses, febrero incluido.

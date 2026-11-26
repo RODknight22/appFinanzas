@@ -147,7 +147,7 @@ function PanelMeses({ disparador, mes, actual, onElegir, onCerrar }: PanelMesesP
               aria-current={codigo === actual ? "date" : undefined}
               className={`rounded-xl py-2.5 text-sm font-medium capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-acento-500 ${
                 elegido
-                  ? "bg-acento-600 text-white"
+                  ? "bg-acento-600 text-sobre-acento"
                   : codigo === actual
                     ? "font-bold text-acento-600 hover:bg-realce dark:text-acento-400"
                     : "hover:bg-realce"

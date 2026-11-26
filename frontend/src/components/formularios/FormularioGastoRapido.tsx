@@ -77,7 +77,7 @@ export function FormularioGastoRapido({ carteras, categorias, onGuardado, onCanc
               aria-checked={c.id === carteraId}
               onClick={() => setCarteraId(c.id)}
               className={`rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition ${
-                c.id === carteraId ? "bg-acento-600 text-white ring-acento-600" : "bg-superficie-2 text-suave ring-linea hover:bg-realce"
+                c.id === carteraId ? "bg-acento-600 text-sobre-acento ring-acento-600" : "bg-superficie-2 text-suave ring-linea hover:bg-realce"
               }`}
             >
               {c.nombre} · {c.moneda}

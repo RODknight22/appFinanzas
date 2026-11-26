@@ -24,8 +24,12 @@ export const MONEDA_POR_DEFECTO: Moneda = "MXN";
 /** Gris pizarra: el de "Otros" y el de una categoría sin color propio (igual que el backend). */
 export const COLOR_CATEGORIA_POR_DEFECTO = "#64748b";
 
-/** Colores de acento, en orden de arcoíris. `muestra` es el tono 500 para pintar el selector. */
-export const ACENTOS: Record<ColorAcento, { nombre: string; muestra: string }> = {
+/**
+ * Colores de acento: primero el de la marca, luego en orden de arcoíris. `muestra` pinta el
+ * selector; `muestraOscura` indica que el check encima va en oscuro (en blanco no se leería).
+ */
+export const ACENTOS: Record<ColorAcento, { nombre: string; muestra: string; muestraOscura?: boolean }> = {
+  saffron: { nombre: "Saffron", muestra: "#f07842", muestraOscura: true },
   esmeralda: { nombre: "Esmeralda", muestra: "#10b981" },
   turquesa: { nombre: "Turquesa", muestra: "#14b8a6" },
   cian: { nombre: "Cian", muestra: "#06b6d4" },
@@ -53,6 +57,18 @@ export interface ColoresModo {
  * Si cambias un estilo en index.css, cambia también aquí sus colores.
  */
 export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string; claro: ColoresModo; oscuro: ColoresModo }> = {
+  orvyn: {
+    nombre: "ORVYN",
+    descripcion: "Negro puro e Ivory",
+    claro: { fondo: "#f5f0e8", tarjeta: "#fcfaf6", texto: "#171717" },
+    oscuro: { fondo: "#000000", tarjeta: "#121212", texto: "#f5f0e8" },
+  },
+  obsidian: {
+    nombre: "Obsidian",
+    descripcion: "Gris muy oscuro e Ivory",
+    claro: { fondo: "#f5f0e8", tarjeta: "#fcfaf6", texto: "#171717" },
+    oscuro: { fondo: "#171717", tarjeta: "#242424", texto: "#f5f0e8" },
+  },
   fintech: {
     nombre: "Fintech",
     descripcion: "Gris con un toque lila",
@@ -64,12 +80,6 @@ export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string
     descripcion: "Azul marino",
     claro: { fondo: "oklch(97.2% 0.013 262)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0.038 262)" },
     oscuro: { fondo: "oklch(14.5% 0.026 262)", tarjeta: "oklch(19.5% 0.032 262)", texto: "oklch(97% 0.013 262)" },
-  },
-  grafito: {
-    nombre: "Grafito",
-    descripcion: "Gris neutro, negro puro",
-    claro: { fondo: "oklch(97.2% 0 0)", tarjeta: "oklch(100% 0 0)", texto: "oklch(21% 0 0)" },
-    oscuro: { fondo: "oklch(9% 0 0)", tarjeta: "oklch(16% 0 0)", texto: "oklch(97% 0 0)" },
   },
   bosque: {
     nombre: "Bosque",
@@ -95,12 +105,14 @@ export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string
  * Los colores de la vista previa del estilo personal, con las mismas fórmulas que index.css
  * (`oklch(claridad calc(croma * var(--viveza)) var(--tinte))`). `viveza` en centésimas.
  */
-export function coloresPersonales(tinte: number, viveza: number): { claro: ColoresModo; oscuro: ColoresModo } {
+export function coloresPersonales(tinte: number, viveza: number, negro = false): { claro: ColoresModo; oscuro: ColoresModo } {
   const v = viveza / 100;
   const color = (claridad: number, croma: number) => `oklch(${claridad}% ${(croma * v).toFixed(4)} ${tinte})`;
   return {
     claro: { fondo: color(97.2, 0.004), tarjeta: "oklch(100% 0 0)", texto: color(21, 0.012) },
-    oscuro: { fondo: color(14.5, 0.008), tarjeta: color(19.5, 0.01), texto: color(97, 0.004) },
+    oscuro: negro
+      ? { fondo: "oklch(0% 0 0)", tarjeta: color(15, 0.008), texto: color(97, 0.004) }
+      : { fondo: color(14.5, 0.008), tarjeta: color(19.5, 0.01), texto: color(97, 0.004) },
   };
 }
 

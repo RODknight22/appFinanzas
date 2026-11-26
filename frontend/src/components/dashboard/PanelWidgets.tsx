@@ -101,7 +101,7 @@ function WidgetOrdenable({ widget, datos, editando, onTamano, onOcultar, solitar
                 title={nombre}
                 aria-label={`${nombre}: ${definicion.titulo}`}
                 className={`h-6 min-w-6 rounded px-1 font-semibold ${
-                  widget.tamano === valor ? "bg-acento-600 text-white" : "text-tenue hover:bg-realce"
+                  widget.tamano === valor ? "bg-acento-600 text-sobre-acento" : "text-tenue hover:bg-realce"
                 }`}
               >
                 {etiqueta}

@@ -657,6 +657,7 @@ class ConfiguracionRead(SQLModel):
     estilo_visual: EstiloVisual
     tinte_personal: int
     viveza_personal: int
+    negro_personal: bool
     pagina_inicio: PaginaInicio
     dia_inicio_mes: int
     # null = el frontend usa su disposición por defecto
@@ -686,6 +687,7 @@ class ConfiguracionUpdate(SQLModel):
     estilo_visual: EstiloVisual | None = None
     tinte_personal: int | None = Field(default=None, ge=0, le=360)
     viveza_personal: int | None = Field(default=None, ge=0, le=400)
+    negro_personal: bool | None = None
     pagina_inicio: PaginaInicio | None = None
     dia_inicio_mes: int | None = Field(default=None, ge=1, le=28)
     widgets: list[WidgetDisposicion] | None = Field(default=None, max_length=30)

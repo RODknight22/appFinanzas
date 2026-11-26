@@ -47,7 +47,7 @@ export function SeccionApariencia() {
             const activo = configuracion.estilo_visual === valor;
             const { nombre, descripcion } = estilo;
             // El personalizado se previsualiza con lo que se está eligiendo.
-            const { claro, oscuro } = valor === "personal" ? coloresPersonales(personal.tinte, personal.viveza) : estilo;
+            const { claro, oscuro } = valor === "personal" ? coloresPersonales(personal.tinte, personal.viveza, configuracion.negro_personal) : estilo;
             return (
               <button
                 key={valor}
@@ -90,6 +90,19 @@ export function SeccionApariencia() {
               fondo={`linear-gradient(to right, oklch(70% 0 0), oklch(70% 0.15 ${personal.tinte}))`}
               onCambio={(viveza) => mover({ viveza })}
             />
+            <label className="flex cursor-pointer items-center gap-3 text-sm sm:col-span-2">
+              <input
+                id="negro-personal"
+                type="checkbox"
+                checked={configuracion.negro_personal}
+                onChange={(e) => elegir({ negro_personal: e.target.checked })}
+                className="h-4 w-4 accent-acento-600"
+              />
+              <span>
+                <span className="font-semibold text-texto">Negro puro</span>
+                <span className="block text-xs text-tenue">En modo oscuro, el fondo en negro de verdad (ahorra batería en pantallas OLED).</span>
+              </span>
+            </label>
           </div>
         )}
       </fieldset>
@@ -97,7 +110,7 @@ export function SeccionApariencia() {
       <fieldset className="mt-6">
         <legend className="mb-3 text-sm text-tenue">Color de acento de botones, menú, gráficas y enlaces.</legend>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-          {Object.entries(ACENTOS).map(([valor, { nombre, muestra }]) => {
+          {Object.entries(ACENTOS).map(([valor, { nombre, muestra, muestraOscura }]) => {
             const activo = configuracion.color_acento === valor;
             return (
               <button
@@ -109,7 +122,7 @@ export function SeccionApariencia() {
                   activo ? "border-linea-fuerte" : "border-transparent hover:bg-realce"
                 }`}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full text-white" style={{ backgroundColor: muestra }}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full ${muestraOscura ? "text-black/80" : "text-white"}`} style={{ backgroundColor: muestra }}>
                   {activo && <Check size={16} />}
                 </span>
                 {nombre}

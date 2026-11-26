@@ -26,6 +26,7 @@ import { AsistenteBienvenida } from "./bienvenida/AsistenteBienvenida";
 import { CampanaNotificaciones } from "./CampanaNotificaciones";
 import { MenuMas } from "./MenuMas";
 import { Avatar } from "./ui/Avatar";
+import { LogoOrvyn, SimboloOrvyn } from "./ui/LogoOrvyn";
 import { Cargando } from "./ui/Estados";
 
 interface ItemMenu {
@@ -89,11 +90,12 @@ export function Layout() {
     <div className="min-h-screen md:flex">
       {/* Menú lateral: solo en pantallas medianas o más grandes */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-1 p-5 md:flex">
+        <LogoOrvyn className="mb-6 px-1.5" />
         <div className="mb-8 flex items-center gap-1">
           <Link to="/ajustes" className="flex min-w-0 flex-1 items-center gap-3 rounded-full p-1.5 pr-3 transition-colors hover:bg-realce" title="Editar perfil">
             <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
             <span className="min-w-0">
-              <span className="block text-xs text-tenue">Mis Finanzas</span>
+              <span className="block text-xs text-tenue">Mi perfil</span>
               <span className="block truncate font-semibold">Hola, {nombre}</span>
             </span>
           </Link>
@@ -134,6 +136,7 @@ export function Layout() {
       {/* Cabecera móvil: quién eres y los avisos. El resto del menú, abajo. */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-linea bg-fondo/80 px-4 py-3 backdrop-blur-lg md:hidden">
         <span className="flex min-w-0 items-center gap-2">
+          <SimboloOrvyn tamano={20} className="mr-1" />
           <Avatar foto={urlFoto} avatar={configuracion.avatar} nombre={nombre} />
           <span className="truncate font-semibold">Hola, {nombre}</span>
         </span>

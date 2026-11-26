@@ -9,8 +9,8 @@ from app.services import mes_financiero
 
 def test_valores_por_defecto(client: TestClient) -> None:
     configuracion = client.get("/configuracion").json()
-    assert configuracion["color_acento"] == "esmeralda"
-    assert configuracion["estilo_visual"] == "fintech"
+    assert configuracion["color_acento"] == "saffron"
+    assert configuracion["estilo_visual"] == "orvyn"
     assert configuracion["pagina_inicio"] == "dashboard"
     assert configuracion["dia_inicio_mes"] == 1
     assert configuracion["nombre"] is None
@@ -43,6 +43,21 @@ def test_estilo_visual_y_acentos_nuevos(client: TestClient) -> None:
     # Cambiar otra cosa no toca el estilo elegido
     client.patch("/configuracion", json={"color_acento": "ambar"})
     assert client.get("/configuracion").json()["estilo_visual"] == "medianoche"
+
+
+def test_grafito_se_lee_como_obsidian(client: TestClient) -> None:
+    # Grafito se sustituyó por Obsidian: quien lo tuviera guardado ve Obsidian.
+    assert client.patch("/configuracion", json={"estilo_visual": "grafito"}).json()["estilo_visual"] == "obsidian"
+    assert client.patch("/configuracion", json={"estilo_visual": "obsidian"}).json()["estilo_visual"] == "obsidian"
+
+
+def test_negro_puro_del_estilo_personal(client: TestClient) -> None:
+    assert client.get("/configuracion").json()["negro_personal"] is False
+    assert client.patch("/configuracion", json={"negro_personal": True}).json()["negro_personal"] is True
+    # Cambiar el tono no apaga el negro puro
+    client.patch("/configuracion", json={"tinte_personal": 40})
+    assert client.get("/configuracion").json()["negro_personal"] is True
+    assert client.patch("/configuracion", json={"negro_personal": False}).json()["negro_personal"] is False
 
 
 def test_disposicion_de_widgets(client: TestClient) -> None:
