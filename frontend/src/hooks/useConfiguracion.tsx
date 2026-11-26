@@ -175,6 +175,33 @@ export function ConfiguracionProvider({ children }: { children: ReactNode }) {
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
+/**
+ * Configuración fija, sin backend: para usar los componentes fuera de la app (vistas previas
+ * de Claude Design, pruebas). Cambiar ajustes no hace nada; los datos son los de ejemplo.
+ */
+export function ConfiguracionFija({
+  configuracion = CONFIGURACION_INICIAL,
+  tasas = [],
+  children,
+}: {
+  configuracion?: Configuracion;
+  tasas?: Tasa[];
+  children: ReactNode;
+}) {
+  const valor: ContextoConfiguracion = {
+    configuracion,
+    moneda: configuracion.moneda,
+    monedasActivas: configuracion.monedas_activas,
+    tasas,
+    actualizarConfiguracion: async () => {},
+    recargarTasas: async () => {},
+    cambiarFoto: async () => {},
+    urlFoto: null,
+    convertir: (monto, de, a = configuracion.moneda) => convertir(monto, de, a, configuracion.moneda, tasas),
+  };
+  return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
+}
+
 export function useConfiguracion(): ContextoConfiguracion {
   const contexto = useContext(Contexto);
   if (!contexto) throw new Error("useConfiguracion debe usarse dentro de <ConfiguracionProvider>");
