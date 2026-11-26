@@ -23,6 +23,13 @@ await prueba("envios", async ({ pagina, api }) => {
   comprobar((await costes.count()) === 1 && texto.includes("80") && /\b4\s?%/.test(texto), `la transferencia muestra su coste (${texto})`);
   await pagina.screenshot({ path: `${CAPTURAS}/envios-lista.png` });
 
+  // El panel por defecto es ligero y estos dos widgets no se ven hasta añadirlos.
+  await api.patch("/configuracion", {
+    widgets: [
+      { id: "coste_envios", tamano: "pequeno", visible: true },
+      { id: "poder_adquisitivo", tamano: "pequeno", visible: true },
+    ],
+  });
   await abrir(pagina, "/dashboard");
   const widget = pagina.getByText(/^Coste envíos \d{4}$/).locator("xpath=ancestor::div[contains(@class, 'rounded-3xl')][1]");
   await widget.waitFor();

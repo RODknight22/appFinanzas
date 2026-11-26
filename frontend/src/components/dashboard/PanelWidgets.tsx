@@ -153,7 +153,7 @@ export function PanelWidgets({ disposicion, datos, editando, onCambiar }: PanelW
     <div className="space-y-4">
       {editando && ocultos.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-linea-fuerte p-3 text-sm">
-          <span className="text-tenue">Widgets ocultos:</span>
+          <span className="text-tenue">Añadir al panel:</span>
           {ocultos.map((w) => (
             <button
               key={w.id}

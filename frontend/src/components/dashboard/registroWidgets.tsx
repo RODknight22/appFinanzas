@@ -1,6 +1,7 @@
 /**
  * Registro de widgets del panel. Para añadir uno nuevo basta con añadirlo a
- * WIDGETS: aparecerá en el panel y en la lista de widgets que se pueden mostrar.
+ * WIDGETS: aparecerá en "Personalizar" para añadirlo al panel (y a la vista desde
+ * el principio solo si lleva `visiblePorDefecto`).
  */
 import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, Coins, Scale, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
@@ -112,6 +113,8 @@ function detallePoder({ moneda_ingreso, moneda_gasto, tasa_mes, tasa_media_12_me
 interface DefinicionWidget {
   titulo: string;
   tamanoPorDefecto: TamanoWidget;
+  /** Los que ve quien empieza (o restablece): un panel ligero; el resto se añade desde "Personalizar". */
+  visiblePorDefecto?: boolean;
   /** Recibe los datos ya cargados: los widgets solo pintan, no piden nada. */
   pintar: (datos: DatosPanel) => ReactNode;
 }
@@ -124,6 +127,7 @@ export const WIDGETS = {
   balance: {
     titulo: "Balance global",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ resumen, patrimonio }) => (
       <TarjetaMetrica
         titulo="Balance global"
@@ -138,6 +142,7 @@ export const WIDGETS = {
   ingresos: {
     titulo: "Ingresos del mes",
     tamanoPorDefecto: "pequeno",
+    visiblePorDefecto: true,
     pintar: ({ resumen, flujo, periodo }) => (
       <TarjetaMetrica
         titulo={conPeriodo("Ingresos", periodo)}
@@ -151,6 +156,7 @@ export const WIDGETS = {
   gastos: {
     titulo: "Gastos del mes",
     tamanoPorDefecto: "pequeno",
+    visiblePorDefecto: true,
     pintar: ({ resumen, flujo, periodo }) => (
       <TarjetaMetrica
         titulo={conPeriodo("Gastos", periodo)}
@@ -192,6 +198,7 @@ export const WIDGETS = {
   grafico_flujo: {
     titulo: "Ingresos vs. gastos",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ flujo }) => (
       <Tarjeta titulo="Ingresos vs. gastos (últimos 6 meses)" className="h-full">
         <GraficoFlujo datos={flujo} />
@@ -210,6 +217,7 @@ export const WIDGETS = {
   gastos_categoria: {
     titulo: "Gastos por categoría",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ gastos, periodo, mes }) => (
       <Tarjeta titulo={conPeriodo("Gastos por categoría", periodo)} className="h-full">
         <GraficoCategorias datos={gastos} mensajeVacio={`Sin gastos en ${textoPeriodo(periodo, mes)}`} />
@@ -241,6 +249,7 @@ export const WIDGETS = {
   presupuestos: {
     titulo: "Presupuestos del mes",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ presupuestos }) => (
       <Tarjeta titulo="Presupuestos del mes" accion={enlace("/presupuestos", "Gestionar")} className="h-full">
         {presupuestos.length === 0 ? (
@@ -346,6 +355,7 @@ export const WIDGETS = {
   ultimas_transacciones: {
     titulo: "Últimas transacciones",
     tamanoPorDefecto: "mediano",
+    visiblePorDefecto: true,
     pintar: ({ ultimas, categorias }) => (
       <Tarjeta titulo="Últimas transacciones" accion={enlace("/transacciones", "Ver todas")} className="h-full">
         <ListaUltimas transacciones={ultimas} categorias={categorias} />
@@ -430,16 +440,20 @@ export function esIdWidget(id: string): id is IdWidget {
   return id in WIDGETS;
 }
 
-/** El orden en que están escritos en WIDGETS, todos visibles. */
+/**
+ * El orden en que están escritos en WIDGETS; a la vista solo los marcados como
+ * `visiblePorDefecto` (un panel ligero), el resto espera en "Personalizar".
+ */
 export const DISPOSICION_POR_DEFECTO: WidgetDisposicion[] = Object.entries(WIDGETS).map(([id, w]) => ({
   id,
   tamano: w.tamanoPorDefecto as TamanoWidget,
-  visible: true,
+  visible: "visiblePorDefecto" in w && w.visiblePorDefecto,
 }));
 
 /**
  * Une la disposición guardada con los widgets que existen hoy: descarta los
- * que ya no existen y añade al final (visibles) los que se crearon después.
+ * que ya no existen y añade al final los que se crearon después (visibles solo
+ * si lo son por defecto: un widget nuevo no debe recargar un panel ya personalizado).
  */
 export function reconciliar(guardada: WidgetDisposicion[] | null): WidgetDisposicion[] {
   if (!guardada) return DISPOSICION_POR_DEFECTO;
