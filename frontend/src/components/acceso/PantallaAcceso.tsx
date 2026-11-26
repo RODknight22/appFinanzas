@@ -1,4 +1,4 @@
-import { LockKeyhole, Wallet } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import type { Credenciales } from "../../api/acceso";
@@ -6,6 +6,7 @@ import { useEnvio } from "../../hooks/useEnvio";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
 import { EntradaContrasena } from "../ui/EntradaContrasena";
+import { SimboloOrvyn } from "../ui/LogoOrvyn";
 
 interface PantallaAccesoProps {
   /** true si aún no existe el usuario: se muestra el alta en lugar del login. */
@@ -37,11 +38,9 @@ export function PantallaAcceso({ primeraVez, onEntrar }: PantallaAccesoProps) {
     <main className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm animate-entrada rounded-3xl bg-superficie p-8 shadow-[var(--sombra)] ring-1 ring-linea">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-acento-600 text-sobre-acento">
-            <Wallet size={24} />
-          </span>
+          <SimboloOrvyn tamano={44} />
           <div>
-            <h1 className="text-xl font-bold">Mis Finanzas</h1>
+            <h1 className="text-xl font-extrabold tracking-[0.06em]">ORVYN</h1>
             <p className="mt-1 text-sm text-tenue">
               {primeraVez ? "Crea tu usuario y contraseña para proteger tus datos" : "Inicia sesión para continuar"}
             </p>

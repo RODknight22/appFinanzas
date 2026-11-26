@@ -1,4 +1,3 @@
-import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { cuentasApi } from "../../api/recursos";
@@ -8,6 +7,7 @@ import { avisarError } from "../ajustes/avisarError";
 import { FormularioCuenta } from "../formularios/FormularioCuenta";
 import { Boton } from "../ui/Boton";
 import { Campo } from "../ui/Campo";
+import { SimboloOrvyn } from "../ui/LogoOrvyn";
 import { Modal } from "../ui/Modal";
 import { SelectMoneda } from "../ui/SelectMoneda";
 import { PasoSueldo } from "./PasoSueldo";
@@ -58,10 +58,8 @@ export function AsistenteBienvenida() {
 
       {paso === 0 && (
         <div className="space-y-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-acento-600 text-sobre-acento">
-            <Sparkles size={24} />
-          </span>
-          <h3 className="text-xl font-bold">¡Hola{nombre ? `, ${nombre}` : ""}! Te damos la bienvenida</h3>
+          <SimboloOrvyn tamano={44} />
+          <h3 className="text-xl font-bold">¡Hola{nombre ? `, ${nombre}` : ""}! Te damos la bienvenida a ORVYN</h3>
           <p className="text-sm text-suave">
             En un minuto dejamos lista la app: eliges tu moneda, creas tu primera cuenta, apuntas tu sueldo si quieres y te enseñamos dónde está cada cosa.
           </p>

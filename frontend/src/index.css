@@ -37,6 +37,8 @@
   /* Texto e iconos sobre un relleno de acento (bg-acento-600): blanco salvo en Saffron oscuro,
      donde el naranja es tan claro que necesita texto oscuro para leerse. */
   --color-sobre-acento: var(--sobre-acento);
+  /* Saffron de la marca, fijo: el logo no cambia con el acento que elija el usuario. */
+  --color-marca: #f07842;
   /* Rellenos sólidos con texto blanco encima (botones, chapas): iguales en claro y oscuro. */
   --color-ingreso-fuerte: oklch(52.7% 0.154 150.069);
   --color-gasto-fuerte: oklch(57.7% 0.245 27.325);

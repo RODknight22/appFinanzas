@@ -59,7 +59,7 @@ export interface ColoresModo {
 export const ESTILOS: Record<EstiloVisual, { nombre: string; descripcion: string; claro: ColoresModo; oscuro: ColoresModo }> = {
   orvyn: {
     nombre: "ORVYN",
-    descripcion: "Obsidian e Ivory, el de la marca",
+    descripcion: "Obsidian e Ivory",
     claro: { fondo: "#f5f0e8", tarjeta: "#fcfaf6", texto: "#171717" },
     oscuro: { fondo: "#171717", tarjeta: "#242424", texto: "#f5f0e8" },
   },
