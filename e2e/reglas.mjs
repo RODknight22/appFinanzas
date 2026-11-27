@@ -30,7 +30,8 @@ await prueba("reglas", async ({ pagina, api }) => {
   // Borrar la regla desde Categorías.
   await pagina.getByRole("button", { name: "Cancelar" }).click();
   await abrir(pagina, "/categorias");
-  await pagina.getByRole("button", { name: "Borrar la regla «mercadona»" }).click();
+  await pagina.getByRole("button", { name: "Eliminar la regla «mercadona»" }).click();
+  await pagina.getByRole("alertdialog").getByRole("button", { name: "Eliminar" }).click();
   await pagina.getByText("«mercadona»").waitFor({ state: "detached" });
   comprobar((await api.get("/reglas-categoria")).length === 0, "la regla se borra");
 });
