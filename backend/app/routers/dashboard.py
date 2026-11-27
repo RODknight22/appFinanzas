@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from app.database import SessionDep
 from app.schemas import (
     AhorroAnual,
+    BuenMomento,
     ComparativaPeriodo,
     FlujoMensual,
     GastoDiario,
@@ -107,6 +108,12 @@ def patrimonio(
 def gastos_diarios(session: SessionDep, mes_anio: MesParam = None):
     """Gasto de cada día del mes (para el calendario de gastos)."""
     return servicio.gastos_diarios(session, mes_anio or servicio.mes_actual(session))
+
+
+@router.get("/buen-momento", response_model=BuenMomento)
+def buen_momento(session: SessionDep):
+    """¿Es buen momento para cambiar? La tasa de hoy frente a la media de los últimos 90 días."""
+    return servicio.buen_momento(session)
 
 
 @router.get("/poder-adquisitivo", response_model=PoderAdquisitivo)

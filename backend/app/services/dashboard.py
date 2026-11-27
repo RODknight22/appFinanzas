@@ -17,6 +17,7 @@ from app.models import Categoria, Cuenta, Moneda, Presupuesto, TasaCambio, TipoM
 from app.schemas import (
     AhorroAnual,
     AhorroMes,
+    BuenMomento,
     ComparativaPeriodo,
     FlujoMensual,
     GastoDiario,
@@ -561,11 +562,10 @@ def _moneda_principal_por_tipo(session: Session, desde: date, hasta: date) -> di
     return {tipo: max(por_moneda, key=lambda m: por_moneda[m]) for tipo, por_moneda in totales.items()}
 
 
-def _tasa_media(session: Session, de: Moneda, a: Moneda, desde: date, hasta: date) -> Decimal | None:
-    """Media de las tasas diarias (unidades de `de` por 1 de `a`) entre [desde, hasta).
+def _tasas_diarias(session: Session, de: Moneda, a: Moneda, desde: date, hasta: date) -> list[Decimal]:
+    """Tasas de cada día (unidades de `de` por 1 de `a`) entre [desde, hasta).
 
     Solo cuenta los días con tasa de las dos monedas (el USD siempre vale 1).
-    None si hay muy pocos días: la media no sería fiable.
     """
     por_dia: defaultdict[date, dict[Moneda, Decimal]] = defaultdict(dict)
     consulta = select(TasaCambio.fecha, TasaCambio.moneda, TasaCambio.por_usd).where(
@@ -573,11 +573,16 @@ def _tasa_media(session: Session, de: Moneda, a: Moneda, desde: date, hasta: dat
     )
     for fecha, moneda, por_usd in session.exec(consulta).all():
         por_dia[fecha][moneda] = por_usd
-    tasas = [
+    return [
         tasas_dia.get(de, Decimal(1)) / tasas_dia.get(a, Decimal(1))
         for tasas_dia in por_dia.values()
         if all(m in tasas_dia or m == Moneda.USD for m in (de, a))
     ]
+
+
+def _tasa_media(session: Session, de: Moneda, a: Moneda, desde: date, hasta: date) -> Decimal | None:
+    """Media de las tasas diarias; None si hay muy pocos días: la media no sería fiable."""
+    tasas = _tasas_diarias(session, de, a, desde, hasta)
     return sum(tasas, Decimal(0)) / len(tasas) if len(tasas) >= _MINIMO_DIAS_CON_TASA else None
 
 
@@ -633,3 +638,44 @@ def _tasa_del_mes(session: Session, de: Moneda, a: Moneda, inicio: date, fin: da
     if dia < inicio:
         return None
     return divisas.convertir_sin_redondeo(session, Decimal(1), a, de, dia)
+
+
+# ---------------------------------------------------------------------------
+# Buen momento para cambiar (¿está hoy barata la moneda en la que gastas?)
+# ---------------------------------------------------------------------------
+_DIAS_BUEN_MOMENTO = 90
+# A partir de cuánto (en %) se separa la tasa de hoy de su media para merecer un aviso. Un 2 %
+# es más que el ruido de un día (MXN/EUR suele moverse menos del 1 %) y menos que una comisión cara.
+UMBRAL_BUEN_MOMENTO = Decimal(2)
+
+
+def buen_momento(session: Session, hoy: date | None = None) -> BuenMomento:
+    """La tasa de hoy entre la moneda en que cobras y la que gastas, frente a sus últimos 90 días.
+
+    No predice nada: dice si hoy está barato o caro comparado con lo reciente.
+    """
+    hoy = hoy or date.today()
+    fin = hoy + timedelta(days=1)
+    monedas = _moneda_principal_por_tipo(session, fin - timedelta(days=_DIAS_HISTORIAL), fin)
+    ingreso, gasto = monedas.get(TipoMovimiento.INGRESO), monedas.get(TipoMovimiento.GASTO)
+    if ingreso is None or gasto is None or ingreso == gasto:
+        return BuenMomento()
+
+    resultado = BuenMomento(moneda_ingreso=ingreso, moneda_gasto=gasto, dias=_DIAS_BUEN_MOMENTO)
+    tasas = _tasas_diarias(session, ingreso, gasto, fin - timedelta(days=_DIAS_BUEN_MOMENTO), fin)
+    if len(tasas) < _MINIMO_DIAS_CON_TASA:
+        return resultado  # sin historial suficiente, la media no diría nada
+
+    media = sum(tasas, Decimal(0)) / len(tasas)
+    tasa_hoy = divisas.convertir_sin_redondeo(session, Decimal(1), gasto, ingreso, hoy)
+    # > 0: hoy necesitas menos `ingreso` por cada `gasto` que de media, así que tu dinero rinde más.
+    rinde = ((media / tasa_hoy - 1) * 100).quantize(Decimal("0.1"))
+    resultado.tasa_hoy = tasa_hoy.quantize(_CUATRO_DECIMALES)
+    resultado.tasa_media = media.quantize(_CUATRO_DECIMALES)
+    resultado.tasa_minima = min(tasas).quantize(_CUATRO_DECIMALES)
+    resultado.tasa_maxima = max(tasas).quantize(_CUATRO_DECIMALES)
+    resultado.rinde_porcentaje = rinde
+    resultado.veredicto = (
+        "bueno" if rinde >= UMBRAL_BUEN_MOMENTO else "malo" if rinde <= -UMBRAL_BUEN_MOMENTO else "normal"
+    )
+    return resultado
