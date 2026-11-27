@@ -106,7 +106,7 @@ def test_confirmar_crea_las_transacciones_y_mueven_el_saldo(client: TestClient, 
     ]
     respuesta = client.post("/importaciones", json={"cuenta_id": cuenta["id"], "movimientos": movimientos})
     assert respuesta.status_code == 201, respuesta.text
-    assert respuesta.json() == {"creadas": 4, "transferencias": 0, "unidas": 0, "completadas": 0}
+    assert respuesta.json() == {"creadas": 4, "transferencias": 0, "unidas": 0, "completadas": 0, "reconocidos": 0}
 
     notas = {t["notas"] for t in client.get("/transacciones").json()}
     assert "NOMINA ACME SL" in notas
@@ -206,7 +206,7 @@ def test_un_cambio_de_divisa_se_importa_como_transferencia(client: TestClient, c
     assert compra["cuenta_transferencia_id"] is None
 
     respuesta = client.post("/importaciones", json={"cuenta_id": revolut_mxn["id"], "movimientos": _movimientos(vista)})
-    assert respuesta.json() == {"creadas": 2, "transferencias": 1, "unidas": 0, "completadas": 0}
+    assert respuesta.json() == {"creadas": 2, "transferencias": 1, "unidas": 0, "completadas": 0, "reconocidos": 0}
     [transferencia] = client.get("/transferencias").json()
     # Llegaron 2000 MXN; lo que salió en euros se estima (1 EUR = 20 MXN) y no cuenta como coste.
     assert (transferencia["cuenta_origen_id"], transferencia["cuenta_destino_id"]) == (revolut_eur["id"], revolut_mxn["id"])

@@ -125,6 +125,9 @@ class TransaccionRead(TransaccionBase):
     monto_cuenta: Decimal
     monto_principal: Decimal
     transferencia_id: int | None = None
+    # De qué fijo vino (pagado o cobrado desde Pagos fijos, o reconocido al anotar o importar).
+    suscripcion_id: int | None = None
+    ingreso_recurrente_id: int | None = None
 
 
 class PaginaTransacciones(SQLModel):
@@ -172,6 +175,29 @@ class ResultadoLote(SQLModel):
 
 
 # --- Importar extractos bancarios -------------------------------------------
+class FijoCandidato(SQLModel):
+    """Un ingreso o pago fijo que podría ser un movimiento anotado o importado.
+
+    `tipo` dice de cuál se trata: ingreso → ingreso recurrente; gasto → suscripción (pago fijo).
+    """
+
+    id: int
+    tipo: TipoMovimiento
+    nombre: str
+    monto: Decimal
+    moneda: Moneda
+    # La fecha que se esperaba: al reconocerlo se manda de vuelta (evita reconocerlo dos veces).
+    fecha_prevista: date
+    cuenta_id: int | None = None
+
+
+class ReconocerFijo(SQLModel):
+    """Vincula un movimiento ya anotado con el cobro o pago fijo que esperaba en `fecha_prevista`."""
+
+    transaccion_id: int
+    fecha_prevista: date
+
+
 class FilaImportacion(SQLModel):
     """Un movimiento del archivo tal como se importaría (vista previa, aún sin guardar)."""
 
@@ -194,6 +220,8 @@ class FilaImportacion(SQLModel):
     # Transferencia ya registrada desde la otra cuenta con este lado estimado: esta fila
     # trae lo que pasó de verdad y la completa en vez de duplicarla.
     transferencia_a_completar_id: int | None = None
+    # Parece el cobro o el pago de este fijo (cada fijo se sugiere en una sola fila).
+    fijo: FijoCandidato | None = None
 
 
 class VistaPreviaImportacion(SQLModel):
@@ -214,6 +242,9 @@ class MovimientoImportado(SQLModel):
     cuenta_transferencia_id: int | None = None
     transaccion_a_unir_id: int | None = None  # ver FilaImportacion
     transferencia_a_completar_id: int | None = None
+    # El fijo (del tipo de la fila) que este movimiento cobra o paga: su fecha avanza al importar.
+    fijo_id: int | None = None
+    fijo_fecha_prevista: date | None = None
 
 
 class ImportacionCreate(SQLModel):
@@ -228,6 +259,7 @@ class ResultadoImportacion(SQLModel):
     transferencias: int = 0
     unidas: int = 0  # ingresos o gastos de otra cuenta convertidos en parte de una transferencia
     completadas: int = 0  # transferencias a las que se añadió el importe real de este lado
+    reconocidos: int = 0  # cobros o pagos fijos que ya no se esperan: llegaron en el extracto
 
 
 # --- Reglas de categoría -----------------------------------------------------

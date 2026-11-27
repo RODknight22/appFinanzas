@@ -12,6 +12,7 @@ from app.schemas import (
     IngresoRecurrenteRead,
     IngresoRecurrenteUpdate,
     OmitirCobro,
+    ReconocerFijo,
     TransaccionRead,
 )
 from app.services import ingresos_recurrentes as servicio
@@ -66,3 +67,9 @@ def registrar_cobro(ingreso_id: int, datos: CobroIngresoCreate, session: Session
 def omitir_cobro(ingreso_id: int, session: SessionDep, datos: OmitirCobro | None = None):
     """Pasa al siguiente periodo sin anotar ningún ingreso."""
     return servicio.omitir_cobro(session, ingreso_id, datos)
+
+
+@router.post("/{ingreso_id}/reconocer", response_model=IngresoRecurrenteRead)
+def reconocer_cobro(ingreso_id: int, datos: ReconocerFijo, session: SessionDep):
+    """Un ingreso ya anotado (a mano) era este cobro: avanza la fecha sin crear otro movimiento."""
+    return servicio.reconocer_cobro(session, ingreso_id, datos)

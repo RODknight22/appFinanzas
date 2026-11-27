@@ -14,6 +14,7 @@ import { ControlSegmentado, type OpcionSegmentada } from "../ui/ControlSegmentad
 import { SelectorFecha } from "../ui/SelectorFecha";
 import { CategoriaRapida } from "./CategoriaRapida";
 import { PieFormulario } from "./PieFormulario";
+import { preguntarSiEsFijo } from "./reconocerFijo";
 
 /** Interruptor gasto/ingreso (también en el registro rápido): cada lado con su color. */
 export const TIPOS_MOVIMIENTO: OpcionSegmentada<TipoMovimiento>[] = [
@@ -103,10 +104,15 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
       cuenta_id: cuentaId,
       notas: notas.trim() || null, // texto vacío = sin notas
     };
-    const ok = await ejecutar(() =>
-      inicial ? transaccionesApi.actualizar(inicial.id, datos) : transaccionesApi.crear(datos),
-    );
-    if (ok) onGuardado();
+    const resultado: { creada?: Transaccion } = {};
+    const ok = await ejecutar(async () => {
+      if (inicial) await transaccionesApi.actualizar(inicial.id, datos);
+      else resultado.creada = await transaccionesApi.crear(datos);
+    });
+    if (!ok) return;
+    onGuardado();
+    // Solo al anotar uno nuevo: la pregunta sale ya con el formulario cerrado.
+    if (resultado.creada) void preguntarSiEsFijo(resultado.creada);
   }
 
   if (cuentas.length === 0) {

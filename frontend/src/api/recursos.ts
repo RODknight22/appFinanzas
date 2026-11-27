@@ -22,9 +22,11 @@ import type {
   Deuda,
   EstadoDeseo,
   FechaISO,
+  FijoCandidato,
   IngresoRecurrente,
   MesAnio,
   Meta,
+  Moneda,
   MovimientoImportado,
   Notificacion,
   PaginaTransacciones,
@@ -125,6 +127,19 @@ export const ingresosApi = {
   /** Pasa al siguiente periodo sin anotar ningún ingreso. */
   omitir: (id: number, fechaPrevista?: FechaISO) =>
     http.post<IngresoRecurrente>(`/ingresos-recurrentes/${id}/omitir`, { fecha_prevista: fechaPrevista }),
+};
+
+/** Lo que tienen en común ingresos y pagos fijos: reconocerlos en un movimiento ya anotado. */
+export const fijosApi = {
+  /** Fijos que podrían ser este movimiento, el más parecido primero (sin moneda: la de la cuenta). */
+  candidatos: (movimiento: { tipo: TipoMovimiento; monto: string; cuenta_id: number; fecha: FechaISO; moneda?: Moneda }) =>
+    http.get<FijoCandidato[]>("/fijos/candidatos", movimiento),
+  /** Ese movimiento era el cobro o el pago del fijo: avanza su fecha sin crear otro. */
+  reconocer: (fijo: FijoCandidato, transaccionId: number) =>
+    http.post<IngresoRecurrente | Suscripcion>(
+      `${fijo.tipo === "ingreso" ? "/ingresos-recurrentes" : "/suscripciones"}/${fijo.id}/reconocer`,
+      { transaccion_id: transaccionId, fecha_prevista: fijo.fecha_prevista },
+    ),
 };
 
 /** Las metas no usan crearRecurso: su respuesta trae campos calculados que no se envían. */

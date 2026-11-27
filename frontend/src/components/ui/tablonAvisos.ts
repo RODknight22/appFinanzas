@@ -17,6 +17,8 @@ export interface Confirmacion {
   mensaje: string;
   /** Texto del botón que acepta (p. ej. "Eliminar"). */
   textoAceptar: string;
+  /** Texto del botón que rechaza: "Cancelar" o, en una pregunta de sí o no, "No". */
+  textoCancelar: string;
   /** Acción que no se puede deshacer: el botón sale en rojo. */
   peligro: boolean;
   responder: (aceptado: boolean) => void;
@@ -68,7 +70,11 @@ export function cerrarAviso(id: number): void {
  */
 export function confirmar(
   mensaje: string,
-  { textoAceptar = "Aceptar", peligro = false }: { textoAceptar?: string; peligro?: boolean } = {},
+  {
+    textoAceptar = "Aceptar",
+    textoCancelar = "Cancelar",
+    peligro = false,
+  }: { textoAceptar?: string; textoCancelar?: string; peligro?: boolean } = {},
 ): Promise<boolean> {
   // Si ya había un diálogo abierto (raro: doble clic), se da por cancelado.
   estado.confirmacion?.responder(false);
@@ -76,6 +82,7 @@ export function confirmar(
     const confirmacion: Confirmacion = {
       mensaje,
       textoAceptar,
+      textoCancelar,
       peligro,
       responder: (aceptado) => {
         // Solo cierra si sigue siendo el diálogo visible (un doble clic no cierra el siguiente).

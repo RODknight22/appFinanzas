@@ -8,6 +8,7 @@ from app.database import SessionDep
 from app.schemas import (
     PagoSuscripcionCreate,
     PagoSuscripcionRead,
+    ReconocerFijo,
     SuscripcionCreate,
     SuscripcionRead,
     SuscripcionUpdate,
@@ -59,3 +60,9 @@ def registrar_pago(suscripcion_id: int, datos: PagoSuscripcionCreate, session: S
         transaccion=TransaccionRead.model_validate(transaccion),
         suscripcion=SuscripcionRead.model_validate(suscripcion),
     )
+
+
+@router.post("/{suscripcion_id}/reconocer", response_model=SuscripcionRead)
+def reconocer_pago(suscripcion_id: int, datos: ReconocerFijo, session: SessionDep):
+    """Un gasto ya anotado (a mano) era este pago: avanza la fecha sin crear otro movimiento."""
+    return servicio.reconocer_pago(session, suscripcion_id, datos)

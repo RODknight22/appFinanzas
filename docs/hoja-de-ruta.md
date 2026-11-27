@@ -254,7 +254,7 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   mes): ingresos y pagos fijos en los días que elijas (10, 20 y último), pagos fijos con el mismo
   calendario y cuenta/categoría por defecto; en Presupuestos, tarjeta "Plan del mes" (entra,
   fijos, presupuestos, por asignar, sin presupuesto) y ritmo de gasto en cada barra.
-- [ ] **Reconocer cobros fijos al anotar o importar** (P1): si un movimiento parece un fijo
+- [x] **Reconocer cobros fijos al anotar o importar** (P1): si un movimiento parece un fijo
   (importe y fecha cercana), preguntar y avanzar su fecha; si no, el Plan del mes lo cuenta 2 veces.
 - [-] ~~Tasa de Banxico (FIX)~~ → descartada (23/10): su API exige que cada usuario se registre
   y pegue un token, y para MXN↔EUR el BCE ya da la tasa directa. Solo mejoraría MXN↔USD.
