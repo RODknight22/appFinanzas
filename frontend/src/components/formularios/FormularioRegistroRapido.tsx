@@ -10,10 +10,11 @@ import { ordenarPorUso } from "../../utils/categorias";
 import { formatearDinero, formatearFecha, hoyISO } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
+import { ControlSegmentado } from "../ui/ControlSegmentado";
 import { SelectMoneda } from "../ui/SelectMoneda";
 import { SelectorFecha } from "../ui/SelectorFecha";
 import { CategoriaRapida } from "./CategoriaRapida";
-import { VistaPreviaConversion } from "./FormularioTransaccion";
+import { TIPOS_MOVIMIENTO, VistaPreviaConversion } from "./FormularioTransaccion";
 import { CLASE_CASILLA, RejillaCategorias } from "./RejillaCategorias";
 
 // Comodidad de este navegador: la cuenta con la que se anotó la última vez.
@@ -143,22 +144,7 @@ export function FormularioRegistroRapido({ categorias, cuentas, cuentaInicial, o
 
   return (
     <form ref={formulario} onSubmit={evitarEnvio} className="space-y-4">
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-superficie-2 p-1">
-        {(["gasto", "ingreso"] as const).map((opcion) => (
-          <button
-            key={opcion}
-            type="button"
-            onClick={() => setTipo(opcion)}
-            className={`rounded-lg py-2 text-sm font-medium capitalize transition ${
-              tipo === opcion
-                ? opcion === "gasto" ? "bg-gasto-fuerte text-white" : "bg-ingreso-fuerte text-white"
-                : "text-tenue"
-            }`}
-          >
-            {opcion}
-          </button>
-        ))}
-      </div>
+      <ControlSegmentado etiqueta="Tipo de movimiento" opciones={TIPOS_MOVIMIENTO} valor={tipo} onCambiar={setTipo} />
 
       <div className="space-y-1.5">
         <div className="flex items-end gap-1.5">

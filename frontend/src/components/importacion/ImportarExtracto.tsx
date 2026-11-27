@@ -7,6 +7,7 @@ import type { Categoria, Cuenta, FilaImportacion, ResultadoImportacion, VistaPre
 import { formatearDinero, formatearFecha } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, CLASE_ENTRADA_BASE, Campo, ErrorFormulario } from "../ui/Campo";
+import { ControlSegmentado } from "../ui/ControlSegmentado";
 
 // El servidor de producción rechaza peticiones de más de 1 MB: mejor avisar antes.
 const TAMANO_MAXIMO = 1_000_000;
@@ -275,21 +276,16 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex rounded-full bg-superficie-2 p-1 text-sm">
-              {[
-                { valor: false, texto: `Por revisar (${dudosas})` },
-                { valor: true, texto: `Todos (${filas.length})` },
-              ].map((opcion) => (
-                <button
-                  key={opcion.texto}
-                  type="button"
-                  onClick={() => setVerTodas(opcion.valor)}
-                  className={`rounded-full px-3 py-1 transition ${verTodas === opcion.valor ? "bg-superficie font-semibold shadow-sm" : "text-tenue hover:text-texto"}`}
-                >
-                  {opcion.texto}
-                </button>
-              ))}
-            </div>
+            <ControlSegmentado
+              etiqueta="Qué movimientos ver"
+              ancho="compacto"
+              opciones={[
+                { valor: false, etiqueta: `Por revisar (${dudosas})` },
+                { valor: true, etiqueta: `Todos (${filas.length})` },
+              ]}
+              valor={verTodas}
+              onCambiar={setVerTodas}
+            />
             <label className="flex items-center gap-2 text-sm text-suave">
               <input
                 type="checkbox"
