@@ -99,7 +99,9 @@ def candidatos(
 ) -> list[FijoCandidato]:
     """Fijos que podrían ser este movimiento. Sin `moneda`, la de la cuenta."""
     cuenta = obtener_referencia(session, Cuenta, cuenta_id, "la cuenta")
-    return [c for _, c in Fijos(session).candidatos(tipo, monto, moneda or cuenta.moneda, cuenta_id, fecha)]
+    # Una cuenta de una BD antigua puede no tener moneda guardada: entonces es la principal.
+    moneda = moneda or cuenta.moneda or configuracion.moneda_principal(session)
+    return [c for _, c in Fijos(session).candidatos(tipo, monto, moneda, cuenta_id, fecha)]
 
 
 def comprobar_reconocible(transaccion: Transaccion, tipo: TipoMovimiento) -> None:
