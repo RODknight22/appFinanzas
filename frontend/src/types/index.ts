@@ -222,6 +222,22 @@ export interface Transferencia {
  * Cuánto rinde lo que cobras en una moneda al gastarlo en otra, este mes frente a 12.
  * Tasas en "unidades de la moneda de ingreso por 1 de la de gasto" (p. ej. 20.4 MXN por EUR).
  */
+/** ¿Buen momento para cambiar? Tasas en unidades de la moneda de ingreso por 1 de la de gasto. */
+export interface BuenMomento {
+  /** null si ingresos y gastos van en la misma moneda. */
+  moneda_ingreso: Moneda | null;
+  moneda_gasto: Moneda | null;
+  dias: number | null;
+  /** null si aún no hay tasas suficientes para comparar. */
+  tasa_hoy: string | null;
+  tasa_media: string | null;
+  tasa_minima: string | null;
+  tasa_maxima: string | null;
+  /** > 0: hoy tu dinero rinde más que de media. */
+  rinde_porcentaje: string | null;
+  veredicto: "bueno" | "normal" | "malo" | null;
+}
+
 export interface PoderAdquisitivo {
   mes_anio: MesAnio;
   /** null si ingresos y gastos van en la misma moneda. */
@@ -317,7 +333,7 @@ export interface IngresoRecurrente extends CalendarioFijo {
 }
 
 // --- Notificaciones --------------------------------------------------------
-export type TipoNotificacion = "pago" | "cobro" | "tarjeta" | "deuda" | "presupuesto" | "meta" | "deseo" | "recordatorio";
+export type TipoNotificacion = "pago" | "cobro" | "tarjeta" | "deuda" | "presupuesto" | "meta" | "deseo" | "recordatorio" | "divisa";
 
 /** Un aviso calculado al vuelo por el backend; `clave` es estable mientras siga siendo el mismo. */
 export interface Notificacion {

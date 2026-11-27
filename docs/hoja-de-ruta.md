@@ -258,7 +258,9 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   (importe y fecha cercana), preguntar y avanzar su fecha; si no, el Plan del mes lo cuenta 2 veces.
 - [-] ~~Tasa de Banxico (FIX)~~ → descartada (23/10): su API exige que cada usuario se registre
   y pegue un token, y para MXN↔EUR el BCE ya da la tasa directa. Solo mejoraría MXN↔USD.
-- [ ] **Aviso de buen momento** (P2): "el euro está un 3 % por debajo de su media de 3 meses".
+- [x] **Aviso de buen momento** (P2): la tasa de hoy frente a la media de 90 días entre la
+  moneda en que cobras y la que gastas (umbral ±2 %): widget con el rango (visible por
+  defecto) y aviso en la campana cuando es buen momento, como mucho uno por semana.
 - [ ] **Más bancos al importar** (P1): los de Rodrigo (cuaderno, 23/10): Nu México, BBVA México y
   en Centroamérica BAC, Promerica y Ficohsa (HNL y GTQ ya existen). Cada lector con su test y
   un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.

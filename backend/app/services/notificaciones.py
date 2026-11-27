@@ -106,6 +106,26 @@ def _metas(session: Session, hoy: date) -> list[Notificacion]:
     return avisos
 
 
+def _buen_momento(session: Session, hoy: date) -> list[Notificacion]:
+    """Solo avisa cuando es buen momento (lo malo no pide hacer nada), una vez por semana."""
+    momento = dashboard.buen_momento(session, hoy)
+    if momento.veredicto != "bueno" or momento.moneda_ingreso is None or momento.moneda_gasto is None:
+        return []
+    semana = hoy.isocalendar()
+    # .value: en un f-string el Enum se escribiría "Moneda.MXN".
+    de, a = momento.moneda_ingreso.value, momento.moneda_gasto.value
+    tasa = f"{momento.tasa_hoy:.2f}".replace(".", ",")
+    rinde = str(momento.rinde_porcentaje).replace(".", ",")
+    return [Notificacion(
+        clave=f"buen-momento:{de}-{a}:{semana.year}-{semana.week}",
+        tipo="divisa",
+        titulo=f"Buen momento para cambiar {de} a {a}",
+        mensaje=f"1 {a} = {tasa} {de}: tu dinero rinde un {rinde} % más que de media en {momento.dias} días",
+        fecha=hoy,
+        enlace="/dashboard",
+    )]
+
+
 def _deseos(session: Session, ahora: datetime) -> list[Notificacion]:
     return [
         Notificacion(
@@ -136,6 +156,7 @@ def generar(session: Session, ahora: datetime | None = None) -> list[Notificacio
         *_presupuestos(session, hoy),
         *_metas(session, hoy),
         *_deseos(session, ahora),
+        *_buen_momento(session, hoy),
     ]
     if recordatorio_pendiente(session, ahora):
         avisos.append(Notificacion(

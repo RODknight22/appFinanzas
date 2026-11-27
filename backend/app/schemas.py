@@ -263,6 +263,27 @@ class PoderAdquisitivo(SQLModel):
     diferencia: Decimal | None = None  # frente a la tasa media, en la moneda de gasto
 
 
+class BuenMomento(SQLModel):
+    """¿Es buen momento para cambiar? La tasa de hoy frente a la de los últimos `dias` días.
+
+    Tasas en "unidades de la moneda de ingreso por 1 de la de gasto" (20.4 MXN por EUR):
+    más baja = tu dinero rinde más.
+    """
+
+    # None si ingresos y gastos van en la misma moneda (o aún no hay datos).
+    moneda_ingreso: Moneda | None = None
+    moneda_gasto: Moneda | None = None
+    dias: int | None = None
+    # None si no hay historial suficiente para comparar.
+    tasa_hoy: Decimal | None = None
+    tasa_media: Decimal | None = None
+    tasa_minima: Decimal | None = None
+    tasa_maxima: Decimal | None = None
+    # > 0: hoy tu dinero rinde más que de media; < 0: menos.
+    rinde_porcentaje: Decimal | None = None
+    veredicto: Literal["bueno", "normal", "malo"] | None = None
+
+
 class CosteEnviosAnio(SQLModel):
     """Lo que costaron los envíos entre monedas de un año, en la moneda principal."""
 
@@ -535,7 +556,7 @@ class ReflexionDeseo(SQLModel):
 
 
 # --- Notificaciones --------------------------------------------------------
-TipoNotificacion = Literal["pago", "cobro", "tarjeta", "deuda", "presupuesto", "meta", "deseo", "recordatorio"]
+TipoNotificacion = Literal["pago", "cobro", "tarjeta", "deuda", "presupuesto", "meta", "deseo", "recordatorio", "divisa"]
 
 
 class Notificacion(SQLModel):

@@ -9,6 +9,7 @@ import { Link } from "react-router";
 
 import type {
   AhorroAnual,
+  BuenMomento as DatosBuenMomento,
   Categoria,
   ComparativaPeriodo,
   CosteEnviosAnio,
@@ -44,6 +45,7 @@ import { GraficoFlujo } from "./GraficoFlujo";
 import { GraficoPatrimonio } from "./GraficoPatrimonio";
 import { TarjetaMetrica } from "./TarjetaMetrica";
 import { AhorroDelAnio } from "./widgets/AhorroDelAnio";
+import { BuenMomento } from "./widgets/BuenMomento";
 import { Comparativa } from "./widgets/Comparativa";
 import { ListaBarras } from "./widgets/ListaBarras";
 import { ListaCobros } from "./widgets/ListaCobros";
@@ -74,6 +76,8 @@ export interface DatosPanel {
   /** Coste de los envíos entre monedas del año del mes que se está viendo. */
   costeEnvios: CosteEnviosAnio;
   poder: PoderAdquisitivo;
+  /** La tasa de hoy frente a los últimos 90 días: no depende del mes que se vea. */
+  buenMomento: DatosBuenMomento;
   comparativa: ComparativaPeriodo;
   comercios: GastoPorComercio[];
   gastosCuenta: GastoPorCuenta[];
@@ -262,6 +266,20 @@ export const WIDGETS = {
             ))}
           </div>
         )}
+      </Tarjeta>
+    ),
+  },
+  buen_momento: {
+    titulo: "¿Buen momento para cambiar?",
+    tamanoPorDefecto: "mediano",
+    // Es la seña de la app (cobrar en una moneda y gastar en otra): a la vista desde el principio.
+    visiblePorDefecto: true,
+    pintar: ({ buenMomento }) => (
+      <Tarjeta
+        titulo={buenMomento.moneda_ingreso && buenMomento.moneda_gasto ? `¿Buen momento para cambiar ${buenMomento.moneda_ingreso} a ${buenMomento.moneda_gasto}?` : "¿Buen momento para cambiar?"}
+        className="h-full"
+      >
+        <BuenMomento datos={buenMomento} />
       </Tarjeta>
     ),
   },
