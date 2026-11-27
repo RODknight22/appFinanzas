@@ -3,6 +3,44 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [SemVer](https://semver.org/lang/es/).
 
+## [1.4.0] - 2026-11-27
+
+### Añadido
+- ¿Buen momento para cambiar? La tasa de hoy entre la moneda en que cobras y la que gastas
+  frente a su media de 90 días, con su rango, y un aviso en la campana cuando conviene (como
+  mucho uno por semana). Compara con lo reciente: no predice.
+- Comparar vías de envío: con tus envíos pasados, cuánto te costó cada vía (p. ej. transferir o
+  sacar efectivo y depositarlo) frente a la tasa oficial, y cuál conviene.
+- Ajustar el saldo de una cuenta para que cuadre con el banco: queda un ajuste visible y
+  reversible, sin inflar los gastos ni los ingresos del mes.
+- Plan del mes en Presupuestos: lo que entra, lo comprometido en fijos y presupuestos, lo que
+  queda por asignar y el ritmo de gasto de cada presupuesto.
+- Pagos e ingresos fijos varias veces al mes (p. ej. los días 10, 20 y 30).
+- Reconocer cobros y pagos fijos al anotar o importar: si un movimiento parece un fijo, la app
+  lo pregunta y así no se cuenta dos veces en el plan.
+- Dashboard: periodo a elegir (mes, 3 y 7 días, 30 días, 3 meses o un año) y widgets nuevos:
+  este mes frente al anterior, top 5 comercios, ahorro del año, gasto por cuenta y categorías
+  en barras.
+- Editar o borrar varias transacciones a la vez; seleccionar o quitar todo al importar.
+- Marca ORVYN: estilo Obsidian con negro puro, acento Saffron, tipografía Inter y Manrope.
+
+### Cambiado
+- Dashboard más ligero: 7 widgets a la vista y el resto en «Personalizar» (si ya lo habías
+  personalizado, se respeta).
+- Animaciones más fluidas: botones que ceden al pulsar, ventanas que aparecen con suavidad, el
+  menú que se desliza, cifras que cuentan y un confeti más ligero y vistoso al cumplir una meta.
+  Todo se desactiva si tu sistema pide menos movimiento.
+- Barra del móvil con los mismos nombres que en escritorio y un menú «Más».
+- Un único recorrido de bienvenida; «Primeros pasos» aparece después y ya tachado.
+- Colores propios para ingresos y gastos, separados del color de acento.
+- Botones más fáciles de tocar en el móvil, mejor contraste y errores siempre en español.
+- React 19 y react-router 8.
+
+### Arreglado
+- Ya no se pueden enviar dos veces algunas acciones (deseos, metas, tasas) con un doble clic.
+- Las reglas de importación se borran con confirmación, como todo lo demás.
+- Registrar un pago fijo respeta su calendario.
+
 ## [1.3.0] - 2026-10-23
 
 ### Añadido

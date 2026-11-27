@@ -1,17 +1,19 @@
-**Finanzas Personales** es una app de finanzas que funciona en tu ordenador, con varias monedas,
-metas de ahorro y un panel personalizable. Tus datos no salen de tu equipo.
+**ORVYN** es una app de finanzas personales para quien vive entre dos monedas: cada movimiento
+guarda su valor en la moneda de la cuenta y en la tuya con la tasa de su día. Funciona en tu
+ordenador y tus datos no salen de tu equipo.
 
-## Novedades de la 1.3: pulido y confianza
+## Novedades de la 1.4: remesas
 
-- **Nada se pierde ni queda a medias:** si una importación falla, no se guarda nada; antes de
-  actualizar la base de datos se hace una copia automática junto a ella.
-- **Más monedas:** pesos colombiano, argentino y chileno y sol peruano (actívalas en Ajustes →
-  Monedas).
-- **Tus colores:** un estilo personalizado con tu propio tono e intensidad.
-- **Envíos corregidos solos:** una transferencia entre monedas anotada sin la tasa de su día se
-  corrige cuando llega la tasa oficial.
-- **Más pulida:** totales que avisan si falta una tasa, ventanas más cómodas con el teclado,
-  porcentajes y euros con el formato de tu región, y sin pagos dobles por un doble clic.
+- **¿Buen momento para cambiar?** La tasa de hoy frente a su media de 90 días, con un aviso en
+  la campana cuando tu dinero rinde más de lo normal.
+- **¿Por dónde te sale más barato?** Con tus envíos pasados, cuánto te costó cada vía
+  (transferir, sacar efectivo y depositarlo…) frente a la tasa oficial.
+- **Plan del mes:** lo que entra, lo comprometido en fijos y presupuestos y lo que te queda de
+  verdad. Los cobros fijos se reconocen al anotarlos o importarlos, para no contarlos dos veces.
+- **Tu saldo cuadra:** ajusta una cuenta a lo que dice el banco sin inventar gastos.
+- **Dashboard a tu medida:** elige el periodo (de 3 días a un año) y añade widgets nuevos.
+- **Edición en lote:** cambia la cuenta o la categoría de muchas transacciones de una vez.
+- **Nueva imagen, ORVYN:** negro puro, acento Saffron y animaciones más fluidas.
 
 Si ya usabas una versión anterior, tus datos se conservan: la base de datos se actualiza sola al
 abrir la app. Aun así, haz una copia (Ajustes → Seguridad y datos) antes de actualizar.
