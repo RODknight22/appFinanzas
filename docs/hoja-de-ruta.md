@@ -250,6 +250,12 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   estilo ORVYN (negro puro / Ivory) y acento Saffron por defecto, Inter + Manrope, logo
   provisional siempre en Saffron, Obsidian en lugar de Grafito y "Negro puro" en Personalizado.
   Sistema de marca en Claude Design. Pendiente: logo definitivo y `/design-sync`.
+- [x] **Fijos "varias al mes" y Plan del mes** (Rodrigo, 27/11: su papá le deposita 3 veces al
+  mes): ingresos y pagos fijos en los días que elijas (10, 20 y último), pagos fijos con el mismo
+  calendario y cuenta/categoría por defecto; en Presupuestos, tarjeta "Plan del mes" (entra,
+  fijos, presupuestos, por asignar, sin presupuesto) y ritmo de gasto en cada barra.
+- [ ] **Reconocer cobros fijos al anotar o importar** (P1): si un movimiento parece un fijo
+  (importe y fecha cercana), preguntar y avanzar su fecha; si no, el Plan del mes lo cuenta 2 veces.
 - [-] ~~Tasa de Banxico (FIX)~~ → descartada (23/10): su API exige que cada usuario se registre
   y pegue un token, y para MXN↔EUR el BCE ya da la tasa directa. Solo mejoraría MXN↔USD.
 - [ ] **Aviso de buen momento** (P2): "el euro está un 3 % por debajo de su media de 3 meses".

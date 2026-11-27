@@ -60,6 +60,7 @@ export function PasoSueldo({ cuentas, cargandoCuentas, onSiguiente, onAtras }: P
         dia_quincena_1: null,
         dia_quincena_2: null,
         dia_del_mes: Number(dia),
+        dias_de_cobro: null,
         adelantar_a_habil: false,
       }),
     );

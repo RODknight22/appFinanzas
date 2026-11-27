@@ -21,7 +21,7 @@ from app.models import (
     Transferencia,
 )
 from app.schemas import AjusteSaldoCreate, CuentaCreate, CuentaUpdate
-from app.services import categorias, configuracion
+from app.services import categorias, configuracion, suscripciones
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ConflictoError, NoEncontradoError, ReglaDeNegocioError
 from app.services.saldos import CENTIMOS, saldo_actual
@@ -166,6 +166,9 @@ def eliminar(session: Session, cuenta_id: int) -> None:
     # Los ajustes solo corrigen el saldo de esta cuenta: se van con ella (mismo commit).
     for ajuste in session.exec(select(AjusteSaldo).where(AjusteSaldo.cuenta_id == cuenta_id)).all():
         session.delete(ajuste)
+    # Una suscripción solo la tenía como cuenta por defecto: no bloquea el borrado.
+    suscripciones.olvidar_pago_por_defecto(session, cuenta_id=cuenta_id)
+    session.flush()  # primero las suscripciones: si no, apuntarían a una cuenta borrada
     session.delete(cuenta)
     session.commit()
 

@@ -15,7 +15,23 @@ export type FechaISO = string;
 export type TipoMovimiento = "ingreso" | "gasto";
 export type TipoCuenta = "efectivo" | "debito" | "credito" | "rendimientos" | "ahorro" | "inversion";
 export type Moneda = "MXN" | "USD" | "EUR" | "GTQ" | "HNL" | "COP" | "ARS" | "CLP" | "PEN";
-export type Periodicidad = "diaria" | "semanal" | "quincenal" | "mensual" | "anual";
+export type Periodicidad = "diaria" | "semanal" | "quincenal" | "mensual" | "anual" | "varias_al_mes";
+
+/** Ajustes del calendario que comparten los ingresos y los pagos fijos; null = el clásico. */
+export interface CalendarioFijo {
+  periodicidad: Periodicidad;
+  /** Cada N días/semanas/meses/años; null = 1. */
+  intervalo: number | null;
+  /** Días de la quincenal (31 = el último); null = 15 y último. */
+  dia_quincena_1: number | null;
+  dia_quincena_2: number | null;
+  /** Día fijo de la mensual (31 = el último); null = el de la fecha. */
+  dia_del_mes: number | null;
+  /** Días de "varias veces al mes" (31 = el último), ordenados; null en las demás. */
+  dias_de_cobro: number[] | null;
+  /** Sábado o domingo → el viernes anterior. */
+  adelantar_a_habil: boolean | null;
+}
 
 // --- Entidades -------------------------------------------------------------
 export interface Cuenta {
@@ -267,13 +283,15 @@ export interface Presupuesto {
   moneda: Moneda;
 }
 
-export interface Suscripcion {
+export interface Suscripcion extends CalendarioFijo {
   id: number;
   nombre: string;
   monto: Dinero;
   moneda: Moneda;
-  periodicidad: Periodicidad;
   fecha_proximo_pago: FechaISO;
+  /** Cuenta y categoría por defecto del pago (van juntas); null = se eligen al pagar. */
+  cuenta_id: number | null;
+  categoria_id: number | null;
 }
 
 /** Datos para crear una entidad: sin `id` (lo genera la BD) ni campos que gestiona el backend. */
@@ -287,25 +305,15 @@ export interface PagoSuscripcion {
   suscripcion: Suscripcion;
 }
 
-export interface IngresoRecurrente {
+export interface IngresoRecurrente extends CalendarioFijo {
   id: number;
   nombre: string;
   /** Importe habitual; al cobrar se puede indicar el que llegó de verdad. */
   monto: Dinero;
   moneda: Moneda;
-  periodicidad: Periodicidad;
   fecha_proximo_cobro: FechaISO;
   cuenta_id: number;
   categoria_id: number;
-  /** Cada N días/semanas/meses/años; null = 1. */
-  intervalo: number | null;
-  /** Días de la quincenal (31 = el último); null = 15 y último. */
-  dia_quincena_1: number | null;
-  dia_quincena_2: number | null;
-  /** Día fijo de la mensual (31 = el último); null = el de la fecha. */
-  dia_del_mes: number | null;
-  /** Sábado o domingo → el viernes anterior. */
-  adelantar_a_habil: boolean | null;
 }
 
 // --- Notificaciones --------------------------------------------------------
@@ -532,6 +540,44 @@ export interface ProgresoPresupuesto {
   /** En la moneda principal, para sumar presupuestos de distintas monedas. */
   limite_principal: Dinero;
   gastado_principal: Dinero;
+}
+
+/** Lo gastado en una categoría sin presupuesto ese mes (sin contar los pagos fijos). */
+export interface GastoSinPresupuesto {
+  categoria_id: number;
+  nombre: string;
+  icono: string;
+  color: string;
+  total: Dinero;
+}
+
+/** El plan del mes, todo en la moneda principal (refleja `PlanMes` de schemas.py). */
+export interface PlanMes {
+  mes_anio: MesAnio;
+  moneda: Moneda;
+  estado: "pasado" | "actual" | "futuro";
+  ingresos_reales: Dinero;
+  ingresos_pendientes: Dinero;
+  ingresos_atrasados: Dinero;
+  ingresos_esperados: Dinero;
+  pagos_fijos_pagados: Dinero;
+  pagos_fijos_pendientes: Dinero;
+  pagos_fijos_atrasados: Dinero;
+  pagos_fijos_total: Dinero;
+  /** Parte de los pagos fijos que ya cubre el límite de algún presupuesto. */
+  pagos_fijos_en_presupuestos: Dinero;
+  presupuestos_limite: Dinero;
+  presupuestos_gastado: Dinero;
+  sin_presupuesto_total: Dinero;
+  sin_presupuesto: GastoSinPresupuesto[];
+  gastos_reales: Dinero;
+  /** Ingresos esperados − pagos fijos − límites; negativo = el plan supera lo que entra. */
+  por_asignar: Dinero;
+  /** Ingresos reales − gastos reales del mes. */
+  disponible_real: Dinero;
+  /** Solo en el mes en curso. */
+  porcentaje_mes_transcurrido: number | null;
+  porcentaje_presupuesto_gastado: number;
 }
 
 // --- Configuración ---------------------------------------------------------

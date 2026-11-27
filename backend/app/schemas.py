@@ -44,6 +44,7 @@ from app.models import (
     TransaccionBase,
     TransferenciaBase,
     validar_color,
+    validar_dias_de_cobro,
     validar_enlace,
     validar_mes_anio,
 )
@@ -384,21 +385,39 @@ class SuscripcionRead(SuscripcionBase):
     id: int
 
 
-class SuscripcionUpdate(SQLModel):
+class CalendarioFijoUpdate(SQLModel):
+    """Los ajustes de `CalendarioFijo` en un PATCH: todos opcionales (y anulables)."""
+
+    periodicidad: Periodicidad | None = None
+    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)
+    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
+    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
+    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
+    dias_de_cobro: list[int] | None = None
+    adelantar_a_habil: bool | None = None
+
+    @field_validator("dias_de_cobro")
+    @classmethod
+    def normalizar_dias_de_cobro(cls, dias: list[int] | None) -> list[int] | None:
+        return validar_dias_de_cobro(dias)
+
+
+class SuscripcionUpdate(CalendarioFijoUpdate):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
     monto: Decimal | None = Field(
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
-    periodicidad: Periodicidad | None = None
     fecha_proximo_pago: date | None = None
     moneda: Moneda | None = None
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
 
 
 class PagoSuscripcionCreate(SQLModel):
-    """Datos para registrar un cobro: de qué cuenta sale y en qué categoría se anota."""
+    """De qué cuenta sale y en qué categoría se anota; si no se envían, las de la suscripción."""
 
-    cuenta_id: int
-    categoria_id: int
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
     # La fecha del pago que se ve en pantalla: si ya no es la próxima, ese pago ya se anotó
     # (doble clic, otra pestaña). Opcional para no romper a quien no la mande.
     fecha_prevista: date | None = None
@@ -420,21 +439,15 @@ class IngresoRecurrenteRead(IngresoRecurrenteBase):
     id: int
 
 
-class IngresoRecurrenteUpdate(SQLModel):
+class IngresoRecurrenteUpdate(CalendarioFijoUpdate):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
     monto: Decimal | None = Field(
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
     moneda: Moneda | None = None
-    periodicidad: Periodicidad | None = None
     fecha_proximo_cobro: date | None = None
     cuenta_id: int | None = None
     categoria_id: int | None = None
-    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)
-    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
-    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
-    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
-    adelantar_a_habil: bool | None = None
 
 
 # --- Deudas ----------------------------------------------------------------
@@ -695,6 +708,54 @@ class ProgresoPresupuesto(SQLModel):
     # En la moneda principal, para poder sumar presupuestos de distintas monedas.
     limite_principal: Decimal
     gastado_principal: Decimal
+
+
+class GastoSinPresupuesto(SQLModel):
+    """Lo gastado en una categoría que no tiene presupuesto ese mes (sin los pagos fijos)."""
+
+    categoria_id: int
+    nombre: str
+    icono: str
+    color: str
+    total: Decimal
+
+
+class PlanMes(SQLModel):
+    """El plan del mes en la moneda principal: qué entra, qué está comprometido y qué queda.
+
+    - "Pendiente": fechas de los fijos que aún no llegan (de hoy al fin de mes, o todo el
+      mes si es futuro). "Atrasado": fechas de este mes ya pasadas sin registrar.
+    - Lo real sale de las transacciones (`monto_principal`, con la tasa de su día); lo
+      previsto se convierte con la tasa más reciente.
+    """
+
+    mes_anio: str
+    moneda: Moneda
+    estado: Literal["pasado", "actual", "futuro"]
+    # Ingresos: reales (todo lo cobrado) + lo que falta de los ingresos fijos.
+    ingresos_reales: Decimal
+    ingresos_pendientes: Decimal
+    ingresos_atrasados: Decimal
+    ingresos_esperados: Decimal
+    # Pagos fijos (suscripciones): pagados + pendientes + atrasados = total.
+    pagos_fijos_pagados: Decimal
+    pagos_fijos_pendientes: Decimal
+    pagos_fijos_atrasados: Decimal
+    pagos_fijos_total: Decimal
+    # Parte de los pagos fijos que cae en categorías con presupuesto: ya la cubre su límite.
+    pagos_fijos_en_presupuestos: Decimal
+    presupuestos_limite: Decimal
+    presupuestos_gastado: Decimal
+    sin_presupuesto_total: Decimal
+    sin_presupuesto: list[GastoSinPresupuesto]
+    gastos_reales: Decimal
+    # Ingresos esperados − pagos fijos fuera de presupuesto − límites; negativo = el plan no cabe.
+    por_asignar: Decimal
+    # Ingresos reales − gastos reales del mes.
+    disponible_real: Decimal
+    # Solo en el mes en curso: qué parte del mes ha pasado (para comparar el ritmo de gasto).
+    porcentaje_mes_transcurrido: float | None
+    porcentaje_presupuesto_gastado: float
 
 
 # --- Configuración y divisas -----------------------------------------------
