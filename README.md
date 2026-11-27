@@ -148,7 +148,7 @@ las mismas defensas de Host y Origin que la versión publicada.
 | --- | --- |
 | `backend/app` | API con FastAPI + SQLModel + SQLite (routers → services → models) |
 | `backend/tests` | Tests con pytest |
-| `frontend/src` | React 18 + TypeScript + Tailwind v4 + Recharts |
+| `frontend/src` | React 19 + TypeScript + Tailwind v4 + Recharts |
 | `empaquetado/` | Receta de PyInstaller para los ejecutables |
 | `e2e/` | Pruebas en el navegador con Playwright |
 | `.github/workflows` | CI (linters, tests, tipos y E2E) y publicación de versiones |

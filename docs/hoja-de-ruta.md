@@ -270,7 +270,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
 - [ ] Monedas de Europa (GBP, CHF: tienen tasas del BCE) y fuente histórica para GTQ/HNL (P3).
 - [ ] Recordatorios por correo y seguir precios de los deseos (P3).
 - [ ] Atajo ASCII en `normalizar_texto` si la búsqueda se nota lenta (medido: 35×) (P3).
-- [ ] **React 19 y react-router 8** (P2; la 8 exige React ≥ 19.2): revisar Recharts y dnd-kit.
+- [x] **React 19 y react-router 8:** React 19.3.1, react-router 8.5.3 y Recharts 2.15.4 (sin
+  cambios de código: solo usamos lo declarativo del router). Recharts 2 dibuja bien con React 19
+  (comprobado); dnd-kit y lucide ya lo admitían. La 3 de Recharts y eslint-plugin-react-hooks 7
+  quedan fuera (rehacen API y reglas).
 
 ## v1.5: En el bolsillo
 

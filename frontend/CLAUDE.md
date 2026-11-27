@@ -1,6 +1,6 @@
 # Frontend (`frontend/src/`)
 
-React 18 + Vite + TypeScript, Tailwind v4 (tokens), Recharts, Lucide, @dnd-kit, fuente Manrope.
+React 19 + Vite + TypeScript, Tailwind v4 (tokens), Recharts, Lucide, @dnd-kit, fuente Manrope.
 Capas: pages → components → api/. En desarrollo Vite (:5173) reenvía `/api` al backend (:8000).
 
 ## Convenciones
