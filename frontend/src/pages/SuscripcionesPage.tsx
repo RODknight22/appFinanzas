@@ -11,13 +11,13 @@ import { Contenido, Vacio } from "../components/ui/Estados";
 import { Modal } from "../components/ui/Modal";
 import { Tarjeta } from "../components/ui/Tarjeta";
 import { TotalConvertido } from "../components/ui/TotalConvertido";
-import { COBROS_POR_MES, PERIODICIDADES } from "../config";
 import { useConfiguracion } from "../hooks/useConfiguracion";
 import { confirmarYEliminar } from "../hooks/useEnvio";
 import { useDatos } from "../hooks/useDatos";
 import type { Suscripcion } from "../types";
 import { sumarConvertidos } from "../utils/divisas";
 import { diasHasta, formatearDinero, formatearFecha, textoVencimiento } from "../utils/formato";
+import { cobrosPorMes, describirPeriodicidad } from "../utils/periodicidad";
 
 /** Tres modales posibles; el tipo de unión deja claro cuál está abierto. */
 type EstadoModal =
@@ -46,7 +46,7 @@ export function SuscripcionesPage() {
     <>
       <EncabezadoPagina
         titulo="Suscripciones"
-        consejo="Al marcar un pago se anota el gasto y la fecha salta sola al siguiente cobro."
+        consejo="Al marcar un pago se anota el gasto y la fecha salta sola al siguiente cobro. Puede repetirse varias veces al mes (p. ej. los días 5, 15 y 30)."
         descripcion="Pagos recurrentes y su próxima fecha de cobro"
         // Sin suscripciones, el botón de crear ya está en el aviso de lista vacía.
         acciones={estado.datos?.[0].length !== 0 && <Boton onClick={() => setModal({ modo: "nueva" })}><Plus size={16} /> Nueva</Boton>}
@@ -56,7 +56,7 @@ export function SuscripcionesPage() {
         {([suscripciones, cuentas, categoriasGasto]) => {
           // Cada suscripción se convierte a la moneda principal (tasa de hoy) antes de sumar.
           const costeMensual = sumarConvertidos(
-            suscripciones.map((s) => ({ monto: Number(s.monto) * COBROS_POR_MES[s.periodicidad], moneda: s.moneda })),
+            suscripciones.map((s) => ({ monto: Number(s.monto) * cobrosPorMes(s), moneda: s.moneda })),
             convertir,
           );
 
@@ -90,7 +90,7 @@ export function SuscripcionesPage() {
                           <div className="min-w-0 flex-1">
                             <p className="truncate font-medium">{suscripcion.nombre}</p>
                             <p className="text-xs">
-                              <span className="text-tenue">{PERIODICIDADES[suscripcion.periodicidad]} · </span>
+                              <span className="text-tenue">{describirPeriodicidad(suscripcion)} · </span>
                               <span className={colorFecha}>
                                 {textoVencimiento(suscripcion.fecha_proximo_pago)} ({formatearFecha(suscripcion.fecha_proximo_pago)})
                               </span>
@@ -115,9 +115,18 @@ export function SuscripcionesPage() {
               </Tarjeta>
 
               <Modal titulo={modal ? TITULOS[modal.modo] : ""} abierto={modal !== null} onCerrar={() => setModal(null)}>
-                {modal?.modo === "nueva" && <FormularioSuscripcion onGuardado={alGuardar} onCancelar={() => setModal(null)} />}
+                {modal?.modo === "nueva" && (
+                  <FormularioSuscripcion cuentas={cuentas} categoriasGasto={categoriasGasto} onGuardado={alGuardar} onCancelar={() => setModal(null)} />
+                )}
                 {modal?.modo === "editar" && (
-                  <FormularioSuscripcion key={modal.suscripcion.id} inicial={modal.suscripcion} onGuardado={alGuardar} onCancelar={() => setModal(null)} />
+                  <FormularioSuscripcion
+                    key={modal.suscripcion.id}
+                    inicial={modal.suscripcion}
+                    cuentas={cuentas}
+                    categoriasGasto={categoriasGasto}
+                    onGuardado={alGuardar}
+                    onCancelar={() => setModal(null)}
+                  />
                 )}
                 {modal?.modo === "pagar" && (
                   <FormularioPagoSuscripcion

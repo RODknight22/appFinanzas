@@ -18,8 +18,9 @@ interface FormularioPagoSuscripcionProps {
 
 /** Confirma el cobro: crea el gasto y la suscripción pasa a su siguiente fecha. */
 export function FormularioPagoSuscripcion({ suscripcion, cuentas, categoriasGasto, onGuardado, onCancelar }: FormularioPagoSuscripcionProps) {
-  const [cuentaId, setCuentaId] = useState(String(cuentas[0]?.id ?? ""));
-  const [categoriaId, setCategoriaId] = useState("");
+  // Las guardadas en la suscripción, si las tiene: así basta con confirmar.
+  const [cuentaId, setCuentaId] = useState(String(suscripcion.cuenta_id ?? cuentas[0]?.id ?? ""));
+  const [categoriaId, setCategoriaId] = useState(suscripcion.categoria_id ? String(suscripcion.categoria_id) : "");
   const { enviando, error, ejecutar } = useEnvio();
 
   async function enviar(evento: FormEvent) {

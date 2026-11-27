@@ -61,6 +61,7 @@ export function DashboardPage() {
         dashboardApi.topComercios(mes, rango),
         dashboardApi.gastosPorCuenta(mes, rango),
         dashboardApi.ahorroAnual(Number(mes.slice(0, 4))),
+        dashboardApi.buenMomento(),
       ]);
     },
     // Con tutorial_visto: al terminar la bienvenida se recarga y el panel ya ve la cuenta y el
@@ -109,7 +110,7 @@ export function DashboardPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar} esqueleto={<EsqueletoPanel />}>
-        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros, costeEnvios, poder, comparativa, comercios, gastosCuenta, ahorro]) => {
+        {([resumen, flujo, gastos, presupuestos, suscripciones, cuentas, ultimas, categorias, metas, patrimonio, diarios, cobros, costeEnvios, poder, comparativa, comercios, gastosCuenta, ahorro, buenMomento]) => {
           const saldos = new Map(resumen.cuentas.map((c) => [c.cuenta_id, Number(c.saldo)]));
           const datos: DatosPanel = {
             resumen,
@@ -133,6 +134,7 @@ export function DashboardPage() {
             comercios,
             gastosCuenta,
             ahorro,
+            buenMomento,
           };
           return (
             <>

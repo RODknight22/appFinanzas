@@ -8,18 +8,21 @@ from fastapi import APIRouter, Depends, Query
 from app.database import SessionDep
 from app.schemas import (
     AhorroAnual,
+    BuenMomento,
     ComparativaPeriodo,
     FlujoMensual,
     GastoDiario,
     GastoPorCategoria,
     GastoPorComercio,
     GastoPorCuenta,
+    PlanMes,
     PoderAdquisitivo,
     ProgresoPresupuesto,
     PuntoPatrimonio,
     ResumenMes,
 )
 from app.services import dashboard as servicio
+from app.services import plan_mes
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -107,7 +110,19 @@ def gastos_diarios(session: SessionDep, mes_anio: MesParam = None):
     return servicio.gastos_diarios(session, mes_anio or servicio.mes_actual(session))
 
 
+@router.get("/buen-momento", response_model=BuenMomento)
+def buen_momento(session: SessionDep):
+    """¿Es buen momento para cambiar? La tasa de hoy frente a la media de los últimos 90 días."""
+    return servicio.buen_momento(session)
+
+
 @router.get("/poder-adquisitivo", response_model=PoderAdquisitivo)
 def poder_adquisitivo(session: SessionDep, mes_anio: MesParam = None):
     """Cuánto rinden tus ingresos de una moneda al gastar en otra, este mes frente a 12."""
     return servicio.poder_adquisitivo(session, mes_anio or servicio.mes_actual(session))
+
+
+@router.get("/plan-mes", response_model=PlanMes)
+def plan_del_mes(session: SessionDep, mes_anio: MesParam = None):
+    """Ingresos esperados, pagos fijos, presupuestos y gasto sin presupuesto del mes."""
+    return plan_mes.plan_del_mes(session, mes_anio or servicio.mes_actual(session))

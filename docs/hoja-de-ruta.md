@@ -250,9 +250,17 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   estilo ORVYN (negro puro / Ivory) y acento Saffron por defecto, Inter + Manrope, logo
   provisional siempre en Saffron, Obsidian en lugar de Grafito y "Negro puro" en Personalizado.
   Sistema de marca en Claude Design. Pendiente: logo definitivo y `/design-sync`.
+- [x] **Fijos "varias al mes" y Plan del mes** (Rodrigo, 27/11: su papá le deposita 3 veces al
+  mes): ingresos y pagos fijos en los días que elijas (10, 20 y último), pagos fijos con el mismo
+  calendario y cuenta/categoría por defecto; en Presupuestos, tarjeta "Plan del mes" (entra,
+  fijos, presupuestos, por asignar, sin presupuesto) y ritmo de gasto en cada barra.
+- [ ] **Reconocer cobros fijos al anotar o importar** (P1): si un movimiento parece un fijo
+  (importe y fecha cercana), preguntar y avanzar su fecha; si no, el Plan del mes lo cuenta 2 veces.
 - [-] ~~Tasa de Banxico (FIX)~~ → descartada (23/10): su API exige que cada usuario se registre
   y pegue un token, y para MXN↔EUR el BCE ya da la tasa directa. Solo mejoraría MXN↔USD.
-- [ ] **Aviso de buen momento** (P2): "el euro está un 3 % por debajo de su media de 3 meses".
+- [x] **Aviso de buen momento** (P2): la tasa de hoy frente a la media de 90 días entre la
+  moneda en que cobras y la que gastas (umbral ±2 %): widget con el rango (visible por
+  defecto) y aviso en la campana cuando es buen momento, como mucho uno por semana.
 - [ ] **Más bancos al importar** (P1): los de Rodrigo (cuaderno, 23/10): Nu México, BBVA México y
   en Centroamérica BAC, Promerica y Ficohsa (HNL y GTQ ya existen). Cada lector con su test y
   un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
@@ -262,7 +270,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
 - [ ] Monedas de Europa (GBP, CHF: tienen tasas del BCE) y fuente histórica para GTQ/HNL (P3).
 - [ ] Recordatorios por correo y seguir precios de los deseos (P3).
 - [ ] Atajo ASCII en `normalizar_texto` si la búsqueda se nota lenta (medido: 35×) (P3).
-- [ ] **React 19 y react-router 8** (P2; la 8 exige React ≥ 19.2): revisar Recharts y dnd-kit.
+- [x] **React 19 y react-router 8:** React 19.3.1, react-router 8.5.3 y Recharts 2.15.4 (sin
+  cambios de código: solo usamos lo declarativo del router). Recharts 2 dibuja bien con React 19
+  (comprobado); dnd-kit y lucide ya lo admitían. La 3 de Recharts y eslint-plugin-react-hooks 7
+  quedan fuera (rehacen API y reglas).
 
 ## v1.5: En el bolsillo
 
