@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 
 import { categoriasApi, reglasCategoriaApi } from "../../api/recursos";
 import { useDatos } from "../../hooks/useDatos";
-import { useEnvio } from "../../hooks/useEnvio";
+import { confirmarYEliminar, useEnvio } from "../../hooks/useEnvio";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, ErrorFormulario } from "../ui/Campo";
 import { Contenido } from "../ui/Estados";
@@ -30,10 +30,6 @@ export function ReglasImportacion() {
     }
   }
 
-  // Sin confirmación: una regla se vuelve a crear en un momento y no borra ningún movimiento.
-  async function borrar(id: number) {
-    if (await envio.ejecutar(() => reglasCategoriaApi.eliminar(id))) estado.recargar();
-  }
 
   return (
     <Tarjeta titulo="Reglas al importar" className="mt-6">
@@ -61,9 +57,11 @@ export function ReglasImportacion() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => borrar(regla.id)}
-                          aria-label={`Borrar la regla «${regla.texto}»`}
-                          className="rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-peligro"
+                          onClick={() =>
+                            confirmarYEliminar(`¿Eliminar la regla «${regla.texto}»?`, () => reglasCategoriaApi.eliminar(regla.id), estado.recargar)
+                          }
+                          aria-label={`Eliminar la regla «${regla.texto}»`}
+                          className="rounded-lg p-2.5 text-tenue hover:bg-realce hover:text-peligro sm:p-1.5"
                         >
                           <Trash2 size={16} />
                         </button>

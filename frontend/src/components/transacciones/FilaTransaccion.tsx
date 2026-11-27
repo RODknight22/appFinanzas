@@ -47,7 +47,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
           to="/cuentas"
           title="Comisión de una transferencia: se edita desde Cuentas"
           aria-label="Editar desde Cuentas"
-          className="shrink-0 rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+          className="shrink-0 rounded-lg p-2.5 text-tenue transition-colors hover:bg-realce hover:text-texto sm:p-1.5"
         >
           <ArrowRightLeft size={16} />
         </Link>

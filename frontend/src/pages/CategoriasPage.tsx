@@ -6,6 +6,7 @@ import { ReglasImportacion } from "../components/categorias/ReglasImportacion";
 import { FormularioCategoria } from "../components/formularios/FormularioCategoria";
 import { AccionesFila } from "../components/ui/AccionesFila";
 import { Boton } from "../components/ui/Boton";
+import { ControlSegmentado } from "../components/ui/ControlSegmentado";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { Contenido, Vacio } from "../components/ui/Estados";
 import { IconoCategoria } from "../components/ui/IconoCategoria";
@@ -41,27 +42,24 @@ export function CategoriasPage() {
         acciones={<Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva categoría</Boton>}
       />
 
-      <div className="mb-4 inline-flex rounded-xl bg-superficie-2 p-1">
-        {PESTANAS.map((pestana) => (
-          <button
-            key={pestana.tipo}
-            type="button"
-            onClick={() => setTipo(pestana.tipo)}
-            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
-              tipo === pestana.tipo ? "bg-superficie shadow-sm" : "text-tenue"
-            }`}
-          >
-            {pestana.etiqueta}
-          </button>
-        ))}
-      </div>
+      <ControlSegmentado
+        etiqueta="Tipo de categoría"
+        ancho="compacto"
+        className="mb-4"
+        opciones={PESTANAS.map((pestana) => ({ valor: pestana.tipo, etiqueta: pestana.etiqueta }))}
+        valor={tipo}
+        onCambiar={setTipo}
+      />
 
       {/* Al cambiar de pestaña, mientras llegan las categorías nuevas se ven las anteriores: atenuadas. */}
       <Tarjeta className={`transition-opacity ${estado.cargando && estado.datos ? "pointer-events-none opacity-50" : ""}`}>
         <Contenido {...estado} onReintentar={estado.recargar}>
           {(categorias) =>
             categorias.length === 0 ? (
-              <Vacio mensaje={`No hay categorías de ${tipo}`} />
+              <Vacio
+                mensaje={`No hay categorías de ${tipo}`}
+                accion={<Boton variante="secundario" onClick={() => setModal("nueva")}>Crear la primera categoría</Boton>}
+              />
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {categorias.map((categoria) => (
