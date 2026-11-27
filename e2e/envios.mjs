@@ -49,4 +49,12 @@ await prueba("envios", async ({ pagina, api }) => {
   const textoPoder = (await poder.textContent()).replace(/\s+/g, " ");
   await poder.screenshot({ path: `${CAPTURAS}/poder-widget.png` });
   comprobar(textoPoder.includes("Hacen falta unas semanas de tasas"), `poder adquisitivo sin historial (${textoPoder.trim()})`);
+
+  // Buen momento: se ve sin añadirlo (viene en el panel por defecto) y, con un solo día de
+  // tasas, dice que aún no puede comparar en vez de dar un veredicto.
+  const momento = pagina.getByText("¿Buen momento para cambiar MXN a EUR?").locator("xpath=ancestor::section[contains(@class, 'rounded-3xl')][1]");
+  await momento.waitFor();
+  const textoMomento = (await momento.textContent()).replace(/\s+/g, " ");
+  await momento.screenshot({ path: `${CAPTURAS}/buen-momento-widget.png` });
+  comprobar(textoMomento.includes("Aún no hay tasas de 90 días"), `buen momento sin historial (${textoMomento.trim()})`);
 });
