@@ -210,7 +210,7 @@ sus notas (24/10). 2 y 3 son de backend y 4 de frontend: pueden ir en sesiones a
 | 5 | Widgets personalizables y Dashboard más ligero | Notas de Rodrigo; 3 | components/dashboard/ |
 | 6 | Comparar vías de envío (Revolut: transferencia o efectivo) | — | services/transferencias.py, widgets |
 | 7 | Aviso de buen momento | 5 | services/divisas.py, widget |
-| 8 | Más bancos al importar | Forma de los extractos (Rodrigo) | services/lector_extractos.py |
+| 8 | ~~Más bancos al importar~~ (pasa a la v1.5) | Forma de los extractos (Rodrigo) | services/lector_extractos.py |
 | 9 | ~~Firmar el ejecutable~~ (aplazada, ver abajo) | — | — |
 | 10 | React 19 y react-router 8 | 3-5 (tocan el mismo frontend) | package.json, frontend/src |
 | 11 | Publicar v1.4.0 | 2-6 | version.py, package.json, CHANGELOG |
@@ -261,9 +261,6 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
 - [x] **Aviso de buen momento** (P2): la tasa de hoy frente a la media de 90 días entre la
   moneda en que cobras y la que gastas (umbral ±2 %): widget con el rango (visible por
   defecto) y aviso en la campana cuando es buen momento, como mucho uno por semana.
-- [ ] **Más bancos al importar** (P1): los de Rodrigo (cuaderno, 23/10): Nu México, BBVA México y
-  en Centroamérica BAC, Promerica y Ficohsa (HNL y GTQ ya existen). Cada lector con su test y
-  un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
 - [ ] **Etiquetas / viajes** (P2): agrupar gastos de varias categorías y monedas ("Viaje CDMX").
 - [ ] Inversiones con valoración (P3; Rodrigo tiene cripto y acciones de EE. UU.): valor por
   fecha, aportado frente a valor actual.
@@ -280,6 +277,10 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
 **La innovación:** la app se instala en el móvil y en el escritorio como una app de verdad
 (PWA), sin tienda ni nube: el gasto se anota donde ocurre.
 
+- [ ] **Más bancos al importar** (P1; viene de la v1.4, que se publicó sin ella): los de Rodrigo (cuaderno, 23/10): Nu México, BBVA México y
+  en Centroamérica BAC, Promerica y Ficohsa (HNL y GTQ ya existen). Cada lector con su test y
+  un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
+- [ ] **Más tamaños de widget** (P2; pedido en la v1.4, no entró en la PR #50).
 - [ ] **PWA instalable** (P1): manifiesto e iconos; se abre como ventana propia. En el móvil,
   conectado a tu PC por la red de casa (con contraseña y aviso claro) o con la sincronización.
 - [ ] **Interfaz en inglés** (P1): sin inglés el alcance se queda en una fracción. Textos en un
