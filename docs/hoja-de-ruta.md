@@ -213,7 +213,7 @@ sus notas (24/10). 2 y 3 son de backend y 4 de frontend: pueden ir en sesiones a
 | 8 | ~~Más bancos al importar~~ (pasa a la v1.5) | Forma de los extractos (Rodrigo) | services/lector_extractos.py |
 | 9 | ~~Firmar el ejecutable~~ (aplazada, ver abajo) | — | — |
 | 10 | React 19 y react-router 8 | 3-5 (tocan el mismo frontend) | package.json, frontend/src |
-| 11 | Publicar v1.4.0 | 2-6 | version.py, package.json, CHANGELOG |
+| 11 | ~~Publicar v1.4.0~~ (hecho, 27/11) | 2-6 | version.py, package.json, CHANGELOG |
 
 Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publica sin ellas.
 
@@ -261,12 +261,6 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
 - [x] **Aviso de buen momento** (P2): la tasa de hoy frente a la media de 90 días entre la
   moneda en que cobras y la que gastas (umbral ±2 %): widget con el rango (visible por
   defecto) y aviso en la campana cuando es buen momento, como mucho uno por semana.
-- [ ] **Etiquetas / viajes** (P2): agrupar gastos de varias categorías y monedas ("Viaje CDMX").
-- [ ] Inversiones con valoración (P3; Rodrigo tiene cripto y acciones de EE. UU.): valor por
-  fecha, aportado frente a valor actual.
-- [ ] Monedas de Europa (GBP, CHF: tienen tasas del BCE) y fuente histórica para GTQ/HNL (P3).
-- [ ] Recordatorios por correo y seguir precios de los deseos (P3).
-- [ ] Atajo ASCII en `normalizar_texto` si la búsqueda se nota lenta (medido: 35×) (P3).
 - [x] **React 19 y react-router 8:** React 19.3.1, react-router 8.5.3 y Recharts 2.15.4 (sin
   cambios de código: solo usamos lo declarativo del router). Recharts 2 dibuja bien con React 19
   (comprobado); dnd-kit y lucide ya lo admitían. La 3 de Recharts y eslint-plugin-react-hooks 7
@@ -281,6 +275,12 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   en Centroamérica BAC, Promerica y Ficohsa (HNL y GTQ ya existen). Cada lector con su test y
   un extracto inventado. *Antes:* Rodrigo consigue la forma (no los datos) de cada uno.
 - [ ] **Más tamaños de widget** (P2; pedido en la v1.4, no entró en la PR #50).
+- [ ] **Etiquetas / viajes** (P2): agrupar gastos de varias categorías y monedas ("Viaje CDMX").
+- [ ] Inversiones con valoración (P3; Rodrigo tiene cripto y acciones de EE. UU.): valor por
+  fecha, aportado frente a valor actual.
+- [ ] Monedas de Europa (GBP, CHF: tienen tasas del BCE) y fuente histórica para GTQ/HNL (P3).
+- [ ] Recordatorios por correo y seguir precios de los deseos (P3).
+- [ ] Atajo ASCII en `normalizar_texto` si la búsqueda se nota lenta (medido: 35×) (P3).
 - [ ] **PWA instalable** (P1): manifiesto e iconos; se abre como ventana propia. En el móvil,
   conectado a tu PC por la red de casa (con contraseña y aviso claro) o con la sincronización.
 - [ ] **Interfaz en inglés** (P1): sin inglés el alcance se queda en una fracción. Textos en un
