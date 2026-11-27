@@ -1,4 +1,5 @@
 import { TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { formatearPorcentaje } from "../../utils/formato";
 import { variacion } from "../../utils/tendencias";
@@ -20,7 +21,8 @@ const COLOR_SERIE: Record<Tono, string> = {
 
 interface TarjetaMetricaProps {
   titulo: string;
-  valor: string;
+  /** Texto ya formateado o un <CifraAnimada>. */
+  valor: ReactNode;
   icono: LucideIcon;
   tono?: Tono;
   detalle?: string;

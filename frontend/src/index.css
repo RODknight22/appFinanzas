@@ -29,11 +29,13 @@
      confunde con un botón (el acento por defecto también es verde) ni un gasto con un acento rosa.
      - ingreso / gasto: dinero que entra o sale, tendencias buenas o malas, saldos negativos.
      - exito / peligro: estados de la interfaz (guardado, cumplido; errores, borrar, vencido).
+     - aviso: algo pide atención pero aún no es un error (vence pronto, prioridad media).
      Para fondos suaves, con opacidad: bg-gasto/15. */
   --color-ingreso: var(--ingreso);
   --color-gasto: var(--gasto);
   --color-exito: var(--exito);
   --color-peligro: var(--peligro);
+  --color-aviso: var(--aviso);
   /* Texto e iconos sobre un relleno de acento (bg-acento-600): blanco salvo en Saffron oscuro,
      donde el naranja es tan claro que necesita texto oscuro para leerse. */
   --color-sobre-acento: var(--sobre-acento);
@@ -43,6 +45,18 @@
   --color-ingreso-fuerte: oklch(52.7% 0.154 150.069);
   --color-gasto-fuerte: oklch(57.7% 0.245 27.325);
   --color-peligro-fuerte: oklch(57.7% 0.245 27.325);
+
+  /* --- Movimiento ---------------------------------------------------------
+     Micro-interacciones al estilo Apple: rápidas y casi invisibles, solo para que la app se
+     sienta fluida. Dos curvas (y sus utilidades ease-muelle / ease-salida):
+     - salida: arranca rápido y frena suave; para colores, sombras y lo que desaparece.
+     - muelle: igual pero se pasa un pelo y vuelve, como un muelle amortiguado; para lo que
+       aparece o cambia de tamaño (modales, el indicador de la pestaña activa). */
+  --ease-salida: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-muelle: cubic-bezier(0.34, 1.3, 0.64, 1);
+  /* Las utilidades transition y transition-colors de toda la app usan esta curva y duración. */
+  --default-transition-duration: var(--duracion-corta);
+  --default-transition-timing-function: var(--ease-salida);
 
   /* backwards (no both): al terminar no deja un transform puesto, que rompería los position: fixed de dentro */
   --animate-entrada: entrada 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
@@ -62,6 +76,44 @@
       transform: scale(0.85);
     }
   }
+  /* Entrada con muelle suave (celebraciones grandes): sube, se pasa un pelo y se asienta.
+     Fotogramas clave en vez de linear() para no depender de navegadores recientes. */
+  --animate-muelle: muelle 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  @keyframes muelle {
+    0% {
+      opacity: 0;
+      transform: translateY(18px) scale(0.9);
+    }
+    45% {
+      opacity: 1;
+      transform: translateY(-3px) scale(1.02);
+    }
+    75% {
+      transform: translateY(1px) scale(0.995);
+    }
+  }
+  /* Modales, menús y paneles flotantes: crecen un 2 % mientras aparecen (sin rebote visible). */
+  --animate-aparecer: aparecer var(--duracion-media) var(--ease-muelle) backwards;
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+  /* El velo oscuro detrás de un modal: solo se funde. */
+  --animate-fundido: fundido var(--duracion-media) var(--ease-salida) backwards;
+  @keyframes fundido {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* Duraciones del movimiento (en :root y no en @theme: Tailwind no tiene utilidades de duración
+   con nombre; en clases se usan así: duration-(--duracion-media)). */
+:root {
+  --duracion-corta: 150ms; /* hover, pulsar, colores */
+  --duracion-media: 220ms; /* aparecer, deslizar, elevar */
 }
 
 /* --- Estilos visuales (atributo data-estilo en <html>) ---------------------
@@ -90,9 +142,13 @@
   --gasto: oklch(57.7% 0.245 27.325);
   --exito: var(--ingreso);
   --peligro: var(--gasto);
+  /* Ámbar oscuro (amber-700): el amber-500 de siempre no llega a 3:1 sobre blanco. */
+  --aviso: oklch(55.5% 0.163 48.998);
   --sobre-acento: oklch(100% 0 0);
   /* Sombra de las tarjetas: suave en claro, sin sombra en oscuro (no se vería). */
   --sombra: 0 1px 2px oklch(0% 0 0 / 0.04), 0 8px 24px -12px oklch(0% 0 0 / 0.08);
+  /* Al pasar el ratón por una tarjeta clicable (utilidad elevable): un poco más de sombra. */
+  --sombra-elevada: 0 1px 2px oklch(0% 0 0 / 0.05), 0 12px 28px -14px oklch(0% 0 0 / 0.16);
 }
 
 :root.dark {
@@ -109,7 +165,10 @@
   --tenue-2: oklch(52% calc(0.014 * var(--viveza)) var(--tinte));
   --ingreso: oklch(79.2% 0.209 151.711);
   --gasto: oklch(70.4% 0.191 22.216);
+  --aviso: oklch(82.8% 0.189 84.429); /* amber-400 */
   --sombra: none;
+  /* En oscuro la sombra no se ve: la elevación la dan el desplazamiento y un borde algo más claro. */
+  --sombra-elevada: 0 0 0 1px oklch(100% 0 0 / 0.06);
   color-scheme: dark; /* barras de desplazamiento y controles nativos oscuros */
 }
 
@@ -130,6 +189,7 @@
   --tenue-2: #a39c90;
   --ingreso: #187544;
   --gasto: #b83333;
+  --aviso: #a05a0c; /* ≥ 4,5:1 sobre Ivory */
   --sombra: none; /* la marca separa con bordes, no con sombras */
 }
 :root[data-estilo="orvyn"].dark,
@@ -146,6 +206,7 @@
   --tenue-2: #6e6a64;
   --ingreso: #54c78a;
   --gasto: #ed7070;
+  --aviso: #e8b04a;
 }
 
 /* Azul marino profundo. */
@@ -206,13 +267,75 @@
   }
 }
 
+/* --- Micro-interacciones globales ------------------------------------------
+   En la capa base: cualquier clase de Tailwind de un componente sigue mandando sobre esto. */
+@layer base {
+  /* Foco con teclado: anillo del acento separado del borde. focus-visible no sale con el ratón. */
+  :focus-visible {
+    outline: 2px solid var(--color-acento-500);
+    outline-offset: 2px;
+  }
+  /* Los controles funden sus cambios (color, fondo, borde, sombra, foco) en vez de saltar. */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  summary {
+    transition-property: color, background-color, border-color, outline-color, outline-offset, box-shadow, opacity, scale;
+    transition-duration: var(--duracion-corta);
+    transition-timing-function: var(--ease-salida);
+  }
+  /* Al pulsar, el botón cede un 3 %: confirma el clic sin ondas ni destellos. Los deshabilitados
+     no se mueven; .sin-pulsar lo quita donde no tiene sentido (p. ej. un velo a pantalla completa). */
+  button:not(:disabled, .sin-pulsar):active,
+  [role="button"]:not([aria-disabled="true"], .sin-pulsar):active {
+    scale: 0.97;
+  }
+}
+
+/* transition-colors de Tailwind no incluye scale: sin esto, los botones que la usan encogerían
+   de golpe al pulsar. Solo amplía la lista: duración y curva siguen saliendo de duration-* / ease-*. */
+@utility transition-colors {
+  transition-property: color, background-color, border-color, outline-color, outline-offset, text-decoration-color, fill,
+    stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, box-shadow, scale;
+}
+
+/* Tarjeta clicable: al pasar el ratón sube 1 px con algo más de sombra y al pulsar cede un 1 %
+   (las tarjetas son grandes: un 3 % se notaría demasiado). Solo con ratón o trackpad: en una
+   pantalla táctil el hover se queda "pegado" tras tocar. */
+@utility elevable {
+  transition-property: translate, scale, box-shadow, background-color, color;
+  transition-duration: var(--duracion-media);
+  transition-timing-function: var(--ease-salida);
+  &:active:not(:disabled) {
+    scale: 0.99;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      translate: 0 -1px;
+      --tw-shadow: var(--sombra-elevada);
+    }
+  }
+}
+
 /* Quien pide menos movimiento en su sistema no ve animaciones. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Sin esto, lo que entra escalonado se quedaría invisible durante su retraso. */
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* Tampoco encogen ni suben al pulsar o pasar el ratón: sería un salto sin transición. */
+  button:active,
+  [role="button"]:active,
+  .elevable:active,
+  .elevable:hover {
+    scale: none !important;
+    translate: none !important;
   }
 }
 

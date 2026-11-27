@@ -9,7 +9,8 @@ import { lanzarConfeti } from "../../utils/confeti";
 import { formatearDinero, formatearFecha, hoyISO } from "../../utils/formato";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo, ErrorFormulario } from "../ui/Campo";
-import { Contenido } from "../ui/Estados";
+import { ControlSegmentado } from "../ui/ControlSegmentado";
+import { Contenido, Vacio } from "../ui/Estados";
 import { SelectorFecha } from "../ui/SelectorFecha";
 
 interface PanelAportacionesProps {
@@ -57,20 +58,15 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
   return (
     <div className="space-y-5">
       <form onSubmit={enviar} className="space-y-3">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-superficie-2 p-1">
-          {(["aportar", "retirar"] as const).map((opcion) => (
-            <button
-              key={opcion}
-              type="button"
-              onClick={() => setSentido(opcion)}
-              className={`rounded-lg py-2 text-sm font-medium transition ${
-                sentido === opcion ? "bg-superficie shadow-sm" : "text-tenue"
-              }`}
-            >
-              {opcion === "aportar" ? "Aportar" : "Retirar"}
-            </button>
-          ))}
-        </div>
+        <ControlSegmentado
+          etiqueta="Aportar o retirar"
+          opciones={[
+            { valor: "aportar", etiqueta: "Aportar" },
+            { valor: "retirar", etiqueta: "Retirar" },
+          ]}
+          valor={sentido}
+          onCambiar={setSentido}
+        />
         <div className="grid grid-cols-2 gap-3">
           <Campo etiqueta={`Importe (${meta.moneda})`}>
             <input className={CLASE_ENTRADA} type="number" inputMode="decimal" step="0.01" min="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} required autoFocus />
@@ -91,7 +87,7 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
         <Contenido {...historial} onReintentar={historial.recargar}>
           {(aportaciones) =>
             aportaciones.length === 0 ? (
-              <p className="text-sm text-tenue">Aún no hay aportaciones.</p>
+              <Vacio mensaje="Aún no hay aportaciones." />
             ) : (
               <ul className="max-h-60 divide-y divide-linea overflow-y-auto text-sm">
                 {aportaciones.map((a) => {
@@ -107,10 +103,10 @@ export function PanelAportaciones({ meta, onCambio }: PanelAportacionesProps) {
                       <button
                         type="button"
                         aria-label="Eliminar aportación"
-                        className="rounded-lg p-1 text-tenue-2 hover:bg-realce hover:text-peligro"
+                        className="shrink-0 rounded-lg p-2.5 text-tenue hover:bg-realce hover:text-peligro sm:p-1.5"
                         onClick={() => confirmarYEliminar("¿Eliminar esta aportación?", () => metasApi.eliminarAportacion(meta.id, a.id), despuesDeCambiar)}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
                     </li>
                   );

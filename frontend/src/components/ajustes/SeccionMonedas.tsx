@@ -65,7 +65,7 @@ export function SeccionMonedas() {
                 </span>
               ) : (
                 activa && (
-                  <button type="button" onClick={() => elegirPrincipal(codigo)} className="text-xs font-medium text-acento-600 hover:underline">
+                  <button type="button" onClick={() => elegirPrincipal(codigo)} className="text-xs font-medium text-acento-600 hover:underline dark:text-acento-400">
                     Hacer principal
                   </button>
                 )

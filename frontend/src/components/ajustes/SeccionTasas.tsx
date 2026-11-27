@@ -19,10 +19,13 @@ function FilaTasa({ codigo }: { codigo: Moneda }) {
   const tasa = tasas.find((t) => t.moneda === codigo);
   const original = tasa ? legible(tasa.en_principal) : "";
   const [valor, setValor] = useState(original);
+  const [guardando, setGuardando] = useState(false);
 
   async function guardar() {
+    setGuardando(true);
     // El backend devuelve todas las tasas; recargamos para refrescar el contexto.
     await tasasApi.fijarManual(codigo, valor).then(recargarTasas).catch(avisarError);
+    setGuardando(false);
   }
 
   return (
@@ -41,7 +44,9 @@ function FilaTasa({ codigo }: { codigo: Moneda }) {
         <span className="w-10 font-mono font-semibold">{principal}</span>
       </span>
       {valor !== "" && valor !== original && (
-        <Boton className="px-2.5 py-1 text-xs" onClick={guardar}>Guardar</Boton>
+        <Boton className="px-2.5 py-1 text-xs" onClick={guardar} disabled={guardando}>
+          {guardando ? "Guardando…" : "Guardar"}
+        </Boton>
       )}
       <span className="flex-1 text-xs text-tenue">
         {tasa ? `${formatearFecha(tasa.fecha)} · ${tasa.origen === "manual" ? "manual" : "internet"}` : "Sin tasa"}

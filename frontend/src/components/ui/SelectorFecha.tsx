@@ -161,7 +161,7 @@ function PanelCalendario({ disparador, etiqueta, valor, opcional, onElegir, onCe
       role="dialog"
       aria-label={`Elegir ${etiqueta.toLowerCase()}`}
       onKeyDown={alTeclear}
-      className="fixed z-[60] animate-entrada rounded-2xl bg-superficie p-3 shadow-2xl ring-1 ring-linea"
+      className="fixed z-[60] origin-top animate-aparecer rounded-2xl bg-superficie p-3 shadow-2xl ring-1 ring-linea"
       // Oculto hasta medirlo: así no aparece un instante en la esquina.
       style={{ top: posicion?.top ?? 0, left: posicion?.left ?? 0, width: posicion?.ancho ?? ANCHO_PANEL, visibility: visible ? "visible" : "hidden" }}
     >

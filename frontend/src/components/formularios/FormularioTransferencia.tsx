@@ -46,7 +46,7 @@ function TipoDeCambioAplicado({ sale, llega, de, a }: { sale: number; llega: num
     <p className="text-xs text-tenue">
       Tipo aplicado: {textoTipoDeCambio(aplicado, de, a)}
       {Math.abs(peor) >= 0.05 && (
-        <span className={peor > 0 ? "text-amber-600 dark:text-amber-400" : ""}>
+        <span className={peor > 0 ? "text-aviso" : ""}>
           {" "}· un {formatearPorcentaje(Math.abs(peor))} {peor > 0 ? "peor" : "mejor"} que el del mercado hoy
         </span>
       )}

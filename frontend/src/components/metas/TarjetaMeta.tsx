@@ -1,4 +1,5 @@
 import { CheckCircle2, PiggyBank, RotateCcw, Wallet } from "lucide-react";
+import { useState } from "react";
 
 import type { Cuenta, Meta } from "../../types";
 import { formatearDinero, formatearFecha, formatearMesEnFrase, formatearPorcentaje } from "../../utils/formato";
@@ -12,7 +13,8 @@ interface TarjetaMetaProps {
   onAportar: () => void;
   onEditar: () => void;
   onEliminar: () => void;
-  onMarcarCumplida: (cumplida: boolean) => void;
+  /** Devuelve una promesa: mientras no termina, el botón queda apagado (sin dobles clics). */
+  onMarcarCumplida: (cumplida: boolean) => Promise<void>;
 }
 
 /** La frase que dice qué hacer: "Ahorra EUR 150 al mes hasta abril de 2027". */
@@ -26,7 +28,7 @@ function Consejo({ meta }: { meta: Meta }) {
     );
   }
   if (meta.vencida) {
-    return <p className="text-amber-600 dark:text-amber-400">La fecha límite ya pasó: faltan {dinero(meta.restante)}.</p>;
+    return <p className="text-aviso">La fecha límite ya pasó: faltan {dinero(meta.restante)}.</p>;
   }
   if (meta.ahorro_mensual && meta.fecha_limite) {
     return (
@@ -41,6 +43,17 @@ function Consejo({ meta }: { meta: Meta }) {
 
 export function TarjetaMeta({ meta, cuenta, onAportar, onEditar, onEliminar, onMarcarCumplida }: TarjetaMetaProps) {
   const conCuenta = meta.cuenta_id !== null;
+  const [marcando, setMarcando] = useState(false);
+
+  async function marcar(cumplida: boolean) {
+    setMarcando(true);
+    try {
+      await onMarcarCumplida(cumplida);
+    } finally {
+      setMarcando(false);
+    }
+  }
+
   return (
     <article className="flex flex-col gap-3 rounded-3xl bg-superficie p-5 shadow-[var(--sombra)] ring-1 ring-linea">
       <header className="flex items-start gap-3">
@@ -75,11 +88,11 @@ export function TarjetaMeta({ meta, cuenta, onAportar, onEditar, onEliminar, onM
           </Boton>
         )}
         {meta.cumplida ? (
-          <Boton variante="fantasma" className="px-3 py-1.5 text-xs" onClick={() => onMarcarCumplida(false)}>
+          <Boton variante="fantasma" className="px-3 py-1.5 text-xs" disabled={marcando} onClick={() => marcar(false)}>
             <RotateCcw size={14} /> Reabrir
           </Boton>
         ) : (
-          <Boton variante="fantasma" className="px-3 py-1.5 text-xs" onClick={() => onMarcarCumplida(true)}>
+          <Boton variante="fantasma" className="px-3 py-1.5 text-xs" disabled={marcando} onClick={() => marcar(true)}>
             <CheckCircle2 size={14} /> Marcar como cumplida
           </Boton>
         )}

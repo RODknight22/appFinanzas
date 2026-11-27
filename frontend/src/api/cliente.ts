@@ -38,26 +38,48 @@ function construirConsulta(parametros?: ParametrosConsulta): string {
   return texto ? `?${texto}` : "";
 }
 
+const MENSAJE_VALIDACION = "Algo no ha ido bien. Revisa los datos e inténtalo de nuevo.";
+const MENSAJE_SERVIDOR = "El servidor no ha podido completar la acción. Inténtalo de nuevo en un momento.";
+
+interface ErrorValidacion {
+  type: string;
+  loc: (string | number)[];
+  msg: string;
+}
+
 /**
  * Extrae el mensaje de error de la respuesta de FastAPI:
- * - errores propios (400/404/409): { detail: "mensaje" }
- * - errores de validación (422): { detail: [{ loc: [...], msg: "..." }, ...] }
+ * - errores propios (400/404/409): { detail: "mensaje" } en español, se muestra tal cual.
+ * - errores de validación (422): { detail: [{ type, loc, msg }, ...] }. Pydantic los escribe
+ *   en inglés ("Field required"), así que se muestra un texto propio y el detalle va a la
+ *   consola. Excepción: los ValueError de nuestros validadores ya traen un texto en español.
+ * - errores del servidor (5xx): texto propio; el detalle técnico, a la consola.
  */
 async function leerMensajeDeError(respuesta: Response): Promise<string> {
+  let cuerpo: { detail?: unknown } | undefined;
   try {
-    const cuerpo = await respuesta.json();
-    if (typeof cuerpo.detail === "string") return cuerpo.detail;
-    if (Array.isArray(cuerpo.detail)) {
-      return cuerpo.detail
-        .map((error: { loc: (string | number)[]; msg: string }) => {
-          const campo = error.loc.filter((parte) => parte !== "body").join(".");
-          return campo ? `${campo}: ${error.msg}` : error.msg;
-        })
-        .join(" · ");
-    }
+    cuerpo = await respuesta.json();
   } catch {
     // La respuesta no era JSON (p. ej. el backend está caído).
   }
+  const detalle = cuerpo?.detail;
+
+  if (respuesta.status >= 500) {
+    console.error(`Error ${respuesta.status} del servidor`, detalle ?? respuesta.statusText);
+    return MENSAJE_SERVIDOR;
+  }
+  if (respuesta.status === 422) {
+    console.error("Datos rechazados por la validación (422)", detalle);
+    if (Array.isArray(detalle) && detalle.length > 0) {
+      const errores = detalle as ErrorValidacion[];
+      // "Value error, El color debe…": el texto tras la coma lo escribimos nosotros.
+      if (errores.every((error) => error.type === "value_error")) {
+        return errores.map((error) => error.msg.replace(/^Value error, /, "")).join(" · ");
+      }
+    }
+    return MENSAJE_VALIDACION;
+  }
+  if (typeof detalle === "string") return detalle;
   return `Error ${respuesta.status}: ${respuesta.statusText || "no se pudo contactar con el servidor"}`;
 }
 

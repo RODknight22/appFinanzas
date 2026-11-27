@@ -427,6 +427,66 @@ export interface ResumenMes {
   gastos: Dinero;
   flujo_neto: Dinero;
   cuentas: SaldoCuenta[];
+  /** Periodo de ingresos y gastos (el mes o el rango pedido), los dos días incluidos. */
+  desde?: FechaISO | null;
+  hasta?: FechaISO | null;
+}
+
+/** Rango libre del dashboard ("últimos 7 días"): los dos días incluidos. */
+export interface RangoFechas {
+  desde: FechaISO;
+  hasta: FechaISO;
+}
+
+export interface TotalesPeriodo extends RangoFechas {
+  ingresos: Dinero;
+  gastos: Dinero;
+  flujo_neto: Dinero;
+}
+
+export interface ComparativaPeriodo {
+  actual: TotalesPeriodo;
+  anterior: TotalesPeriodo;
+  /** En %; null si en el periodo anterior era 0. */
+  variacion_ingresos: number | null;
+  variacion_gastos: number | null;
+  /** Mes en curso: lo que va de mes frente a los mismos días del anterior. */
+  en_curso: boolean;
+}
+
+export interface GastoPorComercio {
+  nombre: string;
+  total: Dinero;
+  movimientos: number;
+  /** Sobre todo lo gastado en el periodo. */
+  porcentaje: number;
+}
+
+export interface GastoPorCuenta {
+  cuenta_id: number;
+  nombre: string;
+  moneda: Moneda;
+  /** En la moneda principal. */
+  total: Dinero;
+  /** En la moneda de la cuenta. */
+  total_cuenta: Dinero;
+  porcentaje: number;
+}
+
+export interface AhorroMes {
+  mes_anio: MesAnio;
+  ingresos: Dinero;
+  gastos: Dinero;
+  ahorro: Dinero;
+  acumulado: Dinero;
+}
+
+export interface AhorroAnual {
+  anio: number;
+  ingresos: Dinero;
+  gastos: Dinero;
+  ahorro: Dinero;
+  meses: AhorroMes[];
 }
 
 /** Dinero total al cierre de un mes, en la moneda principal. */
