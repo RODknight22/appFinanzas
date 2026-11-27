@@ -3,6 +3,7 @@ import type {
   GastoDiario,
   GastoPorCategoria,
   MesAnio,
+  PlanMes,
   PoderAdquisitivo,
   ProgresoPresupuesto,
   PuntoPatrimonio,
@@ -17,6 +18,7 @@ export const dashboardApi = {
     http.get<FlujoMensual[]>("/dashboard/flujo-mensual", { hasta_mes, meses }),
   gastosPorCategoria: (mes_anio: MesAnio) =>
     http.get<GastoPorCategoria[]>("/dashboard/gastos-por-categoria", { mes_anio }),
+  planMes: (mes_anio: MesAnio) => http.get<PlanMes>("/dashboard/plan-mes", { mes_anio }),
   presupuestos: (mes_anio: MesAnio) =>
     http.get<ProgresoPresupuesto[]>("/dashboard/presupuestos", { mes_anio }),
   patrimonio: (hasta_mes: MesAnio, meses = 12) =>

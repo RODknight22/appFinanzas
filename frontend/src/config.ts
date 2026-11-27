@@ -131,7 +131,7 @@ export const PERIODICIDADES: Record<Periodicidad, string> = {
   diaria: "Diaria",
   semanal: "Semanal",
   quincenal: "Quincenal",
-  varias_al_mes: "Varias veces al mes",
+  varias_al_mes: "Varias al mes",
   mensual: "Mensual",
   anual: "Anual",
 };

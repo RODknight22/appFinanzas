@@ -482,6 +482,44 @@ export interface ProgresoPresupuesto {
   gastado_principal: Dinero;
 }
 
+/** Lo gastado en una categoría sin presupuesto ese mes (sin contar los pagos fijos). */
+export interface GastoSinPresupuesto {
+  categoria_id: number;
+  nombre: string;
+  icono: string;
+  color: string;
+  total: Dinero;
+}
+
+/** El plan del mes, todo en la moneda principal (refleja `PlanMes` de schemas.py). */
+export interface PlanMes {
+  mes_anio: MesAnio;
+  moneda: Moneda;
+  estado: "pasado" | "actual" | "futuro";
+  ingresos_reales: Dinero;
+  ingresos_pendientes: Dinero;
+  ingresos_atrasados: Dinero;
+  ingresos_esperados: Dinero;
+  pagos_fijos_pagados: Dinero;
+  pagos_fijos_pendientes: Dinero;
+  pagos_fijos_atrasados: Dinero;
+  pagos_fijos_total: Dinero;
+  /** Parte de los pagos fijos que ya cubre el límite de algún presupuesto. */
+  pagos_fijos_en_presupuestos: Dinero;
+  presupuestos_limite: Dinero;
+  presupuestos_gastado: Dinero;
+  sin_presupuesto_total: Dinero;
+  sin_presupuesto: GastoSinPresupuesto[];
+  gastos_reales: Dinero;
+  /** Ingresos esperados − pagos fijos − límites; negativo = el plan supera lo que entra. */
+  por_asignar: Dinero;
+  /** Ingresos reales − gastos reales del mes. */
+  disponible_real: Dinero;
+  /** Solo en el mes en curso. */
+  porcentaje_mes_transcurrido: number | null;
+  porcentaje_presupuesto_gastado: number;
+}
+
 // --- Configuración ---------------------------------------------------------
 export type ColorAcento =
   | "saffron" | "esmeralda" | "turquesa" | "cian" | "cielo" | "azul" | "indigo"
