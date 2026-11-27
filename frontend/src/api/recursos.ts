@@ -106,7 +106,8 @@ export const presupuestosApi = {
 
 export const suscripcionesApi = {
   ...crearRecurso<Suscripcion, { proximos_dias?: number }>("/suscripciones"),
-  registrarPago: (id: number, datos: { cuenta_id: number; categoria_id: number; fecha_prevista?: FechaISO }) =>
+  /** Sin cuenta o categoría, el servidor usa las guardadas en la suscripción. */
+  registrarPago: (id: number, datos: { cuenta_id?: number; categoria_id?: number; fecha_prevista?: FechaISO }) =>
     http.post<PagoSuscripcion>(`/suscripciones/${id}/registrar-pago`, datos),
 };
 

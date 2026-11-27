@@ -131,6 +131,7 @@ export const PERIODICIDADES: Record<Periodicidad, string> = {
   diaria: "Diaria",
   semanal: "Semanal",
   quincenal: "Quincenal",
+  varias_al_mes: "Varias veces al mes",
   mensual: "Mensual",
   anual: "Anual",
 };
@@ -142,6 +143,7 @@ export const COBROS_POR_MES: Record<Periodicidad, number> = {
   quincenal: 2,
   mensual: 1,
   anual: 1 / 12,
+  varias_al_mes: 1, // por cada día elegido: lo multiplica cobrosPorMes()
 };
 
 export const AVATARES = ["🦊", "🐼", "🐯", "🦁", "🐨", "🐸", "🐙", "🦉", "🌵", "🌻", "🚀", "⚡", "💰", "💎", "🎯", "☕"];
