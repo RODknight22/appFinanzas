@@ -1,5 +1,6 @@
 import type {
   AhorroAnual,
+  BuenMomento,
   ComparativaPeriodo,
   FlujoMensual,
   GastoDiario,
@@ -20,6 +21,7 @@ import { http } from "./cliente";
 const periodo = (mes_anio: MesAnio, rango: RangoFechas | null) => ({ mes_anio, ...rango });
 
 export const dashboardApi = {
+  buenMomento: () => http.get<BuenMomento>("/dashboard/buen-momento"),
   poderAdquisitivo: (mes_anio: MesAnio) => http.get<PoderAdquisitivo>("/dashboard/poder-adquisitivo", { mes_anio }),
   resumen: (mes_anio: MesAnio, rango: RangoFechas | null = null) =>
     http.get<ResumenMes>("/dashboard/resumen", periodo(mes_anio, rango)),

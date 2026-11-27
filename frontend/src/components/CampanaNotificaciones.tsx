@@ -1,4 +1,5 @@
 import {
+  ArrowRightLeft,
   Bell,
   CalendarClock,
   CreditCard,
@@ -27,6 +28,7 @@ const ICONOS: Record<TipoNotificacion, LucideIcon> = {
   meta: Target,
   deseo: Gift,
   recordatorio: PencilLine,
+  divisa: ArrowRightLeft,
 };
 
 /**
