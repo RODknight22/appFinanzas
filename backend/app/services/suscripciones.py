@@ -111,6 +111,7 @@ def registrar_pago(
         notas=f"Pago de suscripción: {suscripcion.nombre}",
         cuenta_id=cuenta_id,
         categoria_id=categoria_id,
+        suscripcion_id=suscripcion.id,
     )
     # Con la tasa del día del cobro: p. ej. Netflix en USD pagado con una cuenta en MXN.
     completar_montos(session, transaccion, cuenta)

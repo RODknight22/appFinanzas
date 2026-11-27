@@ -290,6 +290,10 @@ class Transaccion(TransaccionBase, table=True):
     )
     # Solo en la comisión de una transferencia: se edita y borra junto con ella.
     transferencia_id: int | None = Field(default=None, foreign_key="transferencia.id", index=True)
+    # Solo en el gasto que anota el pago de un fijo (suscripción): así el plan del mes no lo
+    # cuenta dos veces. Sin clave foránea a propósito: borrar la suscripción no borra el
+    # historial, y este número solo dice "vino de un pago fijo".
+    suscripcion_id: int | None = Field(default=None, index=True)
 
 
 # ---------------------------------------------------------------------------

@@ -652,6 +652,54 @@ class ProgresoPresupuesto(SQLModel):
     gastado_principal: Decimal
 
 
+class GastoSinPresupuesto(SQLModel):
+    """Lo gastado en una categoría que no tiene presupuesto ese mes (sin los pagos fijos)."""
+
+    categoria_id: int
+    nombre: str
+    icono: str
+    color: str
+    total: Decimal
+
+
+class PlanMes(SQLModel):
+    """El plan del mes en la moneda principal: qué entra, qué está comprometido y qué queda.
+
+    - "Pendiente": fechas de los fijos que aún no llegan (de hoy al fin de mes, o todo el
+      mes si es futuro). "Atrasado": fechas de este mes ya pasadas sin registrar.
+    - Lo real sale de las transacciones (`monto_principal`, con la tasa de su día); lo
+      previsto se convierte con la tasa más reciente.
+    """
+
+    mes_anio: str
+    moneda: Moneda
+    estado: Literal["pasado", "actual", "futuro"]
+    # Ingresos: reales (todo lo cobrado) + lo que falta de los ingresos fijos.
+    ingresos_reales: Decimal
+    ingresos_pendientes: Decimal
+    ingresos_atrasados: Decimal
+    ingresos_esperados: Decimal
+    # Pagos fijos (suscripciones): pagados + pendientes + atrasados = total.
+    pagos_fijos_pagados: Decimal
+    pagos_fijos_pendientes: Decimal
+    pagos_fijos_atrasados: Decimal
+    pagos_fijos_total: Decimal
+    # Parte de los pagos fijos que cae en categorías con presupuesto: ya la cubre su límite.
+    pagos_fijos_en_presupuestos: Decimal
+    presupuestos_limite: Decimal
+    presupuestos_gastado: Decimal
+    sin_presupuesto_total: Decimal
+    sin_presupuesto: list[GastoSinPresupuesto]
+    gastos_reales: Decimal
+    # Ingresos esperados − pagos fijos fuera de presupuesto − límites; negativo = el plan no cabe.
+    por_asignar: Decimal
+    # Ingresos reales − gastos reales del mes.
+    disponible_real: Decimal
+    # Solo en el mes en curso: qué parte del mes ha pasado (para comparar el ritmo de gasto).
+    porcentaje_mes_transcurrido: float | None
+    porcentaje_presupuesto_gastado: float
+
+
 # --- Configuración y divisas -----------------------------------------------
 class WidgetDisposicion(SQLModel):
     """Un widget del panel: cuál es, de qué tamaño y si se muestra."""
