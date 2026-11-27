@@ -10,6 +10,7 @@ import { Boton } from "../components/ui/Boton";
 import { EncabezadoPagina } from "../components/ui/EncabezadoPagina";
 import { ErrorFormulario } from "../components/ui/Campo";
 import { Contenido, Vacio } from "../components/ui/Estados";
+import { TarjetaPlanMes } from "../components/presupuestos/TarjetaPlanMes";
 import { Modal } from "../components/ui/Modal";
 import { SelectorMes } from "../components/ui/SelectorMes";
 import { Tarjeta } from "../components/ui/Tarjeta";
@@ -35,7 +36,13 @@ export function PresupuestosPage() {
   const [mes, setMes] = useState(mesActual());
   const [modal, setModal] = useState<EstadoModal>(null);
   const estado = useDatos(
-    () => Promise.all([dashboardApi.presupuestos(mes), categoriasApi.listar({ tipo: "gasto" }), presupuestosApi.copiables(mes)]),
+    () =>
+      Promise.all([
+        dashboardApi.presupuestos(mes),
+        categoriasApi.listar({ tipo: "gasto" }),
+        presupuestosApi.copiables(mes),
+        dashboardApi.planMes(mes),
+      ]),
     [mes],
     "presupuestos",
   );
@@ -67,7 +74,7 @@ export function PresupuestosPage() {
       />
 
       <Contenido {...estado} onReintentar={estado.recargar}>
-        {([progresos, categoriasGasto, copiables]) => {
+        {([progresos, categoriasGasto, copiables, plan]) => {
           // En la principal: los presupuestos pueden estar en monedas distintas.
           const totalLimite = progresos.reduce((suma, p) => suma + Number(p.limite_principal), 0);
           const totalGastado = progresos.reduce((suma, p) => suma + Number(p.gastado_principal), 0);
@@ -75,6 +82,8 @@ export function PresupuestosPage() {
           return (
             // Al cambiar de mes, mientras llegan los datos nuevos se ven los del mes anterior: atenuados.
             <div aria-busy={estado.cargando} className={`transition-opacity ${estado.cargando ? "pointer-events-none opacity-50" : ""}`}>
+              <TarjetaPlanMes plan={plan} />
+
               {progresos.length > 0 && (
                 <p className="mb-4 text-sm text-tenue">
                   Total: <strong className="text-texto tabular-nums">{formatearDinero(totalGastado)}</strong> gastado de{" "}
@@ -108,7 +117,7 @@ export function PresupuestosPage() {
                     {progresos.map((progreso) => (
                       <li key={progreso.presupuesto_id} className="flex items-start gap-3">
                         <div className="min-w-0 flex-1">
-                          <BarraPresupuesto progreso={progreso} />
+                          <BarraPresupuesto progreso={progreso} porcentajeMes={plan.porcentaje_mes_transcurrido} />
                         </div>
                         <AccionesFila
                           nombre={`el presupuesto de ${progreso.nombre}`}
