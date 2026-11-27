@@ -250,7 +250,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
                   </span>
                 )}
                 {dudosas > 0 && (
-                  <button type="button" onClick={aceptarSugerencias} className="font-medium text-acento-600 hover:underline">
+                  <button type="button" onClick={aceptarSugerencias} className="font-medium text-acento-600 hover:underline dark:text-acento-400">
                     Dar por buenas las sugerencias
                   </button>
                 )}

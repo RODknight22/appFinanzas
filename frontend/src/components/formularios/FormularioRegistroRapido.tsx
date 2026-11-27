@@ -83,7 +83,7 @@ export function FormularioRegistroRapido({ categorias, cuentas, cuentaInicial, o
     return (
       <p className="text-sm text-suave">
         Primero necesitas una cuenta.{" "}
-        <Link to="/cuentas" className="font-medium text-acento-600 hover:underline">Crear cuenta</Link>
+        <Link to="/cuentas" className="font-medium text-acento-600 hover:underline dark:text-acento-400">Crear cuenta</Link>
       </p>
     );
   }
@@ -234,7 +234,7 @@ export function FormularioRegistroRapido({ categorias, cuentas, cuentaInicial, o
             {ultima.tipo === "gasto" ? "Gasto" : "Ingreso"} de <strong className="tabular-nums">{formatearDinero(ultima.monto, ultima.moneda)}</strong>{" "}
             en {nombreCategoria(ultima.categoria_id)}
           </span>
-          <button type="button" onClick={() => deshacer(ultima)} disabled={enviando} className="shrink-0 font-semibold text-acento-600 hover:underline disabled:opacity-50">
+          <button type="button" onClick={() => deshacer(ultima)} disabled={enviando} className="shrink-0 font-semibold text-acento-600 hover:underline disabled:opacity-50 dark:text-acento-400">
             Deshacer
           </button>
         </div>

@@ -144,7 +144,10 @@ export function CuentasPage() {
             <div className="space-y-6">
               <Tarjeta>
                 {grupos.length === 0 ? (
-                  <Vacio mensaje="Crea tu primera cuenta para empezar a registrar movimientos" />
+                  <Vacio
+                    mensaje="Crea tu primera cuenta para empezar a registrar movimientos"
+                    accion={<Boton variante="secundario" onClick={() => setModal("nueva")}>Crear la primera cuenta</Boton>}
+                  />
                 ) : (
                   <ul className="divide-y divide-linea">
                     {grupos.map(({ cuenta, subcuentas }) =>

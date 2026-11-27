@@ -56,7 +56,10 @@ export function CategoriasPage() {
         <Contenido {...estado} onReintentar={estado.recargar}>
           {(categorias) =>
             categorias.length === 0 ? (
-              <Vacio mensaje={`No hay categorías de ${tipo}`} />
+              <Vacio
+                mensaje={`No hay categorías de ${tipo}`}
+                accion={<Boton variante="secundario" onClick={() => setModal("nueva")}>Crear la primera categoría</Boton>}
+              />
             ) : (
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {categorias.map((categoria) => (
