@@ -89,6 +89,24 @@ export interface Transaccion {
   cuenta_id: number;
   /** Solo en la comisión de una transferencia: se gestiona desde la transferencia. */
   readonly transferencia_id: number | null;
+  /** El pago fijo (o el ingreso fijo) del que vino: no cuenta dos veces en el Plan del mes. */
+  readonly suscripcion_id?: number | null;
+  readonly ingreso_recurrente_id?: number | null;
+}
+
+/**
+ * Un fijo que podría ser un movimiento (mismo tipo, fecha e importe cercanos).
+ * `tipo` dice cuál: ingreso → ingreso recurrente; gasto → pago fijo (suscripción).
+ */
+export interface FijoCandidato {
+  id: number;
+  tipo: TipoMovimiento;
+  nombre: string;
+  monto: Dinero;
+  moneda: Moneda;
+  /** La fecha que se esperaba: se devuelve al reconocerlo para no hacerlo dos veces. */
+  fecha_prevista: FechaISO;
+  cuenta_id: number | null;
 }
 
 /** Meta de ahorro con su progreso calculado por el backend (en la moneda de la meta). */
@@ -166,6 +184,8 @@ export interface FilaImportacion {
   transaccion_a_unir_id: number | null;
   /** Transferencia hecha desde la otra cuenta con este lado estimado: esta fila trae el importe real. */
   transferencia_a_completar_id: number | null;
+  /** Parece el cobro o el pago de este fijo (cada fijo se sugiere en una sola fila). */
+  fijo: FijoCandidato | null;
 }
 
 export interface VistaPreviaImportacion {
@@ -187,7 +207,11 @@ export type MovimientoImportado = Pick<
   | "cuenta_transferencia_id"
   | "transaccion_a_unir_id"
   | "transferencia_a_completar_id"
->;
+> & {
+  /** El fijo que este movimiento cobra o paga: su fecha avanza al importar. */
+  fijo_id: number | null;
+  fijo_fecha_prevista: FechaISO | null;
+};
 
 export interface ResultadoImportacion {
   /** En total, transferencias incluidas. */
@@ -197,6 +221,8 @@ export interface ResultadoImportacion {
   unidas: number;
   /** Transferencias a las que se añadió el importe real de este lado. */
   completadas: number;
+  /** Cobros o pagos fijos que llegaron en el extracto: ya no se esperan. */
+  reconocidos: number;
 }
 
 /** Al importar: si el concepto contiene `texto`, la categoría es esta (manda sobre el historial). */
@@ -323,7 +349,7 @@ export interface Suscripcion extends CalendarioFijo {
 /** Datos para crear una entidad: sin `id` (lo genera la BD) ni campos que gestiona el backend. */
 export type DatosNuevos<T extends { id: number }> = Omit<
   T,
-  "id" | "fecha_ultimo_rendimiento" | "monto_cuenta" | "monto_principal" | "transferencia_id"
+  "id" | "fecha_ultimo_rendimiento" | "monto_cuenta" | "monto_principal" | "transferencia_id" | "suscripcion_id" | "ingreso_recurrente_id"
 >;
 
 export interface PagoSuscripcion {

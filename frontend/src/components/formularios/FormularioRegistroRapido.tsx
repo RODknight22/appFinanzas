@@ -15,6 +15,7 @@ import { SelectMoneda } from "../ui/SelectMoneda";
 import { SelectorFecha } from "../ui/SelectorFecha";
 import { CategoriaRapida } from "./CategoriaRapida";
 import { TIPOS_MOVIMIENTO, VistaPreviaConversion } from "./FormularioTransaccion";
+import { preguntarSiEsFijo } from "./reconocerFijo";
 import { CLASE_CASILLA, RejillaCategorias } from "./RejillaCategorias";
 
 // Comodidad de este navegador: la cuenta con la que se anotó la última vez.
@@ -124,6 +125,8 @@ export function FormularioRegistroRapido({ categorias, cuentas, cuentaInicial, o
     setNotas("");
     entradaMonto.current?.focus();
     onGuardado();
+    // Si parece la nómina o el alquiler, se pregunta; al responder, el foco vuelve al importe.
+    void preguntarSiEsFijo(creada);
   }
 
   async function deshacer(transaccion: Transaccion) {

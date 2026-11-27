@@ -111,7 +111,7 @@ function DialogoConfirmar({ confirmacion }: { confirmacion: Confirmacion }) {
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <Boton data-cancelar variante="secundario" onClick={() => confirmacion.responder(false)}>
-            Cancelar
+            {confirmacion.textoCancelar}
           </Boton>
           <Boton data-aceptar variante={confirmacion.peligro ? "peligro" : "primario"} onClick={() => confirmacion.responder(true)}>
             {confirmacion.textoAceptar}

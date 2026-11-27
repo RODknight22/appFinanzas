@@ -1,10 +1,11 @@
-import { ArrowRightLeft, Check, CheckCircle2, FileUp } from "lucide-react";
+import { ArrowRightLeft, CalendarCheck, Check, CheckCircle2, FileUp } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 
 import { importacionesApi } from "../../api/recursos";
 import { useEnvio } from "../../hooks/useEnvio";
 import type { Categoria, Cuenta, FilaImportacion, ResultadoImportacion, VistaPreviaImportacion } from "../../types";
 import { formatearDinero, formatearFecha } from "../../utils/formato";
+import { textoFijo } from "../formularios/reconocerFijo";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, CLASE_ENTRADA_BASE, Campo, ErrorFormulario } from "../ui/Campo";
 import { ControlSegmentado } from "../ui/ControlSegmentado";
@@ -23,8 +24,15 @@ interface ImportarExtractoProps {
 /**
  * Una fila de la vista previa más la decisión del usuario: ¿se importa? `unirCon` guarda
  * con qué cuenta se propuso unirla, para recuperar la unión si se vuelve a elegir esa cuenta.
+ * `reconocer`: si parece un fijo, ¿se da por cobrado o pagado al importarla?
  */
-type Fila = FilaImportacion & { incluir: boolean; unirCon: number | null };
+type Fila = FilaImportacion & { incluir: boolean; unirCon: number | null; reconocer: boolean };
+
+/** Lo que va entre tus cuentas no es un cobro ni un pago: el fijo solo vale como ingreso o gasto. */
+const fijoAReconocer = (fila: Fila) =>
+  fila.fijo !== null && fila.reconocer && fila.cuenta_transferencia_id === null && fila.transferencia_a_completar_id === null
+    ? fila.fijo
+    : null;
 
 const porRevisar = (fila: Fila) => fila.incluir && fila.confianza !== "alta";
 
@@ -77,6 +85,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
         ...fila,
         incluir: !fila.duplicado,
         unirCon: fila.transaccion_a_unir_id ? fila.cuenta_transferencia_id : null,
+        reconocer: fila.fijo !== null,
       })));
       const dudosas = leida.filas.filter((fila) => !fila.duplicado && fila.confianza !== "alta");
       setRevisables(new Set(dudosas.map((fila) => fila.fila)));
@@ -122,6 +131,9 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   const alternar = (fila: Fila) =>
     setFilas((actuales) => actuales.map((f) => (f === fila ? { ...f, incluir: !f.incluir } : f)));
 
+  const alternarFijo = (fila: Fila) =>
+    setFilas((actuales) => actuales.map((f) => (f === fila ? { ...f, reconocer: !f.reconocer } : f)));
+
   /** Marca o desmarca todas las filas del archivo, también las que no se ven y las ya registradas. */
   const marcarTodas = (incluir: boolean) => setFilas((actuales) => actuales.map((f) => ({ ...f, incluir })));
 
@@ -132,6 +144,8 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
       const hecho = await importacionesApi.importar(
         cuentaId,
         elegidas.map((f) => ({
+          fijo_id: fijoAReconocer(f)?.id ?? null,
+          fijo_fecha_prevista: fijoAReconocer(f)?.fecha_prevista ?? null,
           fecha: f.fecha,
           monto: f.monto,
           tipo: f.tipo,
@@ -149,7 +163,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   }
 
   if (resultado !== null) {
-    const { creadas, transferencias, unidas, completadas } = resultado;
+    const { creadas, transferencias, unidas, completadas, reconocidos } = resultado;
     return (
       <div className="space-y-4 py-6 text-center">
         <CheckCircle2 size={40} className="mx-auto text-acento-500" />
@@ -167,6 +181,11 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
             {completadas} transferencia{completadas === 1 ? "" : "s"} completada{completadas === 1 ? "" : "s"} con lo que salió o llegó de verdad
           </p>
         )}
+        {reconocidos > 0 && (
+          <p className="text-sm text-tenue">
+            {reconocidos} cobro{reconocidos === 1 ? "" : "s"} o pago{reconocidos === 1 ? "" : "s"} fijo{reconocidos === 1 ? "" : "s"} reconocido{reconocidos === 1 ? "" : "s"}: el Plan del mes ya no {reconocidos === 1 ? "lo" : "los"} espera
+          </p>
+        )}
         <Boton onClick={onCerrar}>Cerrar</Boton>
       </div>
     );
@@ -181,6 +200,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   const todasMarcadas = filas.length > 0 && incluidas.length === filas.length;
   const algunaMarcada = incluidas.length > 0 && !todasMarcadas;
   const duplicadas = filas.filter((f) => f.duplicado).length;
+  const fijosMarcados = filas.filter((f) => f.incluir && fijoAReconocer(f) !== null).length;
   const dudosas = filas.filter(porRevisar).length;
   const revisadas = revisables.size - dudosas;
   const visibles = verTodas ? filas : filas.filter((f) => revisables.has(f.fila));
@@ -234,13 +254,27 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
 
       {vista && cuenta && (
         <>
-          {(duplicadas > 0 || vista.filas_ignoradas > 0) && (
+          {(duplicadas > 0 || vista.filas_ignoradas > 0 || fijosMarcados > 0) && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               {duplicadas > 0 && (
                 // Los ya registrados en ESTA cuenta salen sin marcar y la vista "Por revisar" no los
                 // enseña: sin este aviso, al cambiar de cuenta parecía que la selección fallaba.
                 <span className="text-tenue">
                   {duplicadas} ya registrado{duplicadas === 1 ? "" : "s"} en {cuenta.nombre}: sin marcar
+                  {!verTodas && (
+                    <>
+                      {" · "}
+                      <button type="button" onClick={() => setVerTodas(true)} className="font-medium text-acento-600 hover:underline dark:text-acento-400">
+                        Ver
+                      </button>
+                    </>
+                  )}
+                </span>
+              )}
+              {fijosMarcados > 0 && (
+                // Las filas con fijo no suelen estar "por revisar": sin esto, no se vería la sugerencia.
+                <span className="text-tenue">
+                  {fijosMarcados} parece{fijosMarcados === 1 ? "" : "n"} un cobro o pago fijo: el Plan del mes no {fijosMarcados === 1 ? "lo" : "los"} contará dos veces
                   {!verTodas && (
                     <>
                       {" · "}
@@ -354,6 +388,7 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
                   otrasCuentas={cuentas.filter((c) => c.id !== cuenta.id)}
                   revisada={revisables.has(fila.fila) && !porRevisar(fila)}
                   onAlternar={() => alternar(fila)}
+                  onAlternarFijo={() => alternarFijo(fila)}
                   onElegir={(eleccion) => elegir(fila, eleccion)}
                 />
               ))}
@@ -385,10 +420,12 @@ interface FilaVistaPreviaProps {
   /** Era dudosa y ya está resuelta: se marca con ✓ en vez de quitarla de la lista. */
   revisada: boolean;
   onAlternar: () => void;
+  /** Marca o desmarca "es este fijo". */
+  onAlternarFijo: () => void;
   onElegir: (eleccion: Eleccion) => void;
 }
 
-function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onAlternar, onElegir }: FilaVistaPreviaProps) {
+function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onAlternar, onAlternarFijo, onElegir }: FilaVistaPreviaProps) {
   const esGasto = fila.tipo === "gasto";
   const dudosa = porRevisar(fila);
   const esTransferencia = fila.cuenta_transferencia_id !== null;
@@ -422,6 +459,16 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
           {completa && ` · completa la transferencia con ${otraCuenta}`}
           {unida && ` · se une con el movimiento igual de ${otraCuenta}`}
         </p>
+        {fila.fijo && !esTransferencia && !completa && (
+          <label
+            className="mt-1 flex w-fit items-center gap-1.5 text-xs text-suave"
+            title="Al importarlo, su fecha pasa a la siguiente y el Plan del mes no lo cuenta dos veces"
+          >
+            <input type="checkbox" className="accent-acento-600" checked={fila.reconocer} onChange={onAlternarFijo} disabled={!fila.incluir} />
+            <CalendarCheck size={14} className="shrink-0 text-acento-600 dark:text-acento-400" aria-hidden="true" />
+            <span className="truncate">Parece {textoFijo(fila.fijo)} del {formatearFecha(fila.fijo.fecha_prevista)}</span>
+          </label>
+        )}
       </div>
       {completa ? (
         // Ya existe como transferencia: solo se le pone el importe real, no hay nada que elegir.
