@@ -5,6 +5,7 @@ from sqlmodel import Session, col, select
 from app.datos_iniciales import CATEGORIAS_POR_DEFECTO
 from app.models import Categoria, IngresoRecurrente, Presupuesto, ReglaCategoria, TipoMovimiento, Transaccion
 from app.schemas import CategoriaCreate, CategoriaUpdate
+from app.services import suscripciones
 from app.services.comun import cambios_parciales, existe, guardar, obtener_o_404
 from app.services.errores import ConflictoError
 
@@ -65,7 +66,9 @@ def eliminar(session: Session, categoria_id: int) -> None:
     # Sus reglas de importación ya no tendrían a dónde llevar nada.
     for regla in session.exec(select(ReglaCategoria).where(ReglaCategoria.categoria_id == categoria_id)):
         session.delete(regla)
-    session.flush()  # las reglas primero: si no, la BD vería reglas apuntando a una categoría borrada
+    # Una suscripción solo la tenía como categoría por defecto: no bloquea el borrado.
+    suscripciones.olvidar_pago_por_defecto(session, categoria_id=categoria_id)
+    session.flush()  # reglas y suscripciones primero: si no, apuntarían a una categoría borrada
     session.delete(categoria)
     session.commit()
 

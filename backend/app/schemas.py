@@ -44,6 +44,7 @@ from app.models import (
     TransaccionBase,
     TransferenciaBase,
     validar_color,
+    validar_dias_de_cobro,
     validar_enlace,
     validar_mes_anio,
 )
@@ -384,21 +385,39 @@ class SuscripcionRead(SuscripcionBase):
     id: int
 
 
-class SuscripcionUpdate(SQLModel):
+class CalendarioFijoUpdate(SQLModel):
+    """Los ajustes de `CalendarioFijo` en un PATCH: todos opcionales (y anulables)."""
+
+    periodicidad: Periodicidad | None = None
+    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)
+    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
+    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
+    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
+    dias_de_cobro: list[int] | None = None
+    adelantar_a_habil: bool | None = None
+
+    @field_validator("dias_de_cobro")
+    @classmethod
+    def normalizar_dias_de_cobro(cls, dias: list[int] | None) -> list[int] | None:
+        return validar_dias_de_cobro(dias)
+
+
+class SuscripcionUpdate(CalendarioFijoUpdate):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
     monto: Decimal | None = Field(
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
-    periodicidad: Periodicidad | None = None
     fecha_proximo_pago: date | None = None
     moneda: Moneda | None = None
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
 
 
 class PagoSuscripcionCreate(SQLModel):
-    """Datos para registrar un cobro: de qué cuenta sale y en qué categoría se anota."""
+    """De qué cuenta sale y en qué categoría se anota; si no se envían, las de la suscripción."""
 
-    cuenta_id: int
-    categoria_id: int
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
     # La fecha del pago que se ve en pantalla: si ya no es la próxima, ese pago ya se anotó
     # (doble clic, otra pestaña). Opcional para no romper a quien no la mande.
     fecha_prevista: date | None = None
@@ -420,21 +439,15 @@ class IngresoRecurrenteRead(IngresoRecurrenteBase):
     id: int
 
 
-class IngresoRecurrenteUpdate(SQLModel):
+class IngresoRecurrenteUpdate(CalendarioFijoUpdate):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
     monto: Decimal | None = Field(
         default=None, gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES
     )
     moneda: Moneda | None = None
-    periodicidad: Periodicidad | None = None
     fecha_proximo_cobro: date | None = None
     cuenta_id: int | None = None
     categoria_id: int | None = None
-    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)
-    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
-    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
-    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
-    adelantar_a_habil: bool | None = None
 
 
 # --- Deudas ----------------------------------------------------------------

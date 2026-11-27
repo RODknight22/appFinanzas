@@ -11,7 +11,7 @@ from decimal import Decimal
 from enum import Enum
 
 from pydantic import NaiveDatetime, field_validator
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import JSON, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 # Usamos Decimal (y no float) para el dinero: 0.1 + 0.2 con float da
@@ -19,6 +19,7 @@ from sqlmodel import Field, SQLModel
 MAX_DIGITOS = 12
 DECIMALES = 2
 MAX_INTERVALO = 365  # "cada 365 días" es lo más largo que tiene sentido
+MAX_DIAS_DE_COBRO = 10  # "varias veces al mes": más de 10 días ya es casi diario
 
 
 # ---------------------------------------------------------------------------
@@ -43,6 +44,9 @@ class Periodicidad(str, Enum):
     SEMANAL = "semanal"
     QUINCENAL = "quincenal"  # días 15 y último del mes, como las nóminas en México
     MENSUAL = "mensual"
+    # Los días de `dias_de_cobro` (p. ej. 10, 20 y 30), cada mes. En SQLite el enum se
+    # guarda como texto sin restricción CHECK: un valor nuevo no rompe las BD existentes.
+    VARIAS_AL_MES = "varias_al_mes"
     ANUAL = "anual"
 
 
@@ -407,13 +411,59 @@ class Presupuesto(PresupuestoBase, table=True):
 # ---------------------------------------------------------------------------
 # Suscripciones
 # ---------------------------------------------------------------------------
-class SuscripcionBase(SQLModel):
+class CalendarioFijo(SQLModel):
+    """Ajustes del calendario de un fijo (ingreso o pago); null = el comportamiento clásico.
+
+    Los comparten IngresoRecurrente y Suscripcion; services/periodicidad.py los traduce
+    a un `Calendario` con `calendario_de()`.
+    """
+
+    periodicidad: Periodicidad
+    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)  # cada N periodos
+    # Días de cobro de la quincenal (31 = el último del mes); null = 15 y último.
+    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
+    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
+    # Día fijo de la mensual (31 = el último); null = el de la fecha del próximo cobro.
+    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
+    # Días de "varias al mes" (31 = el último), ordenados y sin repetir. En SQLite es
+    # una columna JSON (texto "[10, 20, 30]"): la API la recibe y devuelve como lista.
+    dias_de_cobro: list[int] | None = Field(default=None, sa_type=JSON)
+    adelantar_a_habil: bool | None = None  # sábado o domingo → el viernes anterior
+
+    @field_validator("dias_de_cobro")
+    @classmethod
+    def normalizar_dias_de_cobro(cls, dias: list[int] | None) -> list[int] | None:
+        return validar_dias_de_cobro(dias)
+
+
+def validar_dias_de_cobro(dias: list[int] | None) -> list[int] | None:
+    """Ordena y quita repetidos; cada día entre 1 y 31, y entre 1 y `MAX_DIAS_DE_COBRO` días."""
+    if dias is None:
+        return None
+    unicos = sorted(set(dias))
+    if not unicos:
+        raise ValueError("Elige al menos un día de cobro")
+    if len(unicos) > MAX_DIAS_DE_COBRO:
+        raise ValueError(f"Como mucho {MAX_DIAS_DE_COBRO} días de cobro al mes")
+    if unicos[0] < 1 or unicos[-1] > 31:
+        raise ValueError("Los días de cobro van del 1 al 31 (31 = el último del mes)")
+    return unicos
+
+
+class SuscripcionBase(CalendarioFijo):
+    """Un pago fijo (Netflix, alquiler, gimnasio) con el mismo calendario que los ingresos.
+
+    La cuenta y la categoría son opcionales: si se guardan, registrar el pago es un clic.
+    """
+
     nombre: str = Field(min_length=1, max_length=100)
     monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
-    periodicidad: Periodicidad
     fecha_proximo_pago: date
     # Si no se indica al crearla, se usa la moneda principal.
     moneda: Moneda | None = None
+    # De dónde sale y cómo se anota, por defecto (null = se elige al pagar).
+    cuenta_id: int | None = Field(default=None, foreign_key="cuenta.id")
+    categoria_id: int | None = Field(default=None, foreign_key="categoria.id")
 
 
 class Suscripcion(SuscripcionBase, table=True):
@@ -423,7 +473,7 @@ class Suscripcion(SuscripcionBase, table=True):
 # ---------------------------------------------------------------------------
 # Ingresos recurrentes
 # ---------------------------------------------------------------------------
-class IngresoRecurrenteBase(SQLModel):
+class IngresoRecurrenteBase(CalendarioFijo):
     """Un ingreso que llega cada cierto tiempo (nómina, renta, envío desde México).
 
     Guarda la cuenta y la categoría para que registrar el cobro sea un clic.
@@ -434,18 +484,9 @@ class IngresoRecurrenteBase(SQLModel):
     monto: Decimal = Field(gt=0, max_digits=MAX_DIGITOS, decimal_places=DECIMALES)
     # Si no se indica al crearlo, la moneda de su cuenta.
     moneda: Moneda | None = None
-    periodicidad: Periodicidad
     fecha_proximo_cobro: date = Field(index=True)
     cuenta_id: int = Field(foreign_key="cuenta.id", index=True)
     categoria_id: int = Field(foreign_key="categoria.id", index=True)
-    # Ajustes del calendario (services/periodicidad.py); null = el comportamiento clásico.
-    intervalo: int | None = Field(default=None, ge=1, le=MAX_INTERVALO)  # cada N periodos
-    # Días de cobro de la quincenal (31 = el último del mes); null = 15 y último.
-    dia_quincena_1: int | None = Field(default=None, ge=1, le=31)
-    dia_quincena_2: int | None = Field(default=None, ge=1, le=31)
-    # Día fijo de la mensual (31 = el último); null = el de la fecha del próximo cobro.
-    dia_del_mes: int | None = Field(default=None, ge=1, le=31)
-    adelantar_a_habil: bool | None = None  # sábado o domingo → el viernes anterior
 
 
 class IngresoRecurrente(IngresoRecurrenteBase, table=True):
