@@ -148,6 +148,29 @@ class TransaccionUpdate(SQLModel):
     cuenta_id: int | None = None
 
 
+# --- Edición en masa de transacciones -----------------------------------------
+# Una página de la lista son 50; con este tope cabe "todo lo visible" de sobra y
+# una petición nunca bloquea la BD demasiado tiempo.
+MAX_IDS_LOTE = 500
+
+
+class TransaccionesLote(SQLModel):
+    """Qué transacciones: cuerpo del borrado en lote."""
+
+    ids: list[int] = Field(min_length=1, max_length=MAX_IDS_LOTE)
+
+
+class TransaccionesLoteUpdate(TransaccionesLote):
+    """Qué transacciones y qué cambiarles. Lo que no se envía se queda como está."""
+
+    cuenta_id: int | None = None
+    categoria_id: int | None = None
+
+
+class ResultadoLote(SQLModel):
+    afectadas: int
+
+
 # --- Importar extractos bancarios -------------------------------------------
 class FilaImportacion(SQLModel):
     """Un movimiento del archivo tal como se importaría (vista previa, aún sin guardar)."""

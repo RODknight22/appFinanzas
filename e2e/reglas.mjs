@@ -21,7 +21,7 @@ await prueba("reglas", async ({ pagina, api }) => {
   await pagina.getByRole("button", { name: "Importar", exact: true }).click();
   const extracto = Buffer.from("Fecha;Concepto;Importe\n02/10/2026;COMPRA MERCADONA VALENCIA;-45,20\n");
   await pagina.locator('input[type="file"]').setInputFiles({ name: "banco.csv", mimeType: "text/csv", buffer: extracto });
-  await pagina.getByText("por importar").waitFor();
+  await pagina.getByText(/\d+ de \d+ seleccionados?$/).waitFor();
   await pagina.getByRole("button", { name: /^Todos/ }).click();
   const elegida = await pagina.locator("li", { hasText: "MERCADONA" }).getByLabel("Categoría o transferencia")
     .evaluate((s) => s.options[s.selectedIndex].text);

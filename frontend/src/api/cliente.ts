@@ -118,5 +118,6 @@ export const http = {
     peticion<T>("POST", `${ruta}${construirConsulta(parametros)}`, cuerpo),
   patch: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PATCH", ruta, cuerpo),
   put: <T>(ruta: string, cuerpo: unknown) => peticion<T>("PUT", ruta, cuerpo),
-  delete: <T = void>(ruta: string) => peticion<T>("DELETE", ruta),
+  // Con cuerpo solo para borrar en lote (la lista de ids no cabe bien en la URL).
+  delete: <T = void>(ruta: string, cuerpo?: unknown) => peticion<T>("DELETE", ruta, cuerpo),
 };

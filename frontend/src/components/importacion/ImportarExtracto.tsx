@@ -122,6 +122,9 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
   const alternar = (fila: Fila) =>
     setFilas((actuales) => actuales.map((f) => (f === fila ? { ...f, incluir: !f.incluir } : f)));
 
+  /** Marca o desmarca todas las filas del archivo, también las que no se ven y las ya registradas. */
+  const marcarTodas = (incluir: boolean) => setFilas((actuales) => actuales.map((f) => ({ ...f, incluir })));
+
   async function importar() {
     if (!cuentaId) return;
     const elegidas = filas.filter((f) => f.incluir);
@@ -175,6 +178,8 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
 
   const cuenta = cuentas.find((c) => c.id === cuentaId);
   const incluidas = filas.filter((f) => f.incluir);
+  const todasMarcadas = filas.length > 0 && incluidas.length === filas.length;
+  const algunaMarcada = incluidas.length > 0 && !todasMarcadas;
   const duplicadas = filas.filter((f) => f.duplicado).length;
   const dudosas = filas.filter(porRevisar).length;
   const revisadas = revisables.size - dudosas;
@@ -229,15 +234,30 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
 
       {vista && cuenta && (
         <>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            <span><strong className="tabular-nums">{incluidas.length}</strong> por importar</span>
-            {duplicadas > 0 && <span className="text-tenue">{duplicadas} ya registrado{duplicadas === 1 ? "" : "s"}</span>}
-            {vista.filas_ignoradas > 0 && (
-              <span className="text-tenue" title="Totales, notas o líneas sin fecha o importe">
-                {vista.filas_ignoradas} línea{vista.filas_ignoradas === 1 ? "" : "s"} ignorada{vista.filas_ignoradas === 1 ? "" : "s"}
-              </span>
-            )}
-          </div>
+          {(duplicadas > 0 || vista.filas_ignoradas > 0) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              {duplicadas > 0 && (
+                // Los ya registrados en ESTA cuenta salen sin marcar y la vista "Por revisar" no los
+                // enseña: sin este aviso, al cambiar de cuenta parecía que la selección fallaba.
+                <span className="text-tenue">
+                  {duplicadas} ya registrado{duplicadas === 1 ? "" : "s"} en {cuenta.nombre}: sin marcar
+                  {!verTodas && (
+                    <>
+                      {" · "}
+                      <button type="button" onClick={() => setVerTodas(true)} className="font-medium text-acento-600 hover:underline dark:text-acento-400">
+                        Ver
+                      </button>
+                    </>
+                  )}
+                </span>
+              )}
+              {vista.filas_ignoradas > 0 && (
+                <span className="text-tenue" title="Totales, notas o líneas sin fecha o importe">
+                  {vista.filas_ignoradas} línea{vista.filas_ignoradas === 1 ? "" : "s"} ignorada{vista.filas_ignoradas === 1 ? "" : "s"}
+                </span>
+              )}
+            </div>
+          )}
 
           {revisables.size > 0 && (
             <div className="space-y-2">
@@ -298,6 +318,25 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
               />
               Invertir signos <span className="text-tenue">(si los gastos salen como ingresos)</span>
             </label>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 text-sm">
+            <label className="flex items-center gap-2 font-medium">
+              <input
+                type="checkbox"
+                className="accent-acento-600"
+                checked={todasMarcadas}
+                // A medias (ni todas ni ninguna): el navegador pinta un guion y lo anuncia como "mixto".
+                ref={(casilla) => {
+                  if (casilla) casilla.indeterminate = algunaMarcada;
+                }}
+                onChange={() => marcarTodas(!todasMarcadas)}
+              />
+              {todasMarcadas ? "Quitar todo" : "Seleccionar todo"}
+            </label>
+            <span className="text-tenue" aria-live="polite">
+              <strong className="tabular-nums text-texto">{incluidas.length}</strong> de {filas.length} seleccionado{filas.length === 1 ? "" : "s"}
+            </span>
           </div>
 
           {visibles.length === 0 ? (
@@ -379,7 +418,7 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
         <p className="truncate text-sm font-medium">{fila.concepto || "Sin concepto"}</p>
         <p className="text-xs text-tenue">
           {formatearFecha(fila.fecha)}
-          {fila.duplicado && " · ya registrado"}
+          {fila.duplicado && " · ya registrado en esta cuenta"}
           {completa && ` · completa la transferencia con ${otraCuenta}`}
           {unida && ` · se une con el movimiento igual de ${otraCuenta}`}
         </p>
