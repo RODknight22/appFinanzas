@@ -23,6 +23,7 @@ async function subir(pagina) {
 
 await prueba("importar", async ({ pagina, api }) => {
   const cuenta = await api.post("/cuentas", { nombre: "BBVA", tipo: "debito", balance_inicial: "1000" });
+  const revolut = await api.post("/cuentas", { nombre: "Revolut", tipo: "debito", balance_inicial: "0" });
   const supermercado = (await api.get("/categorias")).find((c) => c.nombre === "Supermercado");
   // Historial: un Mercadona ya categorizado, y el gasto de 45,20 anotado a mano un día antes.
   for (const [monto, fecha, notas] of [["30", "2026-09-01", "COMPRA TARJ. 1111 MERCADONA VALENCIA"], ["45.20", "2026-10-01", "Súper"]]) {
@@ -33,6 +34,32 @@ await prueba("importar", async ({ pagina, api }) => {
   await subir(pagina);
   const boton = pagina.getByRole("button", { name: /^Importar \d+ movimiento/ });
   comprobar((await boton.textContent()) === "Importar 5 movimientos", "5 nuevos (el de 45,20 ya estaba registrado)");
+
+  // Cambiar de cuenta rápido, con la respuesta de BBVA llegando tarde: manda la última cuenta
+  // elegida y en ella (sin nada registrado) todo queda marcado.
+  const selectorCuenta = pagina.getByRole("dialog").getByLabel("Cuenta");
+  await pagina.route("**/importaciones/vista-previa**", async (ruta) => {
+    const respuesta = await ruta.fetch();
+    if (new URL(ruta.request().url()).searchParams.get("cuenta_id") === String(cuenta.id)) {
+      await new Promise((listo) => setTimeout(listo, 1500));
+    }
+    await ruta.fulfill({ response: respuesta });
+  });
+  await selectorCuenta.selectOption(String(revolut.id));
+  await selectorCuenta.selectOption(String(cuenta.id));
+  await selectorCuenta.selectOption(String(revolut.id));
+  await pagina.getByText("por importar").waitFor();
+  await pagina.waitForTimeout(2500); // que llegue (y se descarte) la respuesta lenta de BBVA
+  await pagina.getByRole("button", { name: /^Todos/ }).click();
+  const marcadas = await pagina.getByRole("checkbox", { name: /^Importar / })
+    .evaluateAll((casillas) => casillas.map((c) => c.checked));
+  comprobar(marcadas.length === 6 && marcadas.every(Boolean), `en Revolut se marcan los 6 (${marcadas})`);
+  await pagina.unroute("**/importaciones/vista-previa**");
+
+  // De vuelta a BBVA: el ya registrado sale sin marcar, y se dice por qué aunque no se vea la fila.
+  await selectorCuenta.selectOption(String(cuenta.id));
+  await pagina.getByText("1 ya registrado en BBVA: sin marcar").waitFor();
+  comprobar((await boton.textContent()) === "Importar 5 movimientos", "al volver a BBVA, el registrado queda sin marcar y se avisa");
 
   // Elegir categoría en una fila la aplica a la otra con el mismo concepto.
   const progreso = pagina.getByRole("progressbar", { name: "Revisión" });

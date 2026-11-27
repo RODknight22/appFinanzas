@@ -231,7 +231,21 @@ export function ImportarExtracto({ cuentas, categorias, cuentaInicial, onImporta
         <>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
             <span><strong className="tabular-nums">{incluidas.length}</strong> por importar</span>
-            {duplicadas > 0 && <span className="text-tenue">{duplicadas} ya registrado{duplicadas === 1 ? "" : "s"}</span>}
+            {duplicadas > 0 && (
+              // Los ya registrados en ESTA cuenta salen sin marcar y la vista "Por revisar" no los
+              // enseña: sin este aviso, al cambiar de cuenta parecía que la selección fallaba.
+              <span className="text-tenue">
+                {duplicadas} ya registrado{duplicadas === 1 ? "" : "s"} en {cuenta.nombre}: sin marcar
+                {!verTodas && (
+                  <>
+                    {" · "}
+                    <button type="button" onClick={() => setVerTodas(true)} className="font-medium text-acento-600 hover:underline dark:text-acento-400">
+                      Ver
+                    </button>
+                  </>
+                )}
+              </span>
+            )}
             {vista.filas_ignoradas > 0 && (
               <span className="text-tenue" title="Totales, notas o líneas sin fecha o importe">
                 {vista.filas_ignoradas} línea{vista.filas_ignoradas === 1 ? "" : "s"} ignorada{vista.filas_ignoradas === 1 ? "" : "s"}
@@ -379,7 +393,7 @@ function FilaVistaPrevia({ fila, moneda, categorias, otrasCuentas, revisada, onA
         <p className="truncate text-sm font-medium">{fila.concepto || "Sin concepto"}</p>
         <p className="text-xs text-tenue">
           {formatearFecha(fila.fecha)}
-          {fila.duplicado && " · ya registrado"}
+          {fila.duplicado && " · ya registrado en esta cuenta"}
           {completa && ` · completa la transferencia con ${otraCuenta}`}
           {unida && ` · se une con el movimiento igual de ${otraCuenta}`}
         </p>
