@@ -221,10 +221,14 @@ Si 8 o 9 siguen esperando cuando el resto esté listo, pasan a la v1.5 y se publ
   el saldo que dice el banco y que la app cree un movimiento "Ajuste de saldo" por la diferencia.
   Así el historial sigue cuadrando y se ve cuándo y cuánto se ajustó (no se pisa el saldo).
   *Hecho cuando:* tras ajustar, el saldo es el escrito y el patrimonio cuadra (test).
-- [ ] **Widgets personalizables y Dashboard más ligero** (P1, idea de Rodrigo): más tamaños,
-  elegir cómo muestran los datos y widgets nuevos; Rodrigo lo nota "recargado" pero le gustan
-  las gráficas: menos widgets a la vista por defecto, más para elegir. *Antes:* Rodrigo los
-  prueba y dice en el cuaderno qué echa de menos. *Dónde:* components/dashboard/.
+- [x] **Widgets personalizables y Dashboard más ligero** (P1, idea de Rodrigo): menos widgets a
+  la vista por defecto (7) y el resto en «Personalizar»; selector de periodo (Mes, 3D, 7D, 30D,
+  3M, 1A); widgets nuevos (Este mes vs anterior, Top 5 comercios, Ahorro del año, Gasto por
+  cuenta) y categorías en barras. Pendiente de lo pedido: más tamaños.
+- [x] **Animaciones y pulido** (Rodrigo, 26/11: "que motiven" y "como las de Apple"): confeti
+  más ligero y vistoso, micro-interacciones al pulsar y pasar el ratón, píldora del menú que se
+  desliza, cifras que cuentan; y pulido de una auditoría (área táctil, contraste, token `aviso`,
+  sin dobles envíos, errores legibles, `ControlSegmentado`).
 - [-] **Firmar el ejecutable de Windows** → aplazada (26/11). "Control de aplicaciones
   inteligentes" bloquea el .exe sin firma. SignPath Foundation es gratis (exige licencia OSI
   **sin doble licencia comercial**), pero Rodrigo cree que hoy no aceptarían el proyecto por su
