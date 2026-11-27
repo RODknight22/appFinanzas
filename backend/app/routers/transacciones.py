@@ -8,7 +8,15 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.database import SessionDep
 from app.models import TipoMovimiento
-from app.schemas import PaginaTransacciones, TransaccionCreate, TransaccionRead, TransaccionUpdate
+from app.schemas import (
+    PaginaTransacciones,
+    ResultadoLote,
+    TransaccionCreate,
+    TransaccionesLote,
+    TransaccionesLoteUpdate,
+    TransaccionRead,
+    TransaccionUpdate,
+)
 from app.services import transacciones as servicio
 from app.services.transacciones import FiltrosTransacciones
 
@@ -57,6 +65,19 @@ def buscar_transacciones(
 ):
     """Una página de resultados con el total de coincidencias y la suma de ingresos y gastos."""
     return servicio.buscar(session, filtros, offset=offset, limit=limit)
+
+
+# En lote: antes que "/{transaccion_id}", que si no intentaría leer "lote" como un id.
+@router.patch("/lote", response_model=ResultadoLote)
+def actualizar_lote(datos: TransaccionesLoteUpdate, session: SessionDep):
+    """Cambia la cuenta y/o la categoría de varias transacciones: todas o ninguna."""
+    return servicio.actualizar_lote(session, datos)
+
+
+@router.delete("/lote", response_model=ResultadoLote)
+def eliminar_lote(datos: TransaccionesLote, session: SessionDep):
+    """Borra varias transacciones: todas o ninguna."""
+    return servicio.eliminar_lote(session, datos)
 
 
 @router.get("/{transaccion_id}", response_model=TransaccionRead)

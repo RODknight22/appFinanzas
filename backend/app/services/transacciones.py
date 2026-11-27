@@ -9,10 +9,17 @@ from sqlmodel import Session, col, or_, select
 
 from app.database import normalizar_texto
 from app.models import Categoria, Cuenta, TipoMovimiento, Transaccion
-from app.schemas import PaginaTransacciones, TransaccionCreate, TransaccionUpdate
+from app.schemas import (
+    PaginaTransacciones,
+    ResultadoLote,
+    TransaccionCreate,
+    TransaccionesLote,
+    TransaccionesLoteUpdate,
+    TransaccionUpdate,
+)
 from app.services import configuracion, divisas
 from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
-from app.services.errores import ConflictoError, ReglaDeNegocioError
+from app.services.errores import ConflictoError, NoEncontradoError, ReglaDeNegocioError
 from app.services.saldos import a_decimal
 
 
@@ -173,3 +180,66 @@ def eliminar(session: Session, transaccion_id: int) -> None:
     _comprobar_editable(transaccion)
     session.delete(transaccion)
     session.commit()
+
+
+# ---------------------------------------------------------------------------
+# En lote: todo o nada
+# ---------------------------------------------------------------------------
+def _del_lote(session: Session, ids: list[int]) -> list[Transaccion]:
+    """Las transacciones pedidas, comprobadas antes de tocar ninguna.
+
+    Si falta alguna (404) o alguna es la comisión de una transferencia (409), no se
+    hace nada: aplicar solo una parte dejaría al usuario sin saber qué cambió.
+    """
+    unicos = list(dict.fromkeys(ids))  # sin repetidos y en el orden pedido
+    encontradas = list(session.exec(select(Transaccion).where(col(Transaccion.id).in_(unicos))).all())
+    faltan = sorted(set(unicos) - {t.id for t in encontradas})
+    if faltan:
+        lista = ", ".join(str(i) for i in faltan[:10]) + ("…" if len(faltan) > 10 else "")
+        raise NoEncontradoError(
+            f"No se encontraron {len(faltan)} de las transacciones elegidas (id {lista}): "
+            "recarga la lista; no se ha cambiado nada"
+        )
+    if any(t.transferencia_id is not None for t in encontradas):
+        raise ConflictoError(
+            "La selección incluye comisiones de transferencias: se editan o borran desde la "
+            "transferencia, en Cuentas. Quítalas de la selección; no se ha cambiado nada"
+        )
+    return encontradas
+
+
+def actualizar_lote(session: Session, datos: TransaccionesLoteUpdate) -> ResultadoLote:
+    """Cambia la cuenta y/o la categoría de varias transacciones con las reglas de `actualizar`.
+
+    Primero se valida todo (p. ej. una categoría de gasto no vale para un ingreso) y después
+    se aplica con un solo commit. Al pasar a una cuenta en otra moneda, `completar_montos`
+    recalcula el importe en esa moneda y en la principal con la tasa de la fecha de cada una.
+    """
+    cambios = datos.model_dump(include={"cuenta_id", "categoria_id"}, exclude_none=True)
+    if not cambios:
+        raise ReglaDeNegocioError("Indica la cuenta o la categoría nueva")
+    lote = _del_lote(session, datos.ids)
+    cuentas = [
+        validar_relaciones(
+            session, cambios.get("cuenta_id", t.cuenta_id), cambios.get("categoria_id", t.categoria_id), t.tipo
+        )
+        for t in lote
+    ]
+    # Una sola descarga de tasas para todo el periodo, en vez de una por fecha.
+    fechas = [t.fecha for t in lote]
+    divisas.asegurar_tasas_historicas(session, min(fechas), max(fechas))
+    for transaccion, cuenta in zip(lote, cuentas, strict=True):
+        transaccion.sqlmodel_update(cambios)
+        completar_montos(session, transaccion, cuenta)
+        session.add(transaccion)
+    session.commit()
+    return ResultadoLote(afectadas=len(lote))
+
+
+def eliminar_lote(session: Session, datos: TransaccionesLote) -> ResultadoLote:
+    """Borra varias transacciones a la vez, o ninguna si alguna no se puede borrar."""
+    lote = _del_lote(session, datos.ids)
+    for transaccion in lote:
+        session.delete(transaccion)
+    session.commit()
+    return ResultadoLote(afectadas=len(lote))
