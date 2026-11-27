@@ -5,9 +5,9 @@ from datetime import date, timedelta
 from sqlmodel import Session, col, or_, select
 
 from app.models import Suscripcion, TipoMovimiento, Transaccion
-from app.schemas import PagoSuscripcionCreate, SuscripcionCreate, SuscripcionUpdate
-from app.services import configuracion
-from app.services.comun import cambios_parciales, guardar, obtener_o_404
+from app.schemas import PagoSuscripcionCreate, ReconocerFijo, SuscripcionCreate, SuscripcionUpdate
+from app.services import configuracion, fijos
+from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
 from app.services.errores import ReglaDeNegocioError
 from app.services.periodicidad import (
     CAMPOS_CALENDARIO,
@@ -115,10 +115,7 @@ def registrar_pago(
     )
     # Con la tasa del día del cobro: p. ej. Netflix en USD pagado con una cuenta en MXN.
     completar_montos(session, transaccion, cuenta)
-    # Con su calendario (p. ej. "los días 5, 15 y 30" o "adelantar al viernes").
-    suscripcion.fecha_proximo_pago = siguiente_fecha(
-        suscripcion.fecha_proximo_pago, suscripcion.periodicidad, calendario_de(suscripcion)
-    )
+    _avanzar(suscripcion)
 
     # Un único commit para ambos cambios: o se guardan los dos o ninguno.
     session.add(transaccion)
@@ -127,3 +124,35 @@ def registrar_pago(
     session.refresh(transaccion)
     session.refresh(suscripcion)
     return transaccion, suscripcion
+
+
+def vincular_pago(suscripcion: Suscripcion, transaccion: Transaccion, fecha_prevista: date | None) -> None:
+    """Da por pagado el periodo con un gasto ya anotado (a mano o importado), sin crear otro.
+
+    `suscripcion_id` hace que el Plan del mes lo cuente como pago fijo. No hace commit:
+    quien llama guarda todo junto (p. ej. con el resto de la importación).
+    """
+    comprobar_fecha_prevista(fecha_prevista, suscripcion.fecha_proximo_pago, "pago")
+    fijos.comprobar_reconocible(transaccion, TipoMovimiento.GASTO)
+    transaccion.suscripcion_id = suscripcion.id
+    _avanzar(suscripcion)
+
+
+def reconocer_pago(session: Session, suscripcion_id: int, datos: ReconocerFijo) -> Suscripcion:
+    """El gasto anotado a mano era este pago fijo: avanza su fecha para no contarlo dos veces."""
+    suscripcion = obtener(session, suscripcion_id)
+    transaccion = obtener_referencia(session, Transaccion, datos.transaccion_id, "el movimiento")
+    vincular_pago(suscripcion, transaccion, datos.fecha_prevista)
+    # Un único commit: el vínculo y la nueva fecha, o ninguno.
+    session.add(transaccion)
+    session.add(suscripcion)
+    session.commit()
+    session.refresh(suscripcion)
+    return suscripcion
+
+
+def _avanzar(suscripcion: Suscripcion) -> None:
+    # Desde la fecha prevista y con su calendario (p. ej. "los días 5, 15 y 30" o "adelantar al viernes").
+    suscripcion.fecha_proximo_pago = siguiente_fecha(
+        suscripcion.fecha_proximo_pago, suscripcion.periodicidad, calendario_de(suscripcion)
+    )

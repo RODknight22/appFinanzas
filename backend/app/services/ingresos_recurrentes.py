@@ -5,9 +5,15 @@ from datetime import date, timedelta
 from sqlmodel import Session, col, select
 
 from app.models import Cuenta, IngresoRecurrente, IngresoRecurrenteBase, TipoMovimiento, Transaccion
-from app.schemas import CobroIngresoCreate, IngresoRecurrenteCreate, IngresoRecurrenteUpdate, OmitirCobro
-from app.services import configuracion
-from app.services.comun import cambios_parciales, guardar, obtener_o_404
+from app.schemas import (
+    CobroIngresoCreate,
+    IngresoRecurrenteCreate,
+    IngresoRecurrenteUpdate,
+    OmitirCobro,
+    ReconocerFijo,
+)
+from app.services import configuracion, fijos
+from app.services.comun import cambios_parciales, guardar, obtener_o_404, obtener_referencia
 from app.services.periodicidad import (
     CAMPOS_CALENDARIO,
     calendario_de,
@@ -83,6 +89,7 @@ def registrar_cobro(
         notas=datos.notas or f"Cobro: {ingreso.nombre}",
         cuenta_id=cuenta_id,
         categoria_id=ingreso.categoria_id,
+        ingreso_recurrente_id=ingreso.id,
     )
     completar_montos(session, transaccion, cuenta)
     _avanzar(ingreso)
@@ -94,6 +101,30 @@ def registrar_cobro(
     session.refresh(transaccion)
     session.refresh(ingreso)
     return transaccion, ingreso
+
+
+def vincular_cobro(ingreso: IngresoRecurrente, transaccion: Transaccion, fecha_prevista: date | None) -> None:
+    """Da por cobrado el periodo con un ingreso ya anotado (a mano o importado), sin crear otro.
+
+    No hace commit: quien llama guarda todo junto (p. ej. con el resto de la importación).
+    """
+    comprobar_fecha_prevista(fecha_prevista, ingreso.fecha_proximo_cobro, "cobro")
+    fijos.comprobar_reconocible(transaccion, TipoMovimiento.INGRESO)
+    transaccion.ingreso_recurrente_id = ingreso.id
+    _avanzar(ingreso)
+
+
+def reconocer_cobro(session: Session, ingreso_id: int, datos: ReconocerFijo) -> IngresoRecurrente:
+    """El ingreso anotado a mano era este cobro fijo: avanza su fecha para no contarlo dos veces."""
+    ingreso = obtener(session, ingreso_id)
+    transaccion = obtener_referencia(session, Transaccion, datos.transaccion_id, "el movimiento")
+    vincular_cobro(ingreso, transaccion, datos.fecha_prevista)
+    # Un único commit: el vínculo y la nueva fecha, o ninguno.
+    session.add(transaccion)
+    session.add(ingreso)
+    session.commit()
+    session.refresh(ingreso)
+    return ingreso
 
 
 def omitir_cobro(session: Session, ingreso_id: int, datos: OmitirCobro | None = None) -> IngresoRecurrente:

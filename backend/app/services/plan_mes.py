@@ -5,7 +5,8 @@ Todo en la moneda principal. Criterios (para no contar nada dos veces):
 - Lo real son las transacciones del mes (`monto_principal`, con la tasa de su día).
 - Lo previsto son las fechas de los fijos que aún no se registraron. Al registrar un
   cobro o un pago su `fecha_proximo_*` avanza, así que lo ya registrado nunca sale como
-  previsto: real + previsto no se solapan.
+  previsto: real + previsto no se solapan. Lo mismo al anotarlo a mano o importarlo si se
+  reconoce como ese fijo (services/fijos.py): su fecha avanza igual, sin crear otro movimiento.
 - Previsto según el mes: pasado = nada (solo cuenta lo real); en curso = las fechas del
   mes desde hoy ("pendientes") más las del mes ya pasadas sin registrar ("atrasadas");
   futuro = todas las fechas del mes. Los atrasados de meses anteriores no se suman aquí:

@@ -294,6 +294,9 @@ class Transaccion(TransaccionBase, table=True):
     # cuenta dos veces. Sin clave foránea a propósito: borrar la suscripción no borra el
     # historial, y este número solo dice "vino de un pago fijo".
     suscripcion_id: int | None = Field(default=None, index=True)
+    # Igual para el ingreso que anota un cobro fijo (nómina, envío...): dice de qué ingreso
+    # recurrente vino, por simetría con `suscripcion_id` y sin clave foránea por lo mismo.
+    ingreso_recurrente_id: int | None = Field(default=None, index=True)
 
 
 # ---------------------------------------------------------------------------
