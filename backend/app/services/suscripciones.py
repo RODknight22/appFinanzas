@@ -70,9 +70,15 @@ def actualizar(session: Session, suscripcion_id: int, cambios: SuscripcionUpdate
 def olvidar_pago_por_defecto(session: Session, cuenta_id: int | None = None, categoria_id: int | None = None) -> None:
     """Al borrar una cuenta o categoría, las suscripciones que la usaban por defecto la pierden
     (las dos a la vez: van juntas). No hace commit: va en la misma operación que el borrado."""
-    usadas = session.exec(
-        select(Suscripcion).where(or_(Suscripcion.cuenta_id == cuenta_id, Suscripcion.categoria_id == categoria_id))
-    ).all()
+    # Solo lo indicado: comparar con None sería "IS NULL" y tocaría las que no tienen ninguna.
+    condiciones = [
+        columna == valor
+        for columna, valor in ((col(Suscripcion.cuenta_id), cuenta_id), (col(Suscripcion.categoria_id), categoria_id))
+        if valor is not None
+    ]
+    if not condiciones:
+        return
+    usadas = session.exec(select(Suscripcion).where(or_(*condiciones))).all()
     for suscripcion in usadas:
         suscripcion.cuenta_id = suscripcion.categoria_id = None
         session.add(suscripcion)
