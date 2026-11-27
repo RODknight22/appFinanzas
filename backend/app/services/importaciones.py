@@ -15,6 +15,10 @@ transferencia con la otra cuenta. Se reconoce por el concepto ("To MXN" en Revol
 ver `_cuenta_de_transferencia`) o porque ya está registrado en la otra cuenta (ver
 `_Contrapartidas`): como ingreso o gasto suelto, o como transferencia a la que le
 falta el importe real de este lado.
+
+Si un movimiento parece el cobro o el pago de un fijo (la nómina, el alquiler), se propone
+reconocerlo: al importarlo, la fecha del fijo avanza y el Plan del mes no lo cuenta dos
+veces (real + previsto). Ver services/fijos.py.
 """
 
 import re
@@ -26,15 +30,33 @@ from sqlmodel import Session, col, select
 
 from app.database import normalizar_texto
 from app.datos_iniciales import CATEGORIA_OTROS_GASTOS, CATEGORIA_OTROS_INGRESOS
-from app.models import Cuenta, LadoTransferencia, Moneda, TipoMovimiento, Transaccion, Transferencia
+from app.models import (
+    Cuenta,
+    IngresoRecurrente,
+    LadoTransferencia,
+    Moneda,
+    Suscripcion,
+    TipoMovimiento,
+    Transaccion,
+    Transferencia,
+)
 from app.schemas import (
+    FijoCandidato,
     FilaImportacion,
     ImportacionCreate,
     MovimientoImportado,
     ResultadoImportacion,
     VistaPreviaImportacion,
 )
-from app.services import categorias, divisas, reglas_categoria, transacciones
+from app.services import (
+    categorias,
+    divisas,
+    fijos,
+    ingresos_recurrentes,
+    reglas_categoria,
+    suscripciones,
+    transacciones,
+)
 from app.services.comun import obtener_referencia
 from app.services.errores import ReglaDeNegocioError
 from app.services.lector_extractos import MovimientoLeido, leer_extracto
@@ -293,6 +315,47 @@ def _unir(session: Session, transferencia: Transferencia, movimiento: Movimiento
 
 
 # ---------------------------------------------------------------------------
+# Cobros y pagos fijos
+# ---------------------------------------------------------------------------
+def _sugerir_fijos(session: Session, cuenta: Cuenta, filas: list[FilaImportacion]) -> None:
+    """Marca las filas que parecen el cobro o el pago de un fijo.
+
+    Cada fijo espera un solo movimiento: si dos filas se le parecen (dos nóminas de 2.000 en
+    el mismo extracto), se queda con la más parecida y la otra no lleva sugerencia. Se
+    reparte de más a menos parecido, así ninguna pareja buena se pierde por el orden del archivo.
+    """
+    buscador = fijos.Fijos(session)
+    parejas: list[tuple[fijos.Parecido, int, FijoCandidato]] = []
+    for indice, fila in enumerate(filas):
+        # Lo ya registrado o lo que va entre cuentas propias no es un cobro ni un pago.
+        if fila.duplicado or fila.cuenta_transferencia_id is not None:
+            continue
+        for parecido, candidato in buscador.candidatos(fila.tipo, fila.monto, cuenta.moneda, cuenta.id, fila.fecha):
+            parejas.append((parecido, indice, candidato))
+    parejas.sort(key=lambda p: (p[0], p[1]))
+    usados: set[tuple[TipoMovimiento, int]] = set()
+    for _, indice, candidato in parejas:
+        clave = (candidato.tipo, candidato.id)
+        if filas[indice].fijo is None and clave not in usados:
+            filas[indice].fijo = candidato
+            usados.add(clave)
+
+
+def _reconocer_fijo(session: Session, transaccion: Transaccion, movimiento: MovimientoImportado) -> None:
+    """Vincula la transacción importada con su fijo y avanza la fecha (sin commit)."""
+    if movimiento.fijo_fecha_prevista is None:
+        raise ReglaDeNegocioError("Falta la fecha prevista del fijo a reconocer")
+    if movimiento.tipo == TipoMovimiento.INGRESO:
+        ingreso = obtener_referencia(session, IngresoRecurrente, movimiento.fijo_id, "el ingreso fijo")
+        ingresos_recurrentes.vincular_cobro(ingreso, transaccion, movimiento.fijo_fecha_prevista)
+        session.add(ingreso)
+    else:
+        suscripcion = obtener_referencia(session, Suscripcion, movimiento.fijo_id, "el pago fijo")
+        suscripciones.vincular_pago(suscripcion, transaccion, movimiento.fijo_fecha_prevista)
+        session.add(suscripcion)
+
+
+# ---------------------------------------------------------------------------
 # Los dos pasos
 # ---------------------------------------------------------------------------
 def vista_previa(
@@ -335,6 +398,7 @@ def vista_previa(
         if not fila.duplicado:
             _buscar_otra_mitad(fila, m, cuenta, otras_cuentas, contrapartidas)
         filas.append(fila)
+    _sugerir_fijos(session, cuenta, filas)
     return VistaPreviaImportacion(
         columnas=extracto.columnas, filas=filas, filas_ignoradas=extracto.filas_ignoradas,
         invertir_signos=invertir_signos,
@@ -348,6 +412,10 @@ def _comprobar_sin_repetidos(datos: ImportacionCreate) -> None:
         ids = [getattr(m, campo) for m in datos.movimientos if getattr(m, campo) is not None]
         if len(ids) != len(set(ids)):
             raise ReglaDeNegocioError(f"La misma {que} aparece en dos filas: elige solo una")
+    # Igual con los fijos: un periodo se cobra o se paga una vez (ingreso y pago fijo son tablas distintas).
+    fijos_elegidos = [(m.tipo, m.fijo_id) for m in datos.movimientos if m.fijo_id is not None]
+    if len(fijos_elegidos) != len(set(fijos_elegidos)):
+        raise ReglaDeNegocioError("El mismo cobro o pago fijo aparece en dos filas: elige solo una")
 
 
 def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacion:
@@ -359,8 +427,11 @@ def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacio
     divisas.asegurar_tasas_historicas(session, min(fechas), max(fechas))
     _comprobar_sin_repetidos(datos)
     nuevas: list[Transaccion | Transferencia] = []
-    unidas = completadas = 0
+    unidas = completadas = reconocidos = 0
     for movimiento in datos.movimientos:
+        es_transferencia = movimiento.transferencia_a_completar_id is not None or movimiento.cuenta_transferencia_id is not None
+        if movimiento.fijo_id is not None and es_transferencia:
+            raise ReglaDeNegocioError("Un movimiento entre tus cuentas no puede ser un cobro o pago fijo")
         if movimiento.transferencia_a_completar_id is not None:
             _completar(session, cuenta, movimiento)
             completadas += 1
@@ -382,6 +453,9 @@ def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacio
         )
         # Igual que una transacción escrita a mano: en la moneda de la cuenta y convertida a la principal.
         transacciones.completar_montos(session, transaccion, cuenta)
+        if movimiento.fijo_id is not None:
+            _reconocer_fijo(session, transaccion, movimiento)
+            reconocidos += 1
         nuevas.append(transaccion)
     if datos.invertir_signos is not None:
         cuenta.importar_invertido = datos.invertir_signos
@@ -390,5 +464,5 @@ def confirmar(session: Session, datos: ImportacionCreate) -> ResultadoImportacio
     session.commit()
     return ResultadoImportacion(
         creadas=len(nuevas), transferencias=sum(isinstance(n, Transferencia) for n in nuevas),
-        unidas=unidas, completadas=completadas,
+        unidas=unidas, completadas=completadas, reconocidos=reconocidos,
     )

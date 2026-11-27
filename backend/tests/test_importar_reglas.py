@@ -68,7 +68,7 @@ def test_el_otro_lado_de_un_cambio_completa_la_transferencia(client: TestClient,
     assert fila["cuenta_transferencia_id"] == revolut_mxn["id"] and fila["transferencia_a_completar_id"] is not None
 
     hecho = client.post("/importaciones", json={"cuenta_id": revolut_eur["id"], "movimientos": [_movimientos({"filas": [fila]})[0]]})
-    assert hecho.json() == {"creadas": 0, "transferencias": 0, "unidas": 0, "completadas": 1}
+    assert hecho.json() == {"creadas": 0, "transferencias": 0, "unidas": 0, "completadas": 1, "reconocidos": 0}
     [transferencia] = client.get("/transferencias").json()
     # Ahora los dos lados son reales: 98.50 EUR (1970 MXN al BCE) dieron 2000 MXN, 30 MXN a favor.
     assert (transferencia["monto_origen"], transferencia["monto_destino"], transferencia["coste"]) == ("98.50", "2000.00", "-30.00")
@@ -93,7 +93,7 @@ def test_el_mismo_importe_en_otra_cuenta_se_une_en_una_transferencia(client: Tes
     assert envio["transaccion_a_unir_id"] is not None and cafe["transaccion_a_unir_id"] is None
 
     hecho = client.post("/importaciones", json={"cuenta_id": revolut["id"], "movimientos": [_movimientos({"filas": [envio]})[0]]})
-    assert hecho.json() == {"creadas": 1, "transferencias": 1, "unidas": 1, "completadas": 0}
+    assert hecho.json() == {"creadas": 1, "transferencias": 1, "unidas": 1, "completadas": 0, "reconocidos": 0}
     resumen = client.get("/dashboard/resumen", params={"mes_anio": "2026-10"}).json()
     assert resumen["ingresos"] == "0.00"  # el ingreso suelto ya es la mitad de la transferencia
     saldos = {c["nombre"]: c["saldo"] for c in resumen["cuentas"]}
