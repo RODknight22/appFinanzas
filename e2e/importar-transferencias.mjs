@@ -21,7 +21,7 @@ await prueba("importar-transferencias", async ({ pagina, api }) => {
   await pagina.getByRole("button", { name: "Importar", exact: true }).click();
   await pagina.getByRole("dialog").getByLabel("Cuenta").selectOption({ label: "Revolut MXN (MXN)" });
   await pagina.locator('input[type="file"]').setInputFiles({ name: "revolut.csv", mimeType: "text/csv", buffer: EXTRACTO });
-  await pagina.getByText("por importar").waitFor();
+  await pagina.getByText(/\d+ de \d+ seleccionados?$/).waitFor();
   await pagina.getByRole("button", { name: /^Todos/ }).click();
 
   const elegidas = await pagina.locator("li", { hasText: "To MXN" }).getByLabel("Categoría o transferencia")

@@ -18,7 +18,7 @@ const EXTRACTO = Buffer.from(
 async function subir(pagina) {
   await pagina.getByRole("button", { name: "Importar", exact: true }).click();
   await pagina.locator('input[type="file"]').setInputFiles({ name: "movimientos.csv", mimeType: "text/csv", buffer: EXTRACTO });
-  await pagina.getByText("por importar").waitFor();
+  await pagina.getByText(/\d+ de \d+ seleccionados?$/).waitFor();
 }
 
 await prueba("importar", async ({ pagina, api }) => {
@@ -48,7 +48,7 @@ await prueba("importar", async ({ pagina, api }) => {
   await selectorCuenta.selectOption(String(revolut.id));
   await selectorCuenta.selectOption(String(cuenta.id));
   await selectorCuenta.selectOption(String(revolut.id));
-  await pagina.getByText("por importar").waitFor();
+  await pagina.getByText(/\d+ de \d+ seleccionados?$/).waitFor();
   await pagina.waitForTimeout(2500); // que llegue (y se descarte) la respuesta lenta de BBVA
   await pagina.getByRole("button", { name: /^Todos/ }).click();
   const marcadas = await pagina.getByRole("checkbox", { name: /^Importar / })
@@ -60,6 +60,21 @@ await prueba("importar", async ({ pagina, api }) => {
   await selectorCuenta.selectOption(String(cuenta.id));
   await pagina.getByText("1 ya registrado en BBVA: sin marcar").waitFor();
   comprobar((await boton.textContent()) === "Importar 5 movimientos", "al volver a BBVA, el registrado queda sin marcar y se avisa");
+
+  // Seleccionar todo / Quitar todo: la casilla maestra va a medias (5 de 6) y cubre también lo que no se ve.
+  const maestra = pagina.getByRole("checkbox", { name: /^(Seleccionar|Quitar) todo$/ });
+  comprobar(await maestra.evaluate((c) => c.indeterminate), "con 5 de 6 marcados, la casilla maestra queda a medias");
+  await maestra.check();
+  await pagina.getByText("6 de 6 seleccionados").waitFor();
+  comprobar((await boton.textContent()) === "Importar 6 movimientos", "«Seleccionar todo» marca también el ya registrado");
+  await pagina.getByRole("checkbox", { name: "Quitar todo" }).uncheck();
+  await pagina.getByText("0 de 6 seleccionados").waitFor();
+  comprobar(await boton.isDisabled(), "«Quitar todo» desmarca todo y no deja importar nada");
+  await maestra.check();
+  await pagina.getByRole("button", { name: "Ver", exact: true }).click();
+  await pagina.getByRole("checkbox", { name: /^Importar COMPRA TARJ\. 4567 MERCADONA VALENCIA/ }).first().uncheck();
+  await pagina.getByText("5 de 6 seleccionados").waitFor();
+  await pagina.getByRole("button", { name: /^Por revisar/ }).click();
 
   // Elegir categoría en una fila la aplica a la otra con el mismo concepto.
   const progreso = pagina.getByRole("progressbar", { name: "Revisión" });
