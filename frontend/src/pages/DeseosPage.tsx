@@ -39,12 +39,18 @@ export function DeseosPage() {
   const { convertir } = useConfiguracion();
   const estado = useDatos(() => Promise.all([deseosApi.listar(), metasApi.listar(), ingresosApi.listar()]), [], "deseos");
 
-  async function accion(promesa: Promise<unknown>) {
+  // Deseo con una acción en marcha: sus botones se apagan para que un doble clic no la repita.
+  const [enCurso, setEnCurso] = useState<number | null>(null);
+
+  async function accion(deseo: Deseo, hacer: () => Promise<unknown>) {
+    setEnCurso(deseo.id);
     try {
-      await promesa;
+      await hacer();
       estado.recargar();
     } catch (e) {
       avisarError(e);
+    } finally {
+      setEnCurso(null);
     }
   }
 
@@ -75,7 +81,7 @@ export function DeseosPage() {
           const historial = deseos.filter((d) => d.estado === "comprado" || d.estado === "descartado");
           const noGastado = sumarPrecios(historial.filter((d) => d.estado === "descartado"));
 
-          const decidir = (deseo: Deseo, decision: DecisionDeseo) => accion(deseosApi.decidir(deseo.id, decision));
+          const decidir = (deseo: Deseo, decision: DecisionDeseo) => accion(deseo, () => deseosApi.decidir(deseo.id, decision));
           const tarjetaProps = {
             metaPorId,
             ingresoDiario,
@@ -118,9 +124,9 @@ export function DeseosPage() {
                               </blockquote>
                             )}
                             <div className="flex flex-wrap gap-1.5">
-                              <Boton className="px-3 py-1.5 text-xs" onClick={() => decidir(deseo, "comprar")}>Lo compro</Boton>
-                              <Boton variante="secundario" className="px-3 py-1.5 text-xs" onClick={() => decidir(deseo, "guardar")}>A la lista</Boton>
-                              <Boton variante="secundario" className="px-3 py-1.5 text-xs" onClick={() => decidir(deseo, "descartar")}>Ya no lo quiero</Boton>
+                              <Boton disabled={enCurso === deseo.id} className="px-3 py-1.5 text-xs" onClick={() => decidir(deseo, "comprar")}>Lo compro</Boton>
+                              <Boton disabled={enCurso === deseo.id} variante="secundario" className="px-3 py-1.5 text-xs" onClick={() => decidir(deseo, "guardar")}>A la lista</Boton>
+                              <Boton disabled={enCurso === deseo.id} variante="secundario" className="px-3 py-1.5 text-xs" onClick={() => decidir(deseo, "descartar")}>Ya no lo quiero</Boton>
                             </div>
                           </div>
                         ) : (
@@ -128,7 +134,7 @@ export function DeseosPage() {
                             <span className="flex items-center gap-1.5 text-xs text-tenue">
                               <Hourglass size={14} /> {textoRestante(deseo.reflexion_hasta!)}
                             </span>
-                            <Boton variante="fantasma" className="px-2 py-1 text-xs" onClick={() => decidir(deseo, "descartar")}>
+                            <Boton disabled={enCurso === deseo.id} variante="fantasma" className="px-2 py-1 text-xs" onClick={() => decidir(deseo, "descartar")}>
                               <X size={14} /> Ya no lo quiero
                             </Boton>
                           </div>
@@ -148,17 +154,17 @@ export function DeseosPage() {
                       <TarjetaDeseo key={deseo.id} deseo={deseo} {...tarjetaProps}>
                         <div className="flex flex-wrap gap-1.5">
                           {deseo.meta_id === null && (
-                            <Boton variante="secundario" className="px-2.5 py-1 text-xs" onClick={() => accion(deseosApi.crearMeta(deseo.id))}>
+                            <Boton disabled={enCurso === deseo.id} variante="secundario" className="px-2.5 py-1 text-xs" onClick={() => accion(deseo, () => deseosApi.crearMeta(deseo.id))}>
                               <PiggyBank size={14} /> Ahorrar para esto
                             </Boton>
                           )}
-                          <Boton variante="secundario" className="px-2.5 py-1 text-xs" onClick={() => accion(deseosApi.reflexionar(deseo.id, 7))}>
+                          <Boton disabled={enCurso === deseo.id} variante="secundario" className="px-2.5 py-1 text-xs" onClick={() => accion(deseo, () => deseosApi.reflexionar(deseo.id, 7))}>
                             <Hourglass size={14} /> Pensarlo 1 semana
                           </Boton>
-                          <Boton variante="fantasma" className="px-2.5 py-1 text-xs" onClick={() => decidir(deseo, "comprar")}>
+                          <Boton disabled={enCurso === deseo.id} variante="fantasma" className="px-2.5 py-1 text-xs" onClick={() => decidir(deseo, "comprar")}>
                             <ShoppingBag size={14} /> Lo compré
                           </Boton>
-                          <Boton variante="fantasma" className="px-2.5 py-1 text-xs" onClick={() => decidir(deseo, "descartar")}>
+                          <Boton disabled={enCurso === deseo.id} variante="fantasma" className="px-2.5 py-1 text-xs" onClick={() => decidir(deseo, "descartar")}>
                             <X size={14} /> Descartar
                           </Boton>
                         </div>
@@ -181,12 +187,15 @@ export function DeseosPage() {
                     <ul className="divide-y divide-linea text-sm">
                       {historial.map((deseo) => (
                         <li key={deseo.id} className="flex items-center gap-3 py-2.5">
-                          <span className="min-w-0 flex-1 truncate">{deseo.nombre}</span>
-                          <span className={`text-xs ${deseo.estado === "descartado" ? "text-ingreso" : "text-tenue"}`}>
-                            {deseo.estado === "descartado" ? "No lo compraste" : "Comprado"}
-                            {deseo.fecha_decision && ` · ${formatearFecha(deseo.fecha_decision)}`}
-                          </span>
-                          <span className="tabular-nums">{formatearDinero(deseo.precio, deseo.moneda)}</span>
+                          {/* Nombre y estado apilados: a 390 px no caben en línea con el precio y las acciones. */}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate">{deseo.nombre}</p>
+                            <p className={`truncate text-xs ${deseo.estado === "descartado" ? "text-ingreso" : "text-tenue"}`}>
+                              {deseo.estado === "descartado" ? "No lo compraste" : "Comprado"}
+                              {deseo.fecha_decision && ` · ${formatearFecha(deseo.fecha_decision)}`}
+                            </p>
+                          </div>
+                          <span className="shrink-0 tabular-nums">{formatearDinero(deseo.precio, deseo.moneda)}</span>
                           <AccionesFila nombre={deseo.nombre} onEditar={() => setModal(deseo)} onEliminar={() => tarjetaProps.onEliminar(deseo)} />
                         </li>
                       ))}
