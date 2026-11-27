@@ -117,6 +117,16 @@ export interface PaginaTransacciones {
   total_gastos: Dinero;
 }
 
+/** Cambios en lote: lo que no se envía se queda como está (refleja TransaccionesLoteUpdate). */
+export interface CambiosLote {
+  cuenta_id?: number;
+  categoria_id?: number;
+}
+
+export interface ResultadoLote {
+  afectadas: number;
+}
+
 // --- Importar extractos bancarios -------------------------------------------
 /** Un movimiento del archivo tal como se importaría (vista previa, aún sin guardar). */
 export interface FilaImportacion {

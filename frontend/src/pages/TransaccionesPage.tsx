@@ -1,4 +1,4 @@
-import { Plus, Upload } from "lucide-react";
+import { ListChecks, Plus, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { categoriasApi, cuentasApi, transaccionesApi } from "../api/recursos";
@@ -6,6 +6,7 @@ import { FormularioRegistroRapido } from "../components/formularios/FormularioRe
 import { FormularioTransaccion } from "../components/formularios/FormularioTransaccion";
 import { ImportarExtracto } from "../components/importacion/ImportarExtracto";
 import { BarraFiltros } from "../components/transacciones/BarraFiltros";
+import { BarraSeleccion } from "../components/transacciones/BarraSeleccion";
 import { FilaTransaccion } from "../components/transacciones/FilaTransaccion";
 import { Boton } from "../components/ui/Boton";
 import { Consejo } from "../components/ui/Consejo";
@@ -25,6 +26,8 @@ type EstadoModal = null | "nueva" | "importar" | Transaccion;
 export function TransaccionesPage() {
   const { filtros, cambiar, limpiar } = useFiltrosTransacciones();
   const [modal, setModal] = useState<EstadoModal>(null);
+  // Modo selección (edición en masa): null = apagado. Solo cuentan las marcadas que se ven.
+  const [marcadas, setMarcadas] = useState<Set<number> | null>(null);
 
   // Categorías y cuentas se cargan una vez; los resultados, con cada cambio de filtros.
   // JSON.stringify: una dependencia que solo cambia cuando cambia algún filtro.
@@ -45,6 +48,18 @@ export function TransaccionesPage() {
     resultados.recargar();
   }
 
+  /** Marca o desmarca varias a la vez (una fila, o todas las visibles). */
+  function marcar(ids: number[], marcada: boolean) {
+    setMarcadas((actuales) => {
+      const nuevas = new Set(actuales);
+      for (const id of ids) {
+        if (marcada) nuevas.add(id);
+        else nuevas.delete(id);
+      }
+      return nuevas;
+    });
+  }
+
   return (
     <>
       <EncabezadoPagina
@@ -54,6 +69,9 @@ export function TransaccionesPage() {
         acciones={
           <>
             <Boton variante="secundario" onClick={() => setModal("importar")}><Upload size={16} /> Importar</Boton>
+            <Boton variante="secundario" aria-pressed={marcadas !== null} onClick={() => setMarcadas((m) => (m ? null : new Set()))}>
+              <ListChecks size={16} /> {marcadas ? "Terminar" : "Seleccionar"}
+            </Boton>
             <Consejo alinear="fin" texto="Descarga los movimientos desde la web de tu banco (CSV o Excel) e impórtalos: verás una vista previa, los duplicados se marcan solos y nada se guarda hasta que confirmes." />
             <Boton onClick={() => setModal("nueva")}><Plus size={16} /> Nueva</Boton>
           </>
@@ -66,6 +84,10 @@ export function TransaccionesPage() {
           const categoriaPorId = new Map(categorias.map((c) => [c.id, c]));
           const cuentaPorId = new Map(cuentas.map((c) => [c.id, c]));
           const pagina = resultados.datos;
+          // Las comisiones de transferencias no se editan aquí: no entran en "todo lo visible".
+          const editables = pagina?.items.filter((t) => t.transferencia_id === null) ?? [];
+          const seleccionadas = marcadas ? editables.filter((t) => marcadas.has(t.id)) : [];
+          const todasMarcadas = editables.length > 0 && seleccionadas.length === editables.length;
 
           return (
             <>
@@ -93,6 +115,37 @@ export function TransaccionesPage() {
                   // Mientras llegan resultados nuevos se atenúan los anteriores en vez de
                   // mostrar "Cargando…": así la lista no parpadea al escribir.
                   <div className={`transition-opacity ${resultados.cargando ? "opacity-50" : ""}`}>
+                    {marcadas && (
+                      <div className="space-y-3 border-b border-linea pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                          <label className="flex items-center gap-2 font-medium">
+                            <input
+                              type="checkbox"
+                              className="size-4 accent-acento-600"
+                              checked={todasMarcadas}
+                              // A medias: el navegador pinta un guion y lo anuncia como "mixto".
+                              ref={(casilla) => {
+                                if (casilla) casilla.indeterminate = seleccionadas.length > 0 && !todasMarcadas;
+                              }}
+                              onChange={() => marcar(editables.map((t) => t.id), !todasMarcadas)}
+                            />
+                            Seleccionar todo lo visible
+                          </label>
+                          <span className="text-tenue" aria-live="polite">
+                            <strong className="tabular-nums text-texto">{seleccionadas.length}</strong> de {editables.length} seleccionada{editables.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        <BarraSeleccion
+                          seleccionadas={seleccionadas}
+                          cuentas={cuentas}
+                          categorias={categorias}
+                          onHecho={() => {
+                            setMarcadas(new Set());
+                            resultados.recargar();
+                          }}
+                        />
+                      </div>
+                    )}
                     <ul className="divide-y divide-linea">
                       {pagina.items.map((transaccion) => (
                         <FilaTransaccion
@@ -103,6 +156,11 @@ export function TransaccionesPage() {
                           onEditar={() => setModal(transaccion)}
                           onEliminar={() =>
                             confirmarYEliminar("¿Eliminar esta transacción?", () => transaccionesApi.eliminar(transaccion.id), resultados.recargar)
+                          }
+                          seleccion={
+                            marcadas
+                              ? { marcada: marcadas.has(transaccion.id), onAlternar: () => marcar([transaccion.id], !marcadas.has(transaccion.id)) }
+                              : undefined
                           }
                         />
                       ))}

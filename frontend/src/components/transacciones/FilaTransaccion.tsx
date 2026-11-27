@@ -13,12 +13,27 @@ interface FilaTransaccionProps {
   cuenta: Cuenta | undefined;
   onEditar: () => void;
   onEliminar: () => void;
+  /** En el modo selección (edición en masa): la casilla de la fila. */
+  seleccion?: { marcada: boolean; onAlternar: () => void };
 }
 
-export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEliminar }: FilaTransaccionProps) {
+export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEliminar, seleccion }: FilaTransaccionProps) {
   const esGasto = transaccion.tipo === "gasto";
+  const esComision = transaccion.transferencia_id !== null;
   return (
     <li className="flex items-center gap-3 py-3">
+      {seleccion && (
+        <input
+          type="checkbox"
+          className="size-4 shrink-0 accent-acento-600"
+          checked={seleccion.marcada}
+          onChange={seleccion.onAlternar}
+          // La comisión de una transferencia solo se cambia desde la transferencia.
+          disabled={esComision}
+          title={esComision ? "Comisión de una transferencia: se edita desde Cuentas" : undefined}
+          aria-label={`Seleccionar ${transaccion.notas || categoria?.nombre || "movimiento"} del ${formatearFecha(transaccion.fecha)}`}
+        />
+      )}
       <IconoCategoria icono={categoria?.icono ?? "circle"} color={categoria?.color ?? COLOR_CATEGORIA_POR_DEFECTO} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{categoria?.nombre ?? "Sin categoría"}</p>
@@ -39,7 +54,7 @@ export function FilaTransaccion({ transaccion, categoria, cuenta, onEditar, onEl
           </span>
         )}
       </span>
-      {transaccion.transferencia_id === null ? (
+      {!esComision ? (
         <AccionesFila nombre={transaccion.notas || categoria?.nombre} onEditar={onEditar} onEliminar={onEliminar} />
       ) : (
         // La comisión de una transferencia se cambia desde la transferencia.

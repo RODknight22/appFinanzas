@@ -5,6 +5,7 @@
 import type {
   AjusteSaldo,
   AportacionMeta,
+  CambiosLote,
   Categoria,
   CobroIngreso,
   CopiaPresupuestos,
@@ -31,6 +32,7 @@ import type {
   Presupuesto,
   ReglaCategoria,
   ResultadoImportacion,
+  ResultadoLote,
   SentidoDeuda,
   Suscripcion,
   TipoMovimiento,
@@ -88,6 +90,11 @@ export const transaccionesApi = {
   /** Una página de resultados con el total de coincidencias y sus sumas. */
   buscar: (filtros: FiltrosTransacciones) =>
     http.get<PaginaTransacciones>("/transacciones/buscar", filtros as Record<string, string>),
+  /** Cambia la cuenta y/o la categoría de varias a la vez: todas o ninguna. */
+  actualizarLote: (ids: number[], cambios: CambiosLote) =>
+    http.patch<ResultadoLote>("/transacciones/lote", { ids, ...cambios }),
+  /** Borra varias a la vez: todas o ninguna. */
+  eliminarLote: (ids: number[]) => http.delete<ResultadoLote>("/transacciones/lote", { ids }),
 };
 export const transferenciasApi = {
   ...crearRecurso<Transferencia, { cuenta_id?: number; limit?: number }>("/transferencias"),
