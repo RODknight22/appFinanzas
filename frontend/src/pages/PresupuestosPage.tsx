@@ -90,7 +90,8 @@ export function PresupuestosPage() {
                     <strong className="text-texto">{formatearMesEnFrase(copiables.desde)}</strong>?
                   </span>
                   <Boton variante="secundario" onClick={copiar} disabled={copia.enviando}>
-                    <Copy size={16} /> Copiar {copiables.cantidad} {copiables.cantidad === 1 ? "presupuesto" : "presupuestos"}
+                    <Copy size={16} />
+                    {copia.enviando ? "Copiando…" : `Copiar ${copiables.cantidad} ${copiables.cantidad === 1 ? "presupuesto" : "presupuestos"}`}
                   </Boton>
                 </div>
               )}
@@ -106,7 +107,7 @@ export function PresupuestosPage() {
                   <ul className="space-y-6">
                     {progresos.map((progreso) => (
                       <li key={progreso.presupuesto_id} className="flex items-start gap-3">
-                        <div className="flex-1">
+                        <div className="min-w-0 flex-1">
                           <BarraPresupuesto progreso={progreso} />
                         </div>
                         <AccionesFila

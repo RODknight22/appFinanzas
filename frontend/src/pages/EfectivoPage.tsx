@@ -313,7 +313,7 @@ function FilaMovimientoCartera({ transferencia: t, origen, destino }: FilaMovimi
         to="/cuentas"
         title="Las transferencias se editan desde Cuentas"
         aria-label="Editar desde Cuentas"
-        className="shrink-0 rounded-lg p-1.5 text-tenue-2 transition-colors hover:bg-realce hover:text-texto"
+        className="shrink-0 rounded-lg p-2.5 text-tenue transition-colors hover:bg-realce hover:text-texto sm:p-1.5"
       >
         <ArrowRight size={16} />
       </Link>

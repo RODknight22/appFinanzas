@@ -1,14 +1,19 @@
 """Endpoints de solo lectura que alimentan el dashboard del frontend."""
 
+from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
 from app.database import SessionDep
 from app.schemas import (
+    AhorroAnual,
+    ComparativaPeriodo,
     FlujoMensual,
     GastoDiario,
     GastoPorCategoria,
+    GastoPorComercio,
+    GastoPorCuenta,
     PlanMes,
     PoderAdquisitivo,
     ProgresoPresupuesto,
@@ -22,12 +27,24 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 # Si no se indica el mes, se usa el actual.
 MesParam = Annotated[str | None, Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")]
+# Rango libre ("últimos 7 días"): los dos días incluidos. Sin ellos, el mes.
+FechaParam = Annotated[date | None, Query()]
+
+
+def _periodo(
+    session: SessionDep, mes_anio: MesParam = None, desde: FechaParam = None, hasta: FechaParam = None
+) -> servicio.Periodo:
+    """El periodo pedido: `desde`/`hasta` si vienen; si no, el mes (el actual por defecto)."""
+    return servicio.resolver_periodo(session, mes_anio or servicio.mes_actual(session), desde, hasta)
+
+
+PeriodoDep = Annotated[servicio.Periodo, Depends(_periodo)]
 
 
 @router.get("/resumen", response_model=ResumenMes)
-def resumen(session: SessionDep, mes_anio: MesParam = None):
-    """Balance global, saldo por cuenta e ingresos/gastos/flujo neto del mes."""
-    return servicio.resumen(session, mes_anio or servicio.mes_actual(session))
+def resumen(session: SessionDep, periodo: PeriodoDep):
+    """Balance global, saldo por cuenta e ingresos/gastos/flujo neto del mes o del periodo."""
+    return servicio.resumen(session, periodo.mes_anio, periodo)
 
 
 @router.get("/flujo-mensual", response_model=list[FlujoMensual])
@@ -41,9 +58,33 @@ def flujo_mensual(
 
 
 @router.get("/gastos-por-categoria", response_model=list[GastoPorCategoria])
-def gastos_por_categoria(session: SessionDep, mes_anio: MesParam = None):
-    """Gastos del mes agrupados por categoría, de mayor a menor."""
-    return servicio.gastos_por_categoria(session, mes_anio or servicio.mes_actual(session))
+def gastos_por_categoria(session: SessionDep, periodo: PeriodoDep):
+    """Gastos del mes (o del periodo) agrupados por categoría, de mayor a menor."""
+    return servicio.gastos_por_categoria(session, periodo.mes_anio, periodo)
+
+
+@router.get("/comparativa", response_model=ComparativaPeriodo)
+def comparativa(session: SessionDep, periodo: PeriodoDep):
+    """Ingresos y gastos del periodo frente al anterior, con su variación en %."""
+    return servicio.comparativa(session, periodo)
+
+
+@router.get("/top-comercios", response_model=list[GastoPorComercio])
+def top_comercios(session: SessionDep, periodo: PeriodoDep, limite: Annotated[int, Query(ge=1, le=20)] = 5):
+    """Dónde más se gastó en el periodo, agrupando por la descripción de cada gasto."""
+    return servicio.top_comercios(session, periodo, limite)
+
+
+@router.get("/gastos-por-cuenta", response_model=list[GastoPorCuenta])
+def gastos_por_cuenta(session: SessionDep, periodo: PeriodoDep):
+    """Reparto del gasto del periodo entre cuentas, de mayor a menor."""
+    return servicio.gastos_por_cuenta(session, periodo)
+
+
+@router.get("/ahorro-anual", response_model=AhorroAnual)
+def ahorro_anual(session: SessionDep, anio: Annotated[int | None, Query(ge=2000, le=2100)] = None):
+    """Ingresos − gastos de cada mes del año (el actual por defecto) y su acumulado."""
+    return servicio.ahorro_anual(session, anio or int(servicio.mes_actual(session)[:4]))
 
 
 @router.get("/presupuestos", response_model=list[ProgresoPresupuesto])

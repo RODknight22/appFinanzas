@@ -29,14 +29,15 @@ export function Consejo({ texto, alinear = "inicio" }: ConsejoProps) {
         onBlur={() => setAbierto(false)}
         aria-label="Consejo"
         aria-expanded={abierto}
-        className="rounded-full p-1 text-amber-500 transition-colors hover:bg-realce"
+        // -m-1: el área táctil crece sin mover el título que tiene al lado.
+        className="-m-1 rounded-full p-2 text-aviso hover:bg-realce"
       >
         <Lightbulb size={16} />
       </button>
       {abierto && (
         <span
           role="tooltip"
-          className={`absolute top-full z-40 mt-1.5 w-64 max-w-[80vw] animate-entrada rounded-xl bg-superficie p-3 text-left text-xs leading-relaxed font-normal tracking-normal text-suave shadow-2xl ring-1 ring-linea ${ALINEACION[alinear]}`}
+          className={`absolute top-full z-40 mt-1.5 w-64 max-w-[80vw] origin-top animate-aparecer rounded-xl bg-superficie p-3 text-left text-xs leading-relaxed font-normal tracking-normal text-suave shadow-2xl ring-1 ring-linea ${ALINEACION[alinear]}`}
         >
           {texto}
         </span>

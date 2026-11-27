@@ -82,8 +82,8 @@ export function IngresosPage() {
                   <ul className="divide-y divide-linea">
                     {ingresos.map((ingreso) => {
                       const dias = diasHasta(ingreso.fecha_proximo_cobro);
-                      // Ámbar si ya debería haber llegado; acento si llega esta semana.
-                      const colorFecha = dias < 0 ? "text-amber-600" : dias <= 7 ? "text-acento-600" : "text-tenue";
+                      // Misma regla que Suscripciones: rojo si va atrasado, ámbar si llega esta semana.
+                      const colorFecha = dias < 0 ? "text-peligro" : dias <= 7 ? "text-aviso" : "text-tenue";
                       const categoria = categoriaPorId.get(ingreso.categoria_id);
                       return (
                         <li key={ingreso.id} className="flex flex-wrap items-center gap-3 py-3">

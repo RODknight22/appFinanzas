@@ -53,7 +53,7 @@ export function CategoriaRapida({ tipo, onCreada, onCancelar }: CategoriaRapidaP
           aria-label="Nombre de la nueva categoría"
           autoFocus
         />
-        <Boton onClick={crear} disabled={enviando || !nombre.trim()}>Crear</Boton>
+        <Boton onClick={crear} disabled={enviando || !nombre.trim()}>{enviando ? "Creando…" : "Crear"}</Boton>
         <Boton variante="fantasma" onClick={onCancelar}>Cancelar</Boton>
       </div>
       <ErrorFormulario mensaje={error} />

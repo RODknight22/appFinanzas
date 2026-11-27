@@ -10,9 +10,16 @@ import { formatearDinero, hoyISO } from "../../utils/formato";
 import { SelectMoneda } from "../ui/SelectMoneda";
 import { Boton } from "../ui/Boton";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { ControlSegmentado, type OpcionSegmentada } from "../ui/ControlSegmentado";
 import { SelectorFecha } from "../ui/SelectorFecha";
 import { CategoriaRapida } from "./CategoriaRapida";
 import { PieFormulario } from "./PieFormulario";
+
+/** Interruptor gasto/ingreso (también en el registro rápido): cada lado con su color. */
+export const TIPOS_MOVIMIENTO: OpcionSegmentada<TipoMovimiento>[] = [
+  { valor: "gasto", etiqueta: "Gasto", claseActiva: "bg-gasto-fuerte text-white" },
+  { valor: "ingreso", etiqueta: "Ingreso", claseActiva: "bg-ingreso-fuerte text-white" },
+];
 
 interface VistaPreviaProps {
   monto: number;
@@ -114,22 +121,7 @@ export function FormularioTransaccion({ inicial, categorias, cuentas, onGuardado
   return (
     <form onSubmit={enviar} className="space-y-4">
       {/* Interruptor gasto/ingreso: lo primero que se decide al anotar un movimiento */}
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-superficie-2 p-1">
-        {(["gasto", "ingreso"] as const).map((opcion) => (
-          <button
-            key={opcion}
-            type="button"
-            onClick={() => cambiarTipo(opcion)}
-            className={`rounded-lg py-2 text-sm font-medium capitalize transition ${
-              tipo === opcion
-                ? opcion === "gasto" ? "bg-gasto-fuerte text-white" : "bg-ingreso-fuerte text-white"
-                : "text-tenue"
-            }`}
-          >
-            {opcion}
-          </button>
-        ))}
-      </div>
+      <ControlSegmentado etiqueta="Tipo de movimiento" opciones={TIPOS_MOVIMIENTO} valor={tipo} onCambiar={cambiarTipo} />
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">

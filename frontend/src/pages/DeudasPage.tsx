@@ -67,7 +67,7 @@ export function DeudasPage() {
                     type="button"
                     onClick={() => setSentido(lado)}
                     aria-pressed={sentido === lado}
-                    className={`rounded-3xl p-5 text-left ring-1 transition ${
+                    className={`elevable rounded-3xl p-5 text-left ring-1 ${
                       sentido === lado ? "bg-superficie shadow-[var(--sombra)] ring-acento-500" : "bg-superficie/60 ring-linea hover:bg-superficie"
                     }`}
                   >
@@ -171,7 +171,7 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
             <p className="text-xs text-exito">Saldada el {formatearFecha(deuda.fecha_saldada!)}</p>
           ) : (
             deuda.fecha_vencimiento && (
-              <p className={`text-xs ${deuda.vencida ? "text-amber-600 dark:text-amber-400" : "text-tenue"}`}>
+              <p className={`text-xs ${deuda.vencida ? "text-aviso" : "text-tenue"}`}>
                 Vence: {formatearFecha(deuda.fecha_vencimiento)} ({textoVencimiento(deuda.fecha_vencimiento).toLowerCase()})
               </p>
             )
@@ -211,8 +211,8 @@ function FilaDeuda({ deuda, cuentaPorId, onAbonar, onEditar, onEliminar, onElimi
                     {abono.cuenta_id !== null && cuentaPorId.get(abono.cuenta_id)?.nombre}
                     {abono.notas && ` · ${abono.notas}`}
                   </span>
-                  <button type="button" onClick={() => onEliminarAbono(abono.id)} aria-label="Eliminar abono" className="rounded p-1 text-tenue-2 hover:text-peligro">
-                    <Trash2 size={12} />
+                  <button type="button" onClick={() => onEliminarAbono(abono.id)} aria-label="Eliminar abono" className="shrink-0 rounded-lg p-2.5 text-tenue hover:bg-realce hover:text-peligro sm:p-1.5">
+                    <Trash2 size={16} />
                   </button>
                 </li>
               ))}

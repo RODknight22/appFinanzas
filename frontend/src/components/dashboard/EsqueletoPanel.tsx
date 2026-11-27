@@ -1,10 +1,10 @@
-/** Bloques grises con la forma del panel mientras llegan los datos (primera carga). */
+/** Bloques grises con la forma del panel por defecto mientras llegan los datos (primera carga). */
 const BLOQUES = [
   "col-span-2 h-40",
   "col-span-1 h-40",
   "col-span-1 h-40",
-  "col-span-2 h-64 lg:col-span-3",
-  "col-span-2 h-64 lg:col-span-1",
+  "col-span-2 h-80",
+  "col-span-2 h-80",
   "col-span-2 h-72",
   "col-span-2 h-72",
 ];

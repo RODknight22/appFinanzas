@@ -37,7 +37,7 @@ export function MenuMas({ enlaces, tema, onAlternarTema, onCerrarSesion, usuario
 
   return createPortal(
     <div className="fixed inset-0 z-50 md:hidden">
-      <button type="button" aria-label="Cerrar menú" tabIndex={-1} onClick={onCerrar} className="absolute inset-0 bg-black/40" />
+      <button type="button" aria-label="Cerrar menú" tabIndex={-1} onClick={onCerrar} className="sin-pulsar absolute inset-0 animate-fundido bg-black/40" />
       <div
         ref={panel}
         role="dialog"
@@ -47,7 +47,7 @@ export function MenuMas({ enlaces, tema, onAlternarTema, onCerrarSesion, usuario
       >
         <div className="mb-1 flex items-center justify-between px-4 pt-1">
           <p className="text-xs font-semibold text-tenue">Más</p>
-          <button type="button" onClick={onCerrar} aria-label="Cerrar" className="rounded-lg p-1.5 text-tenue hover:bg-realce">
+          <button type="button" onClick={onCerrar} aria-label="Cerrar" className="-mr-2 rounded-lg p-2 text-tenue hover:bg-realce hover:text-texto">
             <X size={18} />
           </button>
         </div>

@@ -5,7 +5,7 @@ import { IconoCategoria } from "../ui/IconoCategoria";
 
 /** Aspecto de cada casilla; también para botones extra como "Nueva". */
 export const CLASE_CASILLA =
-  "flex flex-col items-center gap-1.5 rounded-xl p-2 text-xs font-medium ring-1 ring-linea transition hover:bg-realce active:scale-95 disabled:opacity-50";
+  "flex flex-col items-center gap-1.5 rounded-xl p-2 text-xs font-medium ring-1 ring-linea transition hover:bg-realce disabled:opacity-50";
 
 interface RejillaCategoriasProps {
   categorias: Categoria[];

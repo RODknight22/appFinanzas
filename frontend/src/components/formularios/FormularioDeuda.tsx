@@ -6,6 +6,7 @@ import { useEnvio } from "../../hooks/useEnvio";
 import type { Cuenta, Deuda, Moneda, SentidoDeuda } from "../../types";
 import { hoyISO } from "../../utils/formato";
 import { CLASE_ENTRADA, Campo } from "../ui/Campo";
+import { ControlSegmentado } from "../ui/ControlSegmentado";
 import { SelectMoneda } from "../ui/SelectMoneda";
 import { SelectorFecha } from "../ui/SelectorFecha";
 import { PieFormulario } from "./PieFormulario";
@@ -56,18 +57,14 @@ export function FormularioDeuda({ inicial, sentidoInicial, cuentas, onGuardado, 
     if (ok) onGuardado();
   }
 
-  const claseSentido = (activo: boolean) =>
-    `rounded-full py-2 text-sm font-semibold transition-colors ${activo ? "bg-superficie text-texto shadow-[var(--sombra)]" : "text-tenue hover:text-texto"}`;
-
   return (
     <form onSubmit={enviar} className="space-y-4">
-      <div className="grid grid-cols-2 rounded-full bg-superficie-2 p-1" role="group" aria-label="Tipo de deuda">
-        {(Object.keys(SENTIDOS) as SentidoDeuda[]).map((valor) => (
-          <button key={valor} type="button" onClick={() => setSentido(valor)} aria-pressed={sentido === valor} className={claseSentido(sentido === valor)}>
-            {SENTIDOS[valor].etiqueta}
-          </button>
-        ))}
-      </div>
+      <ControlSegmentado
+        etiqueta="Tipo de deuda"
+        opciones={(Object.keys(SENTIDOS) as SentidoDeuda[]).map((valor) => ({ valor, etiqueta: SENTIDOS[valor].etiqueta }))}
+        valor={sentido}
+        onCambiar={setSentido}
+      />
 
       <Campo etiqueta={sentido === "me_deben" ? "¿A quién?" : "¿Quién?"}>
         <input className={CLASE_ENTRADA} value={persona} onChange={(e) => setPersona(e.target.value)} required maxLength={100} placeholder="Ej.: Ana, mi hermano" autoFocus />
